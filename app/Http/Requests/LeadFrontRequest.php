@@ -30,7 +30,7 @@ class LeadFrontRequest extends FormRequest
             'lead_front_sdm' => 'required|boolean',
             'lead_front_liquid' => 'required|boolean',
             'lead_front_bank_name' => 'required|string',
-            'lead_front_bank_account' => 'required|integer|unique:lead_front,bank_account',
+            'lead_front_bank_account' => 'required|integer',
             'lead_front_note' => 'required|string',
             'lead_front_commission' => 'required|decimal:0,2',
             'lead_front_vc' => 'required|string',

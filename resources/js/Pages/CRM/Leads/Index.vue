@@ -23,6 +23,7 @@ const colArray = ref([
     { field: "data_code", title: "DATA CODE", headerClass: "text-gray-300 text-sm"  },
 ]);
 const targetApi = '/data/leads';
+const categoryFilters = '/data/leads/categories';
 const detailsLink = 'leads/';
 
 </script>
@@ -63,6 +64,7 @@ const detailsLink = 'leads/';
 					:cols="colArray" 
 					:targetApi="targetApi"
 					:detailsLink="detailsLink"
+					:categoryFilters="categoryFilters"
 				></Vue3Datatable>
 			</div>
 		</div>

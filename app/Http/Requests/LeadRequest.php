@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class LeadRequest extends FormRequest
@@ -21,44 +22,117 @@ class LeadRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'first_name' => 'required|string|max:150',
-            'last_name' => 'string|nullable|max:150',
-            'country' => 'string|nullable|max:100',
-            'address' => 'string|nullable|max:200', 
-            'date_oppd_in' => 'date_format:Y-m-d H:i:s|nullable',
-            'campaign_product' => 'string|nullable|max:100', 
-            'sdm' => 'string|nullable|max:100', 
-            'date_of_birth' => 'date_format:Y-m-d|nullable',
-            'occupation' => 'string|nullable|max:150', 
-            'agents_book' => 'string|nullable|max:150', 
-            'account_manager' => 'string|nullable', 
-            'vc' => 'required|string|max:100',
-            'data_type' => 'string|nullable|max:100',
-            'data_source' => 'string|nullable|max:100',
-            'data_code' => 'string|nullable|max:100',
-            'email' => 'required|email:rfc,dns|unique:leads',
-            'email_alt_1' => 'nullable|email|unique:leads', 
-            'email_alt_2' => 'nullable|email|unique:leads', 
-            'email_alt_3' => 'nullable|email|unique:leads', 
-            'phone_number' => 'required|integer|unique:leads',
-            'phone_number_alt_1' => 'integer|nullable|unique:leads',
-            'phone_number_alt_2' => 'integer|nullable|unique:leads',
-            'phone_number_alt_3' => 'integer|nullable|unique:leads',
-            'private_remark' => 'string|nullable|max:1000', 
-            'remark' => 'string|nullable|max:1000', 
-            'appointment_start_at' => 'date_format:Y-m-d H:i:s|nullable',
-            'appointment_end_at' => 'date_format:Y-m-d H:i:s|nullable',
-            'last_called' => 'required|date_format:Y-m-d H:i:s',
-            'assignee_read_at' => 'date_format:Y-m-d H:i:s|nullable',
-            'give_up_at' => 'date_format:Y-m-d H:i:s|nullable',
-            'appointment_label' => 'string|nullable', 
-            'contact_outcome' => 'string|nullable', 
-            'stage' => 'string|nullable', 
-            'assignee' => 'required|string', 
-            'created_by' => 'string|nullable', 
-            'delete_at' => 'date_format:Y-m-d H:i:s|nullable',
-        ];
+        if ($this->input('id')) {
+            return [
+                'first_name' => 'required|string|max:150',
+                'last_name' => 'string|nullable|max:150',
+                'country' => 'string|nullable|max:100',
+                'address' => 'string|nullable|max:200', 
+                'date_oppd_in' => 'date_format:Y-m-d H:i:s|nullable',
+                'campaign_product' => 'string|nullable|max:100', 
+                'sdm' => 'string|nullable|max:100', 
+                'date_of_birth' => 'date_format:Y-m-d|nullable',
+                'occupation' => 'string|nullable|max:150', 
+                'agents_book' => 'string|nullable|max:150', 
+                'account_manager' => 'string|nullable', 
+                'vc' => 'required|string|max:100',
+                'data_type' => 'string|nullable|max:100',
+                'data_source' => 'string|nullable|max:100',
+                'data_code' => 'string|nullable|max:100',
+                'email' => [
+                    'required',
+                    'email:rfc,dns',
+                    Rule::unique('leads')->ignore($this->input('id')),
+                ],
+                'email_alt_1' => [
+                    'nullable',
+                    'email:rfc,dns',
+                    Rule::unique('leads')->ignore($this->input('id')),
+                ],
+                'email_alt_2' => [
+                    'nullable',
+                    'email:rfc,dns',
+                    Rule::unique('leads')->ignore($this->input('id')),
+                ], 
+                'email_alt_3' => [
+                    'nullable',
+                    'email:rfc,dns',
+                    Rule::unique('leads')->ignore($this->input('id')),
+                ],
+                'phone_number' => [
+                    'required',
+                    'integer',
+                    Rule::unique('leads')->ignore($this->input('id')),
+                ],
+                'phone_number_alt_1' => [
+                    'nullable',
+                    'integer',
+                    Rule::unique('leads')->ignore($this->input('id')),
+                ],
+                'phone_number_alt_2' => [
+                    'nullable',
+                    'integer',
+                    Rule::unique('leads')->ignore($this->input('id')),
+                ],
+                'phone_number_alt_3' => [
+                    'nullable',
+                    'integer',
+                    Rule::unique('leads')->ignore($this->input('id')),
+                ],
+                'private_remark' => 'string|nullable|max:1000', 
+                'remark' => 'string|nullable|max:1000', 
+                'appointment_start_at' => 'date_format:Y-m-d H:i:s|nullable',
+                'appointment_end_at' => 'date_format:Y-m-d H:i:s|nullable',
+                'last_called' => 'required|date_format:Y-m-d H:i:s',
+                'assignee_read_at' => 'date_format:Y-m-d H:i:s|nullable',
+                'give_up_at' => 'date_format:Y-m-d H:i:s|nullable',
+                'appointment_label' => 'string|nullable', 
+                'contact_outcome' => 'string|nullable', 
+                'stage' => 'string|nullable', 
+                'assignee' => 'required|string', 
+                'created_by' => 'string|nullable', 
+                'delete_at' => 'date_format:Y-m-d H:i:s|nullable',
+            ];
+        } else {
+            return [
+                'first_name' => 'required|string|max:150',
+                'last_name' => 'string|nullable|max:150',
+                'country' => 'string|nullable|max:100',
+                'address' => 'string|nullable|max:200', 
+                'date_oppd_in' => 'date_format:Y-m-d H:i:s|nullable',
+                'campaign_product' => 'string|nullable|max:100', 
+                'sdm' => 'string|nullable|max:100', 
+                'date_of_birth' => 'date_format:Y-m-d|nullable',
+                'occupation' => 'string|nullable|max:150', 
+                'agents_book' => 'string|nullable|max:150', 
+                'account_manager' => 'string|nullable', 
+                'vc' => 'required|string|max:100',
+                'data_type' => 'string|nullable|max:100',
+                'data_source' => 'string|nullable|max:100',
+                'data_code' => 'string|nullable|max:100',
+                'email' => 'required|email:rfc,dns|unique:leads',
+                'email_alt_1' => 'nullable|email|unique:leads', 
+                'email_alt_2' => 'nullable|email|unique:leads', 
+                'email_alt_3' => 'nullable|email|unique:leads', 
+                'phone_number' => 'required|integer|unique:leads',
+                'phone_number_alt_1' => 'integer|nullable|unique:leads',
+                'phone_number_alt_2' => 'integer|nullable|unique:leads',
+                'phone_number_alt_3' => 'integer|nullable|unique:leads',
+                'private_remark' => 'string|nullable|max:1000', 
+                'remark' => 'string|nullable|max:1000', 
+                'appointment_start_at' => 'date_format:Y-m-d H:i:s|nullable',
+                'appointment_end_at' => 'date_format:Y-m-d H:i:s|nullable',
+                'last_called' => 'required|date_format:Y-m-d H:i:s',
+                'assignee_read_at' => 'date_format:Y-m-d H:i:s|nullable',
+                'give_up_at' => 'date_format:Y-m-d H:i:s|nullable',
+                'appointment_label' => 'string|nullable', 
+                'contact_outcome' => 'string|nullable', 
+                'stage' => 'string|nullable', 
+                'assignee' => 'required|string', 
+                'created_by' => 'string|nullable', 
+                'delete_at' => 'date_format:Y-m-d H:i:s|nullable',
+            ];
+        }
     }
 
     public function attributes(): array

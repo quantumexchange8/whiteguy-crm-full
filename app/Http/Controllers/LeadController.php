@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
+use Inertia\Inertia;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\LeadFrontRequest;
 use App\Http\Requests\LeadNotesRequest;
 use App\Http\Requests\LeadRequest;
-use App\Models\Lead;
 use App\Models\LeadFront;
 use App\Models\LeadNote;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Inertia\Inertia;
+use App\Models\Lead;
 
 class LeadController extends Controller
 {
@@ -185,8 +188,9 @@ class LeadController extends Controller
     public function update(LeadRequest $request, string $id)
     {
         $data = $request->all();
-
+        
         // dd($request->lead_notes);
+
         // Additional validation based on user selection (Lead Front | Lead Notes)
         if ($data['create_lead_front']) {
             $leadFrontRequest = new LeadFrontRequest();
@@ -361,13 +365,113 @@ class LeadController extends Controller
     }
 
     public function getLeads(Request $request)
-    {   
+    {
+        if ($request->category) {
+            // Fetch filtered announcements
+            if ($request->category === 'last_called' || $request->category === 'give_up_at') {
+                switch($request->catergory_name) {
+                    case('Today'):
+                        $data = Lead::whereBetween($request->category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()])
+                                        ->get();
+                        
+                        // $date = Carbon::now()->subDays(7)->toDateTimeString();
+                        break;
+                    case('Past 7 days'):
+                        $data = Lead::whereBetween($request->category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()])
+                                        ->get();
+                        
+                        break;
+                    case('This month'):
+                        $data = DB::table('leads')
+                                    ->whereMonth($request->category, Carbon::today()->month)
+                                    ->get();
+                        
+                        break;
+                    case('This year'):
+                        $data = DB::table('leads')
+                                    ->whereYear($request->category, Carbon::today()->year)
+                                    ->get();
+                        
+                        break;
+                    case('No date'):
+                        $data = DB::table('leads')
+                                    ->whereNull($request->category)
+                                    ->get();
+                        
+                        break;
+                    case('Has date'):
+                        $data = DB::table('leads')
+                                    ->whereNotNull($request->category)
+                                    ->get();
+                        
+                        break;
+                    default:
+                        $data = Lead::whereBetween($request->category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()])
+                                    ->get();
+                }
+                return response()->json($data);
+            }
+
+            $data = DB::table('leads')
+                        ->where($request->category, '=', $request->catergory_name)
+                        ->get();
+
+            return response()->json($data);
+        }
+
         // Fetch total count
         $dataTotalCount = DB::table('leads')->count();
 
         // Fetch announcements
         $data = DB::table('leads')->get();
 
+        return response()->json($data);
+    }
+
+    public function getCategories(Request $request)
+    {
+        $contact_outcome = [ 
+            "Disconnected Line", 
+            "Voicemail", 
+            "No Answer", 
+            "W/N", 
+            "Line not connecting", 
+            "H/U", 
+            "HU/DC", 
+            "N/I", 
+            "Deceased", 
+            "Left company", 
+            "Gate Keeper", 
+            "HU/NI", 
+            "Voip Blocker", 
+            "Front", 
+            "Call Back", 
+            "DEAL!", 
+            "Misc", 
+            "Voicemail (Ring)", 
+            "Not speak English", 
+            "Dup Batch" ];
+
+        $stage = [ "Contact Made", "HTR", "Failed Close", "Front (Front Form)", "New Account (Sale Order Form)" ];
+
+        $last_called = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+
+        $give_up_at = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+
+        // Fetch filtered announcements
+        $assignee = DB::table('leads')
+                        ->orderBy('assignee')
+                        ->groupBy('assignee')
+                        ->pluck('assignee');
+
+        $data = [
+            'contact_outcome' => $contact_outcome,
+            'stage' => $stage,
+            'last_called' => $last_called,
+            'give_up_at' => $give_up_at,
+            'assignee' => $assignee,
+        ];
+        
         return response()->json($data);
     }
 

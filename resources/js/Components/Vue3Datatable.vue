@@ -1,11 +1,15 @@
 <script setup>
+import { convertToHumanReadable } from '@/Composables'
+import { get } from "@vueuse/core";
 import { ref, onMounted, reactive } from "vue";
+import axios from "axios";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
-import axios from "axios";
-import Input from '@/Components/Input.vue'
 import Button from '@/Components/Button.vue'
+import Input from '@/Components/Input.vue'
+import Modal from '@/Components/Modal.vue'
 
+const categories = ref([]);
 const filterIsOpen = ref(false);
 const isOpen = ref(false);
 const datatable = ref(null);
@@ -25,10 +29,14 @@ const props = defineProps({
 	detailsLink: {
 		type: String,
 	},
+	categoryFilters: {
+		type: String,
+	},
 })
 
 onMounted(() => {
     getData();
+    getCategoryFilters();
 });
 
 const params = reactive({
@@ -52,7 +60,7 @@ const getData = async () => {
                 limit: 10,
             }
         });
-        console.log
+        // console.log
         rows.value = await data.data;
         total_rows.value = data.data.length;
 
@@ -71,44 +79,55 @@ const changePage = (data) => {
     }, 200);
 };
 
-// Actions / Bulk Actions
-const getFilteredRows = () => {
-    const filteredRows = datatable.value.getFilteredRows();
-    console.log(filteredRows);
-    alert('Check console log to see the filtered rows');
+// Filter
+const getCategoryFilters = async () => {
+    try {
+        loading.value = true;
+        
+        const data = await axios.get(props.categoryFilters);
+        console.log(data);
+        categories.value = await data.data;
+        console.log(categories);
+        // total_rows.value = data.data.length;
+
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    } finally {
+        loading.value = false;
+    }
+    closeFilterModal();
 };
 
-const getSelectedRows = () => {
-    const selected = datatable.value.getSelectedRows();
-    console.log(selected);
-    alert('Rows selected: ' + selected?.length || 0);
+const getFilteredData = async (category, catergory_name) => {
+    try {
+        loading.value = true;
+        
+        const data = await axios.get(props.targetApi, {
+            method: 'GET',
+            params: {
+                category: category,
+                catergory_name: catergory_name,
+            }
+        });
+        console.log(data);
+        rows.value = await data.data;
+        total_rows.value = data.data.length;
+
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    } finally {
+        loading.value = false;
+    }
+    closeFilterModal();
 };
 
-const clearSelectedRows = () => {
-    const selected = datatable.value.getSelectedRows();
-    datatable.value.clearSelectedRows();
-    alert('Rows unselected: ' + selected?.length || 0);
-};
+const openFilterModal = () => {
+    filterIsOpen.value = true;
+}
 
-const selectRow = (index) => {
-    datatable.value.selectRow(index);
-    alert('Rows selected with position: ' + (index + 1));
-};
-
-const unselectRow = (index) => {
-    datatable.value.unselectRow(index);
-    alert('Rows unselected with position: ' + (index + 1));
-};
-
-const isRowSelected = (index) => {
-    const selected = datatable.value.isRowSelected(index);
-    alert('Rows with position ' + (index + 1) + ' selected: ' + selected);
-};
-
-const getColumnFilters = () => {
-    console.log(datatable.value.getColumnFilters());
-    alert('Check console log to see the column filters');
-};
+const closeFilterModal = () => {
+    filterIsOpen.value = false;
+}
 
 const clearColumnFiltersInts = () => {
     props.cols.forEach((col, index) => {
@@ -125,6 +144,7 @@ const clearColumnFiltersInts = () => {
 const reset = () => {
     clearColumnFiltersInts();
     params.search = '';
+    getData();
 };
 
 const rowClick = (data) => {
@@ -157,7 +177,7 @@ const rowClick = (data) => {
                             class="justify-center gap-2 w-full h-full" 
                             @click="reset()"
                         >
-                            Reset
+                            Clear
                         </Button>
                     </div>
                     <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
@@ -165,10 +185,10 @@ const rowClick = (data) => {
                             :variant="'secondary'"
 							:size="'sm'"
                             class="justify-center gap-2 w-full h-full" 
-                            @click="filterIsOpen = !filterIsOpen"
+                            @click="openFilterModal"
                         >
                             Filters
-                            <svg
+                            <!-- <svg
                                 viewBox="0 0 24 24"
                                 width="20"
                                 height="20"
@@ -181,25 +201,69 @@ const rowClick = (data) => {
                                 :class="{ 'rotate-180': filterIsOpen }"
                             >
                                 <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
+                            </svg> -->
                         </Button>
-                        <div class="p-2 flex flex-col bg-gray-700 rounded-md shadow-lg border border-gray-500 absolute right-0 top-11 mt-0.5 space-y-1 z-10 origin-top-right divide-y divide-gray-100" v-if="filterIsOpen" >
-                            <div class="p-2">
-                                <button type="button" class="btn btn-outline text-gray-300" @click="getFilteredRows()">Get Filtered Rows</button>
+                        <Modal 
+                            :show="filterIsOpen" 
+                            maxWidth="2xl" 
+                            :closeable="true" 
+                            @close="closeFilterModal">
+
+                            <div class="p-9">
+                                <p class="text-gray-200 text-2xl bg-blue-500 p-4 rounded-md font-bold mb-6">Filters</p>
+                                <div class="flex flex-col justify-center divide-y divide-gray-500">
+                                    <div class="p-2" v-for="(value, key) in categories">
+                                        <p class="text-gray-300">By {{ convertToHumanReadable(key) }}</p>
+                                        <div class="flex flex-row flex-wrap gap-2 p-2" v-if="key === 'assignee'">
+                                            <!-- for multi select loop through the array to display all assignee -->
+                                            <!-- can try to use built-in checkbox component -->
+                                            <input type="checkbox" id="choose-me" class="peer hidden" />
+                                            <label 
+                                                for="choose-me" 
+                                                class="select-none cursor-pointer rounded-lg border-2 border-gray-500 text-gray-500 
+                                                        transition-colors duration-200 ease-in-out peer-checked:bg-gray-200 peer-checked:text-gray-900 
+                                                        peer-checked:border-gray-200 "> 
+                                                Check me 
+                                            </label>
+                                            <!-- <Button 
+                                                :variant="'secondary'"
+                                                :size="'sm'"
+                                                class="justify-center gap-2 rounded-md border border-gray-500"
+                                                @click=""
+                                                v-for="(item, index) in value" :key="index"
+                                            >
+                                                eyeyye
+                                            </Button> -->
+                                        </div>
+                                        <div class="flex flex-row flex-wrap gap-2 p-2" v-else>
+                                            <Button 
+                                                :variant="'secondary'"
+                                                :size="'sm'"
+                                                class="justify-center gap-2 rounded-md border border-gray-500"
+                                                @click=""
+                                                v-for="(item, index) in value" :key="index"
+                                            >
+                                                {{ item }}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end px-9">
+                                    <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
+                                        <Button 
+                                            :variant="'secondary'"
+                                            :size="'sm'"
+                                            class="justify-center px-6 py-2" 
+                                            @click="reset"
+                                        >
+                                            Clear
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="p-2 flex flex-col gap-2">
-                                <button type="button" class="btn btn-outline text-gray-300 text-left" @click="getSelectedRows()">Get Selected Rows</button>
-                                <button type="button" class="btn btn-outline text-gray-300 text-left" @click="clearSelectedRows()">Clear Selected Rows</button>
-                            </div>
-                            <div class="p-2 flex flex-col gap-2">
-                                <button type="button" class="btn btn-outline text-gray-300 text-left" @click="selectRow(1)">Select 2<sup class="mr-1">nd</sup> Rows</button>
-                                <button type="button" class="btn btn-outline text-gray-300 text-left" @click="unselectRow(1)">Unselect 2<sup class="mr-1">nd</sup> Row</button>
-                                <button type="button" class="btn btn-outline text-gray-300 text-left" @click="isRowSelected(1)">Check 2<sup class="mr-1">nd</sup> Row Selected</button>
-                            </div>
-                            <div class="p-2">
-                                <button type="button" class="btn btn-outline text-gray-300" @click="getColumnFilters()">Get Column Filters</button>
-                            </div>
-                        </div>
+                        </Modal>
+                        <!-- <div class="p-2 w-[300px] h-[500px] overflow-auto flex flex-col bg-gray-700 rounded-md shadow-lg border border-gray-500 absolute right-0 top-11 mt-0.5 space-y-1 z-10 origin-top-right divide-y divide-gray-500" v-if="filterIsOpen" >
+                        </div> -->
                     </div>
         
                     <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">

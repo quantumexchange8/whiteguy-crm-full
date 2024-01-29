@@ -58,6 +58,7 @@ const createdByArray  = ref(
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
+	id: props.data.id,
 	first_name: props.data.first_name,
 	last_name: props.data.last_name,
 	country: props.data.country,
@@ -109,7 +110,6 @@ const form = useForm({
 	lead_front_commission: (props.leadFrontData) ? props.leadFrontData.commission : '',
 	lead_front_vc: (props.leadFrontData) ? props.leadFrontData.vc : '',
 	lead_front_edited_at: (props.leadFrontData) ? props.leadFrontData.edited_at : dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-    // lead_notes: (props.leadNotesData) ? props.leadNotesData : [],
     lead_notes: (props.leadNotesData) ? props.leadNotesData : [],
 });
 
@@ -252,7 +252,7 @@ const closeLeadNoteModal = () => {
                                 :variant="'success'" 
                                 :size="'sm'" 
                                 class="justify-center px-6 py-2"
-                                @click="cl(props.leadNotesData)"
+                                @click="showPersonalInformationSection = !showPersonalInformationSection"
                             >
                                 {{ showPersonalInformationSection ? 'Collapse' : 'Expand' }}
                             </Button>

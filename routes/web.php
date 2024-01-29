@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/documents', [DocumentController::class, 'getDocuments']);
     Route::get('/data/internal-news', [InternalNewsController::class, 'getInternalNews']);
     Route::get('/data/leads', [LeadController::class, 'getLeads']);
+    Route::get('/data/leads/categories', [LeadController::class, 'getCategories']);
     Route::get('/data/lead-fronts', [LeadFrontController::class, 'getLeadFronts']);
     Route::get('/data/lead-uploads', [LeadUploadsController::class, 'getLeadUploads']);
     Route::get('/data/notifications', [NotificationController::class, 'getNotifications']);

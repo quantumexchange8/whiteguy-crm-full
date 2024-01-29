@@ -18,67 +18,8 @@ defineProps({
     errors:Object
 })
 
-const showPersonalInformationSection= ref(true);
-const showLeadDetailsSection = ref(true);
-const showLeadFrontForm = ref(false);
-const showButtonShow = ref(true);
-const clearButtonShow = ref(false);
-
-const appointmentLabelArray = ref(
-	[ "Call Back", "Close", "Front Follow Up", "Close Follow Up", "Service Call" ]
-);
-const contactOutcomeArray  = ref(
-	[ "Disconnected Line", "Voicemail", "No Answer", "W/N", "Line not connecting", "H/U", "HU/DC", "N/I", "Deceased", "Left company", "Gate Keeper", "HU/NI", "Voip Blocker", "Front", "Call Back", "DEAL!", "Misc", "Voicemail (Ring)", "Not speak English", "Dup Batch" ]
-);
-const assigneeArray  = ref(
-	[ "125", "124", "123", "122", "121", "120" ]
-);
-const stageArray  = ref(
-	[ "Contact Made", "HTR", "Failed Close", "Front (Front Form)", "New Account (Sale Order Form)" ]
-);
-const createdByArray  = ref(
-	[ "125", "124", "123", "122", "121", "120" ]
-);
-
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
-	first_name: '',
-	last_name: '',
-	country: '',
-	address: '',
-	date_oppd_in: '',
-	campaign_product: '',
-	sdm: '',
-	date_of_birth: '',
-	occupation: '',
-	agents_book: '',
-	account_manager: '',
-	vc: '',
-	data_type: '',
-	data_source: '',
-	data_code: '',
-	email: '',
-	email_alt_1: '',
-	email_alt_2: '',
-	email_alt_3: '',
-	phone_number: '',
-	phone_number_alt_1: '',
-	phone_number_alt_2: '',
-	phone_number_alt_3: '',
-	private_remark: '',
-	remark: '',
-	appointment_start_at: '',
-	appointment_end_at: '',
-	last_called: '',
-	assignee_read_at: '',
-	give_up_at: '',
-	appointment_label: '',
-	contact_outcome: '',
-	stage: '',
-	assignee: '',
-	created_by: '',
-	delete_at: '',
-    create_lead_front: false,
 	lead_front_name: '',
 	lead_front_mimo: '',
 	lead_front_product: '',
@@ -92,15 +33,10 @@ const form = useForm({
 	lead_front_commission: '',
 	lead_front_vc: '',
 	lead_front_edited_at: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-    lead_notes: [],
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
-	form.phone_number = form.phone_number ? parseInt(form.phone_number) : '';
-	form.phone_number_alt_1 = form.phone_number_alt_1 ? parseInt(form.phone_number_alt_1) : '';
-	form.phone_number_alt_2 = form.phone_number_alt_2 ? parseInt(form.phone_number_alt_2) : '';
-	form.phone_number_alt_3 = form.phone_number_alt_3 ? parseInt(form.phone_number_alt_3) : '';
 	form.lead_front_bank_account = form.lead_front_bank_account ? parseInt(form.lead_front_bank_account) : '';
 	form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : '';
 	form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : '';
@@ -128,46 +64,6 @@ const isNumber = (e) => {
 const isValidNumber = (value) => {
     return value !== '' && !isNaN(parseFloat(value)) && isFinite(value);
 };
-
-// Unhide the Lead Front Form and Clear button, and hide itself
-const expandLeadFrontForm = () => {
-	showLeadFrontForm.value = true;
-	clearButtonShow.value = true;
-	showButtonShow.value = false;
-    form.create_lead_front = true;
-}
-
-// Clears/Resets Lead Front Create Form input fields, unhide the show button and hide itself
-const clearLeadFrontForm = () => {
-	showLeadFrontForm.value = false;
-	showButtonShow.value = true;
-	clearButtonShow.value = false;
-
-    form.create_lead_front = false;
-	form.lead_front_name = '';
-	form.lead_front_mimo = '';
-	form.lead_front_product = '';
-	form.lead_front_quantity = '';
-	form.lead_front_price = '';
-	form.lead_front_sdm = false;
-	form.lead_front_liquid = false;
-	form.lead_front_bank_name = '';
-	form.lead_front_bank_account = '';
-	form.lead_front_note = '';
-	form.lead_front_commission = '';
-	form.lead_front_vc = '';
-}
-
-const remove = (i) => {
-    form.lead_notes.splice(i, 1)
-}
-const addLeadNote = () => {
-    form.lead_notes.push({
-        'note': '',
-        'user_editable': false,
-        'created_by': '',
-    });
-}
 
 </script>
 
