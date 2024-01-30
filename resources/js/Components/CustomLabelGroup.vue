@@ -1,5 +1,6 @@
 <script setup>
 import Label from '@/Components/Label.vue'
+import { onMounted, ref } from 'vue';
 
 const props = defineProps({
 	inputId: {
@@ -7,14 +8,21 @@ const props = defineProps({
 		default: ''
 	},
 	dataValue: {
-		type: String,
-		default: '-'
+		type: [ String, Number ],
+		default: ''
 	},
     labelValue: {
-		type: String,
+		type: [ String, Number ],
 		default: ''
 	}
 })
+
+const convertedDataValue = ref();
+
+onMounted(() => {
+    convertedDataValue.value = String(props.dataValue);
+});
+
 </script>
 
 <template>
@@ -27,7 +35,7 @@ const props = defineProps({
         </Label>
         <div class="my-4 ml-6">
             <Label
-                :value="dataValue"
+                :value="convertedDataValue"
                 :id="inputId"
             >
             </Label>

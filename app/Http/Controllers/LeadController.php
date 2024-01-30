@@ -366,10 +366,19 @@ class LeadController extends Controller
 
     public function getLeads(Request $request)
     {
+        // echo $request;
         if ($request->category) {
-            // Fetch filtered announcements
+            // Fetch filtered leads based on array
+            if (is_array($request->category_name)) {
+                $data = Lead::whereIn($request->category, $request->category_name)
+                                ->get();
+                                
+                return response()->json($data);
+            }
+
+            // Fetch filtered leads
             if ($request->category === 'last_called' || $request->category === 'give_up_at') {
-                switch($request->catergory_name) {
+                switch($request->category_name) {
                     case('Today'):
                         $data = Lead::whereBetween($request->category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()])
                                         ->get();
@@ -413,16 +422,13 @@ class LeadController extends Controller
             }
 
             $data = DB::table('leads')
-                        ->where($request->category, '=', $request->catergory_name)
+                        ->where($request->category, '=', $request->category_name)
                         ->get();
 
             return response()->json($data);
         }
 
-        // Fetch total count
-        $dataTotalCount = DB::table('leads')->count();
-
-        // Fetch announcements
+        // Default fetch all on load
         $data = DB::table('leads')->get();
 
         return response()->json($data);

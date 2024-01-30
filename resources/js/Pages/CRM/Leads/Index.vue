@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
 import Vue3Datatable from '@/Components/Vue3Datatable.vue'
 import Button from '@/Components/Button.vue'
+import LeadDetailsModal from './Partials/LeadDetailsModal.vue';
 
 const pageTitle = "Leads";
 const colArray = ref([
@@ -65,6 +66,7 @@ const detailsLink = 'leads/';
 					:targetApi="targetApi"
 					:detailsLink="detailsLink"
 					:categoryFilters="categoryFilters"
+					:modalComponent="LeadDetailsModal"
 				></Vue3Datatable>
 			</div>
 		</div>

@@ -1,5 +1,5 @@
 <script setup>
-import { convertToHumanReadable } from '@/Composables'
+import { convertToHumanReadable, cl } from '@/Composables'
 import { get } from "@vueuse/core";
 import { ref, onMounted, reactive } from "vue";
 import axios from "axios";
@@ -17,6 +17,9 @@ const total_rows = ref(0);
 const searchInput = ref(null);
 const loading = ref(true);
 const rows = ref(null);
+const checkedFilters = ref([])
+const selectedRowData = ref(null);
+const isRowModalOpen = ref(false);
 
 const props = defineProps({
     cols: {
@@ -32,6 +35,10 @@ const props = defineProps({
 	categoryFilters: {
 		type: String,
 	},
+    modalComponent: {
+        type: Object,
+        default: null,
+    },
 })
 
 onMounted(() => {
@@ -60,7 +67,7 @@ const getData = async () => {
                 limit: 10,
             }
         });
-        // console.log
+        // cl(data);
         rows.value = await data.data;
         total_rows.value = data.data.length;
 
@@ -79,15 +86,15 @@ const changePage = (data) => {
     }, 200);
 };
 
-// Filter
+// Get list of sub-categories for each category
 const getCategoryFilters = async () => {
     try {
         loading.value = true;
         
         const data = await axios.get(props.categoryFilters);
-        console.log(data);
+        // console.log(data);
         categories.value = await data.data;
-        console.log(categories);
+        // console.log(categories);
         // total_rows.value = data.data.length;
 
     } catch (error) {
@@ -98,7 +105,8 @@ const getCategoryFilters = async () => {
     closeFilterModal();
 };
 
-const getFilteredData = async (category, catergory_name) => {
+// Get filtered data based on user selected filter
+const getFilteredData = async (category, category_name) => {
     try {
         loading.value = true;
         
@@ -106,7 +114,7 @@ const getFilteredData = async (category, catergory_name) => {
             method: 'GET',
             params: {
                 category: category,
-                catergory_name: catergory_name,
+                category_name: category_name,
             }
         });
         console.log(data);
@@ -141,13 +149,24 @@ const clearColumnFiltersInts = () => {
     datatable.value.reset();
 };
 
+// Resets and clears the search inputs and filters
 const reset = () => {
     clearColumnFiltersInts();
     params.search = '';
     getData();
+    checkedFilters.value = [];
+    // cl(checkedFilters.value);
 };
 
+const closeRowModal = () => {
+    isRowModalOpen.value = false;
+    selectedRowData.value = null;
+};
+
+// Redirects user to the selected row's edit page when user click on the table row
 const rowClick = (data) => {
+    // selectedRowData.value = data;
+    // isRowModalOpen.value = true;
     window.location.href = props.detailsLink + data.id + '/edit';
     // console.log(data.id);
     // alert('Details \n' + data.id + ', ' + data.title + ', ' + data.content + ', ' + data.site);
@@ -177,7 +196,7 @@ const rowClick = (data) => {
                             class="justify-center gap-2 w-full h-full" 
                             @click="reset()"
                         >
-                            Clear
+                            Reset
                         </Button>
                     </div>
                     <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
@@ -213,18 +232,30 @@ const rowClick = (data) => {
                                 <p class="text-gray-200 text-2xl bg-blue-500 p-4 rounded-md font-bold mb-6">Filters</p>
                                 <div class="flex flex-col justify-center divide-y divide-gray-500">
                                     <div class="p-2" v-for="(value, key) in categories">
-                                        <p class="text-gray-300">By {{ convertToHumanReadable(key) }}</p>
+                                        <p class="dark:text-gray-300">By {{ convertToHumanReadable(key) }}</p>
                                         <div class="flex flex-row flex-wrap gap-2 p-2" v-if="key === 'assignee'">
                                             <!-- for multi select loop through the array to display all assignee -->
                                             <!-- can try to use built-in checkbox component -->
-                                            <input type="checkbox" id="choose-me" class="peer hidden" />
-                                            <label 
-                                                for="choose-me" 
-                                                class="select-none cursor-pointer rounded-lg border-2 border-gray-500 text-gray-500 
-                                                        transition-colors duration-200 ease-in-out peer-checked:bg-gray-200 peer-checked:text-gray-900 
-                                                        peer-checked:border-gray-200 "> 
-                                                Check me 
-                                            </label>
+                                            <div v-for="(item, index) in value" :key="index">
+                                                <input 
+                                                    :id="index" 
+                                                    type="checkbox" 
+                                                    class="hidden peer" 
+                                                    name="filters[]" 
+                                                    :value="item" 
+                                                    v-model="checkedFilters"
+                                                >
+                                                <label 
+                                                    :for="index" 
+                                                    class="inline-flex items-center justify-between w-auto py-2 px-4 font-medium tracking-tight 
+                                                        border rounded-lg cursor-pointer bg-brand-light text-brand-black border-gray-500 
+                                                        peer-checked:border-violet-400 peer-checked:bg-violet-700 peer-checked:text-white">
+                                                    <div class="flex items-center justify-center w-full">
+                                                        <div class="text-sm dark:text-gray-300">{{ item }}</div>
+                                                    </div>
+                                                </label>
+                                            </div>
+
                                             <!-- <Button 
                                                 :variant="'secondary'"
                                                 :size="'sm'"
@@ -240,7 +271,7 @@ const rowClick = (data) => {
                                                 :variant="'secondary'"
                                                 :size="'sm'"
                                                 class="justify-center gap-2 rounded-md border border-gray-500"
-                                                @click=""
+                                                @click="getFilteredData(key, item)"
                                                 v-for="(item, index) in value" :key="index"
                                             >
                                                 {{ item }}
@@ -249,14 +280,21 @@ const rowClick = (data) => {
                                     </div>
                                 </div>
                                 <div class="flex justify-end px-9">
-                                    <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
+                                    <div class="rounded-md shadow-lg flex flex-row gap-2">
                                         <Button 
                                             :variant="'secondary'"
                                             :size="'sm'"
-                                            class="justify-center px-6 py-2" 
+                                            class="justify-center px-6 py-2 rounded-md border border-purple-500" 
                                             @click="reset"
                                         >
-                                            Clear
+                                            Reset
+                                        </Button>
+                                        <Button 
+                                            :size="'sm'"
+                                            class="justify-center px-6 py-2 rounded-md border border-gray-500" 
+                                            @click="getFilteredData('assignee', checkedFilters)"
+                                        >
+                                            Apply
                                         </Button>
                                     </div>
                                 </div>
@@ -331,5 +369,16 @@ const rowClick = (data) => {
             @pageChange="changePage"
             @rowClick="rowClick"
         ></vue3-datatable>
+        <!-- <Modal 
+            :show="isRowModalOpen" 
+            maxWidth="7xl"
+            :closeable="true" 
+            @close="closeRowModal">
+
+            <component 
+                :is="modalComponent" 
+                :selectedRowData="selectedRowData"
+            />
+        </Modal> -->
     </div>
 </template>
