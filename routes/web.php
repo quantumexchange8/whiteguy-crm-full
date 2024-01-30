@@ -145,7 +145,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Leads Routes
     */
-    Route::delete('/leads/{id}', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
+    Route::delete('/leads/{id}/lead-front', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
     Route::delete('/leads/{id}', [LeadController::class, 'deleteLeadNote'])->name('leads.deleteLeadNote');
     Route::resource('/leads', LeadController::class);
 

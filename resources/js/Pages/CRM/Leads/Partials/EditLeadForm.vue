@@ -194,7 +194,25 @@ const clearLeadFrontForm = () => {
 }
 
 const deleteLeadFront = () => {
-    form.delete(route('leads.deleteLeadFront', props.leadFrontData));
+    if (props.leadFrontData.id) {
+        form.delete(route('leads.deleteLeadFront', props.leadFrontData.id));
+    } else {
+        form.create_lead_front = false;
+        form.lead_front_name = '';
+        form.lead_front_mimo = '';
+        form.lead_front_product = '';
+        form.lead_front_quantity = '';
+        form.lead_front_price = '';
+        form.lead_front_sdm = false;
+        form.lead_front_liquid = false;
+        form.lead_front_bank_name = '';
+        form.lead_front_bank_account = '';
+        form.lead_front_note = '';
+        form.lead_front_commission = '';
+        form.lead_front_vc = '';
+        
+        closeModal();
+    }
 }
 
 const deleteLeadNote = (id) => {
