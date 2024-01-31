@@ -190,12 +190,16 @@ const clearLeadFrontForm = () => {
 	// form.lead_front_commission = '';
 	// form.lead_front_vc = '';
     
-    closeModal();
+    // closeModal();
 }
 
 const deleteLeadFront = () => {
-    if (props.leadFrontData.id) {
-        form.delete(route('leads.deleteLeadFront', props.leadFrontData.id));
+    if (props.leadFrontData && props.leadFrontData.id) {
+        form.delete(route('leads.deleteLeadFront', props.leadFrontData.id), {
+            preserveScroll: false,
+            onSuccess: () => closeModal(),
+        
+        })
     } else {
         form.create_lead_front = false;
         form.lead_front_name = '';

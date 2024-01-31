@@ -249,25 +249,29 @@ class LeadController extends Controller
 
             if (isset($data['lead_front_id']) && $data['lead_front_id'] !== ''){
                 $existingLeadFront = LeadFront::find($data['lead_front_id']);
-        
-                $existingLeadFront->update([
-                    'name' => $data['lead_front_name'],
-                    'assignee' => $data['assignee'],
-                    'product' => $data['lead_front_product'],
-                    'quantity' => $data['lead_front_quantity'],
-                    'price' => $data['lead_front_price'],
-                    'total' => $total,
-                    'commission' => $data['lead_front_commission'],
-                    'vc' => $data['lead_front_vc'],
-                    'sdm' => $data['lead_front_sdm'],
-                    'liquid' => $data['lead_front_liquid'],
-                    'mimo' => $data['lead_front_mimo'],
-                    'bank_name' => $data['lead_front_bank_name'],
-                    'bank_account' => $data['lead_front_bank_account'],
-                    'note' => $data['lead_front_note'],
-                    'linked_lead' => $id,
-                    'edited_at' => $data['lead_front_edited_at'],
-                ]);
+
+                // dd($existingLeadFront);
+                
+                if (isset($existingLeadFront)) {
+                    $existingLeadFront->update([
+                        'name' => $data['lead_front_name'],
+                        'assignee' => $data['assignee'],
+                        'product' => $data['lead_front_product'],
+                        'quantity' => $data['lead_front_quantity'],
+                        'price' => $data['lead_front_price'],
+                        'total' => $total,
+                        'commission' => $data['lead_front_commission'],
+                        'vc' => $data['lead_front_vc'],
+                        'sdm' => $data['lead_front_sdm'],
+                        'liquid' => $data['lead_front_liquid'],
+                        'mimo' => $data['lead_front_mimo'],
+                        'bank_name' => $data['lead_front_bank_name'],
+                        'bank_account' => $data['lead_front_bank_account'],
+                        'note' => $data['lead_front_note'],
+                        'linked_lead' => $id,
+                        'edited_at' => $data['lead_front_edited_at'],
+                    ]);
+                }
 
             } else {
                 // Insert into lead_front table
