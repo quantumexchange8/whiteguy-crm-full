@@ -1,25 +1,30 @@
 <script setup>
 import { convertToHumanReadable, cl } from '@/Composables'
 import { get } from "@vueuse/core";
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted, reactive, watch } from "vue";
 import axios from "axios";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
 import Button from '@/Components/Button.vue'
 import Input from '@/Components/Input.vue'
 import Modal from '@/Components/Modal.vue'
+import { TrashIcon, EyeIcon, PageEditIcon } from '@/Components/Icons/outline'
+import Dropdown from './Dropdown.vue'
+import { router } from '@inertiajs/vue3'
 
 const categories = ref([]);
 const filterIsOpen = ref(false);
-const isOpen = ref(false);
 const datatable = ref(null);
 const total_rows = ref(0);
 const searchInput = ref(null);
 const loading = ref(true);
 const rows = ref(null);
-const checkedFilters = ref([])
+const checkedFilters = ref([]);
 const selectedRowData = ref(null);
 const isRowModalOpen = ref(false);
+const selectedRows = ref([]);
+const isExportable = ref(true);
+const selectedRowsLength = ref(0);
 
 const props = defineProps({
     cols: {
@@ -163,32 +168,146 @@ const closeRowModal = () => {
     selectedRowData.value = null;
 };
 
-// Redirects user to the selected row's edit page when user click on the table row
-const rowClick = (data) => {
-    // selectedRowData.value = data;
-    // isRowModalOpen.value = true;
-    window.location.href = props.detailsLink + data.id + '/edit';
-    // console.log(data.id);
-    // alert('Details \n' + data.id + ', ' + data.title + ', ' + data.content + ', ' + data.site);
+// Shows popup modal of the individual lead's details
+const rowShowDetails = (data) => {
+    selectedRowData.value = data;
+    isRowModalOpen.value = true;
 };
 
+// Redirects user to the selected row's edit page when user click on the table row
+const rowShowEdit = (data) => {
+    window.location.href = props.detailsLink + data.id + '/edit';
+};
+
+// Gets selected rows or all rows based on user selection and exports to excel
+const exportToExcel = (type) => {
+    const selected = datatable.value.getSelectedRows();
+
+    selectedRowsLength.value = selected.length;
+
+    switch (type) {
+        case 'All':
+            selectedRows.value = rows.value.map(col => col.id);
+
+            break;
+        case 'Selected':
+            selectedRows.value = selected.map(col => col.id);
+
+            break;
+        default:
+            selectedRows.value = [];
+            console.log(`Error: Invalid export type.`);
+    }
+
+    if (selectedRows.value.length > 0) {
+        window.location.href = route('leads.export', { leads: selectedRows.value });
+    }
+
+    clearSelectedRows()
+
+
+    // selected.forEach((col) => {
+    //     selectedRows.value.push(col.id);
+    // });
+    // router.get(route('leads.export', { leads: selectedRows.value }), {
+    //     onSuccess: () => clearSelectedRows(),
+    // })
+};
+
+const clearSelectedRows = () => {
+    datatable.value.clearSelectedRows();
+    selectedRows.value = [];
+};
+
+// Check if user selected any rows and only enable if more than 0
+const checkForSelectedRows = () => {
+    const selected = datatable.value.getSelectedRows();
+
+    selectedRowsLength.value = selected.length;
+
+    if (selected.length > 0) {
+        isExportable.value = false;
+    } else {
+        isExportable.value = true;
+    }
+};
 </script>
 
 <template>
     <div class="p-6 bg-white rounded-md shadow-md dark:bg-dark-eval-1">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-5">
-            <div class="col-span-1 md:w-full">
-                <Input 
-                    v-model="params.search"
-                    ref="searchInput"
-                    type="text"
-                    placeholder="Search..."
-                    class="w-full"
-                />
+            <div class="col-span-2 md:w-full">
+                <div class="lg:col-start-1 grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    <Input 
+                        v-model="params.search"
+                        ref="searchInput"
+                        type="text"
+                        placeholder="Search..."
+                        class="w-full"
+                    />
+                </div>
             </div>
 
-            <div class="grid grid-cols-subgrid gap-4 col-span-3">
-                <div class="lg:col-start-3 grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div class="gap-4 col-span-2">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
+                    <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2">
+                        <Dropdown 
+                            :contentClasses="'dark:bg-dark-eval-3 bg-gray-200'"
+                            class="cursor-pointer"
+                            @click="checkForSelectedRows"
+                        >
+                            <template #trigger>
+                                <div class="text-sm text-gray-300 hover:text-gray-200 p-2 flex justify-center">
+                                    Bulk Actions 
+                                    <span class="pl-2">
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            width="20"
+                                            height="20"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            fill="none"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            class="transition inline-block"
+                                        >
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </template>
+
+                            <template #content>
+                                <div class="p-2">
+                                    <p class="text-base p-2 dark:text-gray-300 text-center">Actions</p>
+                                    <hr class="border-b rounded-md border-gray-600 mb-2 w-11/12 mx-auto">
+                                    <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Export to Excel</p>
+                                    <!-- <hr class="border-b rounded-md border-gray-600 mb-2 w-9/12 mx-auto"> -->
+                                            <!-- :href="route('leads.export')"
+                                            :external="true" -->
+                                    <div class="px-6 pb-6 flex flex-col gap-2">
+                                        <Button 
+                                            :variant="'success'"
+                                            :size="'sm'"
+                                            class="justify-center gap-2 w-full h-full" 
+                                            @click="exportToExcel('All')"
+                                        >
+                                            Export All
+                                        </Button>
+                                        <Button 
+                                            :variant="'success'"
+                                            :size="'sm'"
+                                            :disabled="isExportable"
+                                            class="justify-center gap-2 w-full h-full"
+                                            @click="exportToExcel('Selected')"
+                                        >
+                                            Export Selected ({{ selectedRowsLength }})
+                                        </Button>
+                                    </div>
+                                </div>
+                            </template>
+                        </Dropdown>
+                    </div>
                     <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
                         <Button 
                             :variant="'secondary'"
@@ -300,51 +419,53 @@ const rowClick = (data) => {
                                 </div>
                             </div>
                         </Modal>
-                        <!-- <div class="p-2 w-[300px] h-[500px] overflow-auto flex flex-col bg-gray-700 rounded-md shadow-lg border border-gray-500 absolute right-0 top-11 mt-0.5 space-y-1 z-10 origin-top-right divide-y divide-gray-500" v-if="filterIsOpen" >
-                        </div> -->
                     </div>
-        
-                    <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
-                        <Button 
-                            :variant="'secondary'"
-							:size="'sm'"
-                            class="justify-center gap-2 w-full h-full" 
-                            @click="isOpen = !isOpen"
+                    <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2">
+                        <Dropdown 
+                            :contentClasses="'dark:bg-dark-eval-3'"
+                            class="cursor-pointer"
                         >
-                            Columns
-                            <svg
-                                viewBox="0 0 24 24"
-                                width="20"
-                                height="20"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                fill="none"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="transition inline-block"
-                                :class="{ 'rotate-180': isOpen }"
-                            >
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </Button>
-                        <ul 
-                            v-if="isOpen" 
-                            class="absolute right-0 top-11 z-10 mt-0.5 p-2.5 min-w-[150px] bg-gray-700 rounded shadow-md space-y-1 border border-gray-500"
-                        >
-                            <li 
-                                v-for="col in props.cols" 
-                                :key="col.field"
-                            >
-                                <label class="flex items-center gap-2 w-full cursor-pointer text-gray-300 hover:text-black">
-                                    <input 
-                                        type="checkbox" class="form-checkbox" 
-                                        :checked="!col.hide" 
-                                        @change="col.hide = !$event.target.checked" 
-                                    />
-                                    <span>{{ col.title }}</span>
-                                </label>
-                            </li>
-                        </ul>
+                            <template #trigger>
+                                <div class="text-sm text-gray-300 hover:text-gray-200 p-2 flex justify-center">
+                                    Columns 
+                                    <span class="pl-2">
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            width="20"
+                                            height="20"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            fill="none"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            class="transition inline-block"
+                                        >
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </template>
+
+                            <template #content>
+                                <div class="py-1">
+                                    <ul class="p-4">
+                                        <li 
+                                            v-for="col in props.cols" 
+                                            :key="col.field"
+                                        >
+                                            <label class="flex items-center gap-2 w-full cursor-pointer text-gray-300 hover:text-black">
+                                                <input 
+                                                    type="checkbox" class="form-checkbox" 
+                                                    :checked="!col.hide" 
+                                                    @change="col.hide = !$event.target.checked" 
+                                                />
+                                                <span>{{ col.title }}</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </template>
+                        </Dropdown>
                     </div>
                 </div>
             </div>
@@ -358,7 +479,7 @@ const rowClick = (data) => {
             :columns="props.cols" 
             :sortable="true" 
             :loading="loading"
-            :rowClass="'odd:bg-gray-600 even:bg-gray-700 dark:text-gray-200 cursor-pointer'" 
+            :rowClass="'odd:bg-gray-200 even:bg-gray-300 dark:odd:bg-gray-600 dark:even:bg-gray-700 dark:text-gray-200'" 
             :search="params.search" 
             :columnFilter="true" 
             :sortColumn="params.sort_column"
@@ -366,10 +487,44 @@ const rowClick = (data) => {
             :hasCheckbox="true"
             :pageSize="params.pagesize"
             :totalRows="total_rows"
+            :stickyFirstColumn="true"
+            :stickyHeader="true"
             @pageChange="changePage"
-            @rowClick="rowClick"
-        ></vue3-datatable>
-        <!-- <Modal 
+        >
+            <template #id="rows">
+                <strong><span class="text-purple-300">#{{ rows.value.id }}</span></strong>
+            </template>
+            <template #actions="rows">
+                <div class="flex flex-row flex-nowrap gap-4">
+                    <Button 
+                        :size="'sm'"
+                        class="justify-center gap-2 h-full" 
+                        @click="rowShowDetails(rows.value)"
+                    >
+                        <EyeIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
+                    </Button>
+                    <Button 
+                        :variant="'info'"
+                        :size="'sm'"
+                        class="justify-center gap-2 h-full" 
+                        @click="rowShowEdit(rows.value)"
+                    >
+                        <PageEditIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
+                    </Button>
+                    <Button 
+                        :variant="'danger'"
+                        :size="'sm'"
+                        class="justify-center gap-2 h-full" 
+                        @click=""
+                    >
+                        <TrashIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
+                    </Button>
+                    <!-- <button type="button" class="btn btn-success !py-1" @click="viewUser(rows.value)">View</button>
+                    <button type="button" class="btn btn-danger !py-1" @click="deleteUser(rows.value)">Delete</button> -->
+                </div>
+            </template>
+        </vue3-datatable>
+        <Modal 
             :show="isRowModalOpen" 
             maxWidth="7xl"
             :closeable="true" 
@@ -379,6 +534,6 @@ const rowClick = (data) => {
                 :is="modalComponent" 
                 :selectedRowData="selectedRowData"
             />
-        </Modal> -->
+        </Modal>
     </div>
 </template>

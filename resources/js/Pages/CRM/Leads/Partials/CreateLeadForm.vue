@@ -174,6 +174,31 @@ const addLeadNote = () => {
 <template>
     <div class="form-wrapper">
         <form novalidate @submit.prevent="formSubmit">
+            <div class="sticky top-[72px] z-10 mb-6 border border-gray-700 rounded-md">
+                <div class="dark:bg-dark-eval-1 rounded-md flex flex-row items-center px-9 py-4 gap-8">
+                    <p class="text-xl font-semibold leading-tight">Action</p>
+                    <div class="border-l border-gray-500 h-20"></div>
+                    <div class="action-button-group">
+                        <Button 
+                            :type="'button'"
+                            :variant="'info'" 
+                            :size="'base'"
+                            @click="back"
+                            class="justify-center gap-2 form-actions"
+                        >
+                            <span>Back</span>
+                        </Button>
+                        <Button 
+                            :variant="'primary'" 
+                            :size="'base'" 
+                            class="justify-center gap-2 form-actions"
+                            :disabled="form.processing"
+                        >
+                            <span>{{ form.processing ? 'Saving...' : 'Save' }}</span>
+                        </Button>
+                    </div>
+                </div>
+            </div>
             <div class="form-input-section dark:bg-dark-eval-1">
                 <div class="px-3">
                     <div class="flex flex-row justify-between items-center mb-2">
@@ -746,27 +771,6 @@ const addLeadNote = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="form-action-section">
-                <div class="action-button-group">
-                    <Button 
-                        :type="'button'"
-                        :variant="'info'" 
-                        :size="'base'" 
-                        class="justify-center gap-2"
-                        @click="back"
-                    >
-                        <span>Back</span>
-                    </Button>
-                    <Button 
-                        :variant="'primary'" 
-                        :size="'base'" 
-                        class="justify-center gap-2"
-                        :disabled="form.processing"
-                    >
-                        <span>{{ form.processing ? 'Saving...' : 'Save' }}</span>
-                    </Button>
                 </div>
             </div>
         </form>

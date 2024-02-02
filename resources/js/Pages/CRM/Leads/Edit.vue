@@ -27,17 +27,19 @@ const pageTitle = "Edit Lead";
 		title="Edit Lead"
 	>
 		<template #header>
-			<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-				<h2 class="text-xl font-semibold leading-tight">
-					{{ pageTitle }}
-				</h2>
+			<div class="rounded-xl shadow-md bg-gray-200 dark:bg-dark-eval-1 p-9">
+				<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+					<h2 class="text-xl font-semibold leading-tight">
+						{{ pageTitle }}
+					</h2>
+				</div>
+				<Breadcrumbs 
+					:topParentTitle="'CRM'" 
+					:parentHref="route('leads.index')" 
+					:parentTitle="'Leads'" 
+					:title="pageTitle"
+				/>
 			</div>
-			<Breadcrumbs 
-				:topParentTitle="'CRM'" 
-				:parentHref="route('leads.index')" 
-				:parentTitle="'Leads'" 
-				:title="pageTitle"
-			/>
 		</template>
 
 		<div class="rounded-xl">

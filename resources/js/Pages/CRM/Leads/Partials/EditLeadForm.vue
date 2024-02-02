@@ -1,6 +1,6 @@
 <script setup>
 import { cl, back } from '@/Composables'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { PlusIcon } from '@/Components/Icons/solid'
 import { DeleteIcon } from '@/Components/Icons/outline'
@@ -39,6 +39,17 @@ const clearButtonShow = ref((props.leadFrontData) ? true : false);
 const showModal = ref(false);
 // const showLeadNoteModal = ref(false);
 const selectedLeadNote = ref(null);
+const leadFrontEditedAt = ref('-');
+const leadFrontCreatedAt = ref('-');
+
+onMounted(() => {
+    cl(props.leadFrontData.created_at);
+    if (props.leadFrontData) {
+        leadFrontCreatedAt.value = props.leadFrontData.created_at;
+    } else {
+        leadFrontCreatedAt.value = '-';
+    }
+});
 
 const appointmentLabelArray = ref(
 	[ "Call Back", "Close", "Front Follow Up", "Close Follow Up", "Service Call" ]
@@ -162,42 +173,33 @@ const clearLeadFrontForm = () => {
 	showButtonShow.value = true;
 	clearButtonShow.value = false;
     deleteLeadFront()
+}
 
-	// props.leadFrontData.name = '';
-	// props.leadFrontData.mimo = '';
-	// props.leadFrontData.product = '';
-	// props.leadFrontData.quantity = '';
-	// props.leadFrontData.price = '';
-	// props.leadFrontData.sdm = false;
-	// props.leadFrontData.liquid = false;
-	// props.leadFrontData.bank_name = '';
-	// props.leadFrontData.bank_account = '';
-	// props.leadFrontData.note = '';
-	// props.leadFrontData.commission = '';
-	// props.leadFrontData.vc = '';
-    
-    // form.create_lead_front = false;
-	// form.lead_front_name = '';
-	// form.lead_front_mimo = '';
-	// form.lead_front_product = '';
-	// form.lead_front_quantity = '';
-	// form.lead_front_price = '';
-	// form.lead_front_sdm = false;
-	// form.lead_front_liquid = false;
-	// form.lead_front_bank_name = '';
-	// form.lead_front_bank_account = '';
-	// form.lead_front_note = '';
-	// form.lead_front_commission = '';
-	// form.lead_front_vc = '';
-    
-    // closeModal();
+const clearLeadFrontFormFields = () => {
+    form.create_lead_front = false;
+    form.lead_front_name = '';
+    form.lead_front_mimo = '';
+    form.lead_front_product = '';
+    form.lead_front_quantity = '';
+    form.lead_front_price = '';
+    form.lead_front_sdm = false;
+    form.lead_front_liquid = false;
+    form.lead_front_bank_name = '';
+    form.lead_front_bank_account = '';
+    form.lead_front_note = '';
+    form.lead_front_commission = '';
+    form.lead_front_vc = '';
+    form.lead_front_edited_at = '-'
+    leadFrontCreatedAt.value = '-'
+
+    closeModal()
 }
 
 const deleteLeadFront = () => {
     if (props.leadFrontData && props.leadFrontData.id) {
         form.delete(route('leads.deleteLeadFront', props.leadFrontData.id), {
             preserveScroll: false,
-            onSuccess: () => closeModal(),
+            onSuccess: () => clearLeadFrontFormFields(),
         
         })
     } else {
@@ -260,6 +262,31 @@ const closeLeadNoteModal = () => {
 <template>
     <div class="form-wrapper">
         <form novalidate @submit.prevent="formSubmit">
+            <div class="sticky top-[72px] z-10 mb-6 border border-gray-700 rounded-md">
+                <div class="dark:bg-dark-eval-1 bg-white rounded-md flex flex-row items-center px-12 py-2 gap-8">
+                    <p class="text-xl font-semibold leading-tight">Action</p>
+                    <div class="border-l border-gray-500 h-20"></div>
+                    <div class="action-button-group">
+                        <Button 
+                            :type="'button'"
+                            :variant="'info'" 
+                            :size="'base'"
+                            @click="back"
+                            class="justify-center gap-2 form-actions"
+                        >
+                            <span>Back</span>
+                        </Button>
+                        <Button 
+                            :variant="'primary'" 
+                            :size="'base'" 
+                            class="justify-center gap-2 form-actions"
+                            :disabled="form.processing"
+                        >
+                            <span>{{ form.processing ? 'Saving...' : 'Save' }}</span>
+                        </Button>
+                    </div>
+                </div>
+            </div>
             <div class="form-input-section dark:bg-dark-eval-1">
                 <div class="px-3">
                     <div class="flex flex-row justify-between items-center mb-2">
@@ -649,7 +676,7 @@ const closeLeadNoteModal = () => {
                                         :variant="'danger'" 
                                         :size="'sm'" 
                                         class="justify-center px-6 py-2"
-                                        @click="openModal"
+                                        @click="cl(leadFrontCreatedAt)"
                                         v-show="clearButtonShow"
                                     >
                                         <span>Clear Form</span>
@@ -821,14 +848,17 @@ const closeLeadNoteModal = () => {
                                     </div>
                                     <div class="input-group">
                                         <CustomLabelGroup
+                                            ref="leadFrontEditedAt"
                                             :inputId="'leadFrontEditedAt'"
                                             :labelValue="'Edited at'"
                                             :dataValue="props.leadFrontData ? props.leadFrontData.edited_at : '-'"
+                                            v-model="form.lead_front_edited_at"
                                         />
                                         <CustomLabelGroup
+                                            ref="leadFrontCreatedAt"
                                             :inputId="'leadFrontCreatedAt'"
                                             :labelValue="'Created at'"
-                                            :dataValue="props.leadFrontData ? props.leadFrontData.created_at : '-'"
+                                            :dataValue="leadFrontCreatedAt.value"
                                         />
                                     </div>
                                 </div>
@@ -939,27 +969,6 @@ const closeLeadNoteModal = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="form-action-section">
-                <div class="action-button-group">
-                    <Button 
-                        :type="'button'"
-                        :variant="'info'" 
-                        :size="'base'"
-                        @click="back"
-                        class="justify-center gap-2"
-                    >
-                        <span>Back</span>
-                    </Button>
-                    <Button 
-                        :variant="'primary'" 
-                        :size="'base'" 
-                        class="justify-center gap-2"
-                        :disabled="form.processing"
-                    >
-                        <span>{{ form.processing ? 'Saving...' : 'Save' }}</span>
-                    </Button>
                 </div>
             </div>
         </form>

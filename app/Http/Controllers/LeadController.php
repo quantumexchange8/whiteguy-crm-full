@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LeadsExport;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -189,7 +190,7 @@ class LeadController extends Controller
     {
         $data = $request->all();
         
-        // dd($request->lead_notes);
+        // dd($data);
 
         // Additional validation based on user selection (Lead Front | Lead Notes)
         if ($data['create_lead_front']) {
@@ -483,6 +484,16 @@ class LeadController extends Controller
         ];
         
         return response()->json($data);
+    }
+
+    public function exportToExcel($leads)
+    {
+        $leadsArr = explode(',', $leads);
+        foreach ($leadsArr as $key => $value) {
+            $leadsArr[$key] = (int)$value;
+        }
+        
+        return (new LeadsExport($leadsArr))->download('leads.xlsx');
     }
 
     /**
