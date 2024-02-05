@@ -3,7 +3,7 @@ import { cl, back } from '@/Composables'
 import { ref, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { PlusIcon } from '@/Components/Icons/solid'
-import { DeleteIcon } from '@/Components/Icons/outline'
+import { TrashIcon } from '@/Components/Icons/outline'
 import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
 import Checkbox from '@/Components/Checkbox.vue'
@@ -43,9 +43,10 @@ const leadFrontEditedAt = ref('-');
 const leadFrontCreatedAt = ref('-');
 
 onMounted(() => {
-    cl(props.leadFrontData.created_at);
+    // cl(props.leadFrontData.created_at);
     if (props.leadFrontData) {
         leadFrontCreatedAt.value = props.leadFrontData.created_at;
+        cl(leadFrontCreatedAt.value);
     } else {
         leadFrontCreatedAt.value = '-';
     }
@@ -121,6 +122,7 @@ const form = useForm({
 	lead_front_commission: (props.leadFrontData) ? props.leadFrontData.commission : '',
 	lead_front_vc: (props.leadFrontData) ? props.leadFrontData.vc : '',
 	lead_front_edited_at: (props.leadFrontData) ? props.leadFrontData.edited_at : dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+	lead_front_created_at: (props.leadFrontData) ? props.leadFrontData.created_at : '-',
     lead_notes: (props.leadNotesData) ? props.leadNotesData : [],
 });
 
@@ -189,8 +191,9 @@ const clearLeadFrontFormFields = () => {
     form.lead_front_note = '';
     form.lead_front_commission = '';
     form.lead_front_vc = '';
-    form.lead_front_edited_at = '-'
-    leadFrontCreatedAt.value = '-'
+    form.lead_front_edited_at = '-';
+    form.lead_front_created_at = '-';
+    form.reset()
 
     closeModal()
 }
@@ -198,8 +201,28 @@ const clearLeadFrontFormFields = () => {
 const deleteLeadFront = () => {
     if (props.leadFrontData && props.leadFrontData.id) {
         form.delete(route('leads.deleteLeadFront', props.leadFrontData.id), {
-            preserveScroll: false,
-            onSuccess: () => clearLeadFrontFormFields(),
+            preserveScroll: true,
+            preserveState : false,
+            onSuccess: () => {
+                form.defaults({
+                    create_lead_front: false,
+                    lead_front_name: '',
+                    lead_front_mimo: '',
+                    lead_front_product: '',
+                    lead_front_quantity: '',
+                    lead_front_price: '',
+                    lead_front_sdm: false,
+                    lead_front_liquid: false,
+                    lead_front_bank_name: '',
+                    lead_front_bank_account: '',
+                    lead_front_note: '',
+                    lead_front_commission: '',
+                    lead_front_vc: '',
+                    lead_front_edited_at: '-',
+                    lead_front_created_at: '-',
+                });
+                clearLeadFrontFormFields();
+            },
         
         })
     } else {
@@ -676,7 +699,7 @@ const closeLeadNoteModal = () => {
                                         :variant="'danger'" 
                                         :size="'sm'" 
                                         class="justify-center px-6 py-2"
-                                        @click="cl(leadFrontCreatedAt)"
+                                        @click="openModal"
                                         v-show="clearButtonShow"
                                     >
                                         <span>Clear Form</span>
@@ -783,7 +806,7 @@ const closeLeadNoteModal = () => {
                                             :decimalOption="true"
                                             :step="0.01"
                                             class="col-span-2"
-                                            :errorMessage="(form.errors) ? form.errors.lead_front_price : '' "
+                                            :errorMessage="(form.errors) ? form.errors.lead_front_price : ''"
                                             @keypress="isNumber($event)"
                                             v-model="form.lead_front_price"
                                         />
@@ -791,13 +814,13 @@ const closeLeadNoteModal = () => {
                                             v-model:checked="form.lead_front_sdm"
                                             :inputId="'leadFrontSdm'"
                                             :labelValue="'Sdm'"
-                                            :errorMessage="(form.errors) ? form.errors.lead_front_sdm : '' "
+                                            :errorMessage="(form.errors) ? form.errors.lead_front_sdm : ''"
                                         />
                                         <Checkbox
                                             v-model:checked="form.lead_front_liquid"
                                             :inputId="'leadFrontLiquid'"
                                             :labelValue="'Liquid'"
-                                            :errorMessage="(form.errors) ? form.errors.lead_front_liquid : '' "
+                                            :errorMessage="(form.errors) ? form.errors.lead_front_liquid : ''"
                                         />
                                         <CustomTextInputField
                                             :inputType="'text'"
@@ -851,14 +874,15 @@ const closeLeadNoteModal = () => {
                                             ref="leadFrontEditedAt"
                                             :inputId="'leadFrontEditedAt'"
                                             :labelValue="'Edited at'"
-                                            :dataValue="props.leadFrontData ? props.leadFrontData.edited_at : '-'"
+                                            :dataValue="form.lead_front_edited_at"
                                             v-model="form.lead_front_edited_at"
                                         />
                                         <CustomLabelGroup
                                             ref="leadFrontCreatedAt"
                                             :inputId="'leadFrontCreatedAt'"
                                             :labelValue="'Created at'"
-                                            :dataValue="leadFrontCreatedAt.value"
+                                            :dataValue="form.lead_front_created_at"
+                                            v-model="form.lead_front_created_at"
                                         />
                                     </div>
                                 </div>
@@ -890,9 +914,9 @@ const closeLeadNoteModal = () => {
                             <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
                         </div>
                         <div class="input-group-wrapper flex flex-col gap-8">
-                            <div class="grid grid-cols-1 lg:grid-cols-8 gap-8" v-for="(item, i) in form.lead_notes" :key="i">
+                            <div class="grid grid-cols-1 sm:grid-cols-8 gap-8" v-for="(item, i) in form.lead_notes" :key="i">
                                 <hr class="divider !mb-0 col-span-8" v-if="i > 0">
-                                <div class="col-span-7 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div class="col-span-8 sm:col-span-7 grid grid-cols-1 lg:grid-cols-3 gap-8">
                                     <div class="input-group col-span-3">
                                         <CustomTextInputField
                                             :inputType="'textarea'"
@@ -903,7 +927,7 @@ const closeLeadNoteModal = () => {
                                             v-model="item.note"
                                             class="col-span-3"
                                         />
-                                        <div class="grid grid-cols-1 lg:grid-cols-3 col-span-3">
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 col-span-3">
                                             <Checkbox
                                                 v-model:checked="item.user_editable"
                                                 :inputId="'leadNotesNote_'+i"
@@ -922,15 +946,15 @@ const closeLeadNoteModal = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-span-1 gap-6 inline-block">
+                                <div class="col-span-8 sm:col-span-1 gap-6 inline-block">
                                     <Button 
                                         :type="'button'"
                                         :variant="'danger'" 
                                         :size="'sm'" 
-                                        class="justify-center gap-2 "
+                                        class="justify-center gap-2 w-full"
                                         @click="openLeadNoteModal(i)"
                                     >
-                                        <DeleteIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
+                                        <TrashIcon class="flex-shrink-0 w-5 h-5 cursor-pointer" aria-hidden="true" />
                                     </Button>
                                     <Modal 
                                         :show="i === selectedLeadNote" 

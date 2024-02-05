@@ -12,9 +12,11 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\LeadFrontRequest;
 use App\Http\Requests\LeadNotesRequest;
 use App\Http\Requests\LeadRequest;
+use App\Imports\LeadsImport;
 use App\Models\LeadFront;
 use App\Models\LeadNote;
 use App\Models\Lead;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LeadController extends Controller
 {
@@ -494,6 +496,17 @@ class LeadController extends Controller
         }
         
         return (new LeadsExport($leadsArr))->download('leads.xlsx');
+    }
+
+    public function importExcel(Request $request)
+    {
+        // dd($request->file('leadExcelFile'));
+        $file = $request->file('leadExcelFile');
+        // dd($request);
+        
+        Excel::import(new LeadsImport, $file);
+
+        return redirect(route('leads.index'));
     }
 
     /**

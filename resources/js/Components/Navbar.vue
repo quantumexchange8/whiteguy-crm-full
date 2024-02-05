@@ -38,7 +38,7 @@ onUnmounted(() => {
     <nav
         aria-label="secondary"
         :class="[
-            'sticky top-0 z-10 px-6 py-4 bg-white flex items-center justify-between dark:bg-dark-eval-1',
+            'sticky top-0 z-20 px-6 py-4 bg-white flex items-center justify-between dark:bg-dark-eval-1',
             // {
             //     '-translate-y-full': scrolling.down,
             //     'translate-y-0': scrolling.up,
@@ -158,7 +158,7 @@ onUnmounted(() => {
     <!-- Mobile bottom bar -->
     <div
         :class="[
-            'fixed inset-x-0 bottom-0 flex items-center justify-between px-4 py-4 sm:px-6 transition-transform duration-500 bg-white md:hidden dark:bg-dark-eval-1 z-10',
+            'fixed inset-x-0 bottom-0 flex items-center justify-between px-4 py-4 sm:px-6 transition-transform duration-500 bg-white md:hidden dark:bg-dark-eval-1 z-20',
             {
                 'translate-y-full': scrolling.down,
                 'translate-y-0': scrolling.up,

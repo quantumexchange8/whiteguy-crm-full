@@ -2,12 +2,14 @@
 import { convertToHumanReadable, cl } from '@/Composables'
 import { get } from "@vueuse/core";
 import { ref, onMounted, reactive, watch } from "vue";
+import { useForm } from '@inertiajs/vue3'
 import axios from "axios";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
 import Button from '@/Components/Button.vue'
 import Input from '@/Components/Input.vue'
 import Modal from '@/Components/Modal.vue'
+import CustomFileInputField from '@/Components/CustomFileInputField.vue'
 import { TrashIcon, EyeIcon, PageEditIcon } from '@/Components/Icons/outline'
 import Dropdown from './Dropdown.vue'
 import { router } from '@inertiajs/vue3'
@@ -25,6 +27,8 @@ const isRowModalOpen = ref(false);
 const selectedRows = ref([]);
 const isExportable = ref(true);
 const selectedRowsLength = ref(0);
+const filteredRowsLength = ref(0);
+const isImportable = ref(true);
 
 const props = defineProps({
     cols: {
@@ -179,15 +183,31 @@ const rowShowEdit = (data) => {
     window.location.href = props.detailsLink + data.id + '/edit';
 };
 
-// Gets selected rows or all rows based on user selection and exports to excel
+const form = useForm({
+	leadExcelFile: '',
+});
+
+// Get input file and send to controller for importing to db
+const importExcel = () => {
+    form.post(route('leads.import'), {
+        preserveState : false,
+    })
+};
+
+// Gets selected rows or all rows based on user selection and sends to controller for exporting to excel file
 const exportToExcel = (type) => {
     const selected = datatable.value.getSelectedRows();
-
+    const filteredRows = datatable.value.getFilteredRows();
     selectedRowsLength.value = selected.length;
+    filteredRowsLength.value = filteredRows.length;
 
     switch (type) {
         case 'All':
             selectedRows.value = rows.value.map(col => col.id);
+
+            break;
+        case 'Filtered':
+            selectedRows.value = filteredRows.map(col => col.id);
 
             break;
         case 'Selected':
@@ -206,12 +226,12 @@ const exportToExcel = (type) => {
     clearSelectedRows()
 
 
-    // selected.forEach((col) => {
-    //     selectedRows.value.push(col.id);
-    // });
-    // router.get(route('leads.export', { leads: selectedRows.value }), {
-    //     onSuccess: () => clearSelectedRows(),
-    // })
+    selected.forEach((col) => {
+        selectedRows.value.push(col.id);
+    });
+    router.get(route('leads.export', { leads: selectedRows.value }), {
+        onSuccess: () => clearSelectedRows(),
+    })
 };
 
 const clearSelectedRows = () => {
@@ -220,10 +240,20 @@ const clearSelectedRows = () => {
 };
 
 // Check if user selected any rows and only enable if more than 0
-const checkForSelectedRows = () => {
+const checkForBulkActions = () => {
+    // Check if there is any file input - disable import button if no file
+    if (form.leadExcelFile !== undefined & form.leadExcelFile !== '') {
+        isImportable.value = false;
+    } else {
+        isImportable.value = true;
+    }
+
+    // Check for selected rows
     const selected = datatable.value.getSelectedRows();
+    const filteredRows = datatable.value.getFilteredRows();
 
     selectedRowsLength.value = selected.length;
+    filteredRowsLength.value = filteredRows.length;
 
     if (selected.length > 0) {
         isExportable.value = false;
@@ -254,7 +284,7 @@ const checkForSelectedRows = () => {
                         <Dropdown 
                             :contentClasses="'dark:bg-dark-eval-3 bg-gray-200'"
                             class="cursor-pointer"
-                            @click="checkForSelectedRows"
+                            @click="checkForBulkActions"
                         >
                             <template #trigger>
                                 <div class="text-sm text-gray-300 hover:text-gray-200 p-2 flex justify-center">
@@ -278,13 +308,28 @@ const checkForSelectedRows = () => {
                             </template>
 
                             <template #content>
-                                <div class="p-2">
+                                <div class="p-2 w-full">
                                     <p class="text-base p-2 dark:text-gray-300 text-center">Actions</p>
                                     <hr class="border-b rounded-md border-gray-600 mb-2 w-11/12 mx-auto">
+                                    <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Import Excel</p>
+                                    <div class="px-6 pb-6">
+                                        <form class="flex flex-col gap-4" @submit="importExcel">
+                                            <CustomFileInputField
+                                                :inputId="'leadExcelFile'"
+                                                v-model="form.leadExcelFile"
+                                            />
+                                            <Button 
+                                                :variant="'success'"
+                                                :size="'sm'"
+                                                :disabled="isImportable"
+                                                class="justify-center gap-2 w-full h-full"
+                                            >
+                                                Import File
+                                            </Button>
+                                        </form>
+                                    </div>
+                                    <hr class="border-b rounded-md border-gray-600 mb-2 w-9/12 mx-auto">
                                     <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Export to Excel</p>
-                                    <!-- <hr class="border-b rounded-md border-gray-600 mb-2 w-9/12 mx-auto"> -->
-                                            <!-- :href="route('leads.export')"
-                                            :external="true" -->
                                     <div class="px-6 pb-6 flex flex-col gap-2">
                                         <Button 
                                             :variant="'success'"
@@ -293,6 +338,14 @@ const checkForSelectedRows = () => {
                                             @click="exportToExcel('All')"
                                         >
                                             Export All
+                                        </Button>
+                                        <Button 
+                                            :variant="'success'"
+                                            :size="'sm'"
+                                            class="justify-center gap-2 w-full h-full" 
+                                            @click="exportToExcel('All')"
+                                        >
+                                            Export Filtered  ({{ filteredRowsLength }})
                                         </Button>
                                         <Button 
                                             :variant="'success'"
@@ -326,20 +379,6 @@ const checkForSelectedRows = () => {
                             @click="openFilterModal"
                         >
                             Filters
-                            <!-- <svg
-                                viewBox="0 0 24 24"
-                                width="20"
-                                height="20"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                fill="none"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="transition inline-block"
-                                :class="{ 'rotate-180': filterIsOpen }"
-                            >
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg> -->
                         </Button>
                         <Modal 
                             :show="filterIsOpen" 

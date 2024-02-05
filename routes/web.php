@@ -145,9 +145,10 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Leads Routes
     */
+    Route::post('/leads/import', [LeadController::class, 'importExcel'])->name('leads.import');
+    Route::get('/leads/export/{leads}', [LeadController::class, 'exportToExcel'])->name('leads.export');
     Route::delete('/leads/{id}/lead-front', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
     Route::delete('/leads/{id}', [LeadController::class, 'deleteLeadNote'])->name('leads.deleteLeadNote');
-    Route::get('/leads/export/{leads}', [LeadController::class, 'exportToExcel'])->name('leads.export');
     Route::resource('/leads', LeadController::class);
 
     /*

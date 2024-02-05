@@ -3,7 +3,7 @@ import { cl, back } from '@/Composables'
 import { ref } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { PlusIcon } from '@/Components/Icons/solid'
-import { DeleteIcon } from '@/Components/Icons/outline'
+import { TrashIcon } from '@/Components/Icons/outline'
 import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
 import Checkbox from '@/Components/Checkbox.vue'
@@ -256,7 +256,7 @@ const addLeadNote = () => {
                             v-model="form.address"
                         />
                     </div>
-                    <div class="col-span-2 flex flex-col justify-between">
+                    <div class="col-span-2 flex flex-col justify-between gap-8">
                         <div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <CustomTextInputField
                                 :inputType="'number'"
@@ -419,7 +419,7 @@ const addLeadNote = () => {
                             :labelValue="'Attachment'"
                         />
                     </div> -->
-                    <div class="col-span-2 flex flex-col justify-between">
+                    <div class="col-span-2 flex flex-col justify-between gap-8">
                         <div class="input-group grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <CustomSelectInputField
                                 :inputArray="appointmentLabelArray"
@@ -726,9 +726,9 @@ const addLeadNote = () => {
                             <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
                         </div>
                         <div class="input-group-wrapper flex flex-col gap-8">
-                            <div class="grid grid-cols-1 lg:grid-cols-8 gap-8" v-for="(item, i) in form.lead_notes" :key="i">
+                            <div class="grid grid-cols-1 sm:grid-cols-8 gap-8" v-for="(item, i) in form.lead_notes" :key="i">
                                 <hr class="divider !mb-0 col-span-8" v-if="i > 0">
-                                <div class="col-span-7 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div class="col-span-8 sm:col-span-7 grid grid-cols-1 lg:grid-cols-3 gap-8">
                                     <div class="input-group col-span-3">
                                         <CustomTextInputField
                                             :inputType="'textarea'"
@@ -739,7 +739,7 @@ const addLeadNote = () => {
                                             v-model="item.note"
                                             class="col-span-3"
                                         />
-                                        <div class="grid grid-cols-1 lg:grid-cols-3 col-span-3">
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 col-span-3">
                                             <Checkbox
                                                 v-model:checked="item.user_editable"
                                                 :inputId="'leadNotesNote_'+i"
@@ -757,15 +757,15 @@ const addLeadNote = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-span-1 gap-6 inline-block">
+                                <div class="col-span-8 sm:col-span-1 gap-6 inline-block">
                                     <Button 
                                         :type="'button'"
                                         :variant="'danger'" 
                                         :size="'sm'" 
-                                        class="justify-center gap-2 "
+                                        class="justify-center gap-2 w-full"
                                         @click="remove(i)"
                                     >
-                                        <DeleteIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
+                                        <TrashIcon class="flex-shrink-0 w-5 h-5 cursor-pointer" aria-hidden="true" />
                                     </Button>
                                 </div>
                             </div>
