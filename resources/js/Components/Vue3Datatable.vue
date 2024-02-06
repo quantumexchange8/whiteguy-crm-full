@@ -15,13 +15,29 @@ import Dropdown from './Dropdown.vue'
 import { router } from '@inertiajs/vue3'
 
 const categories = ref([]);
+const categoriesCO = ref([]);
+const categoriesS = ref([]);
+const categoriesLA = ref([]);
+const categoriesGUA = ref([]);
+const categoriesA = ref([]);
 const filterIsOpen = ref(false);
 const datatable = ref(null);
 const total_rows = ref(0);
 const searchInput = ref(null);
 const loading = ref(true);
 const rows = ref(null);
-const checkedFilters = ref([]);
+const checkedCO = ref([]);
+const checkedS = ref([]);
+const checkedA = ref([]);
+const checkedFilters = reactive({
+    contact_outcome: [],
+    stage: [],
+    assignee: [],
+    last_called: '',
+    give_up_at: '',
+});
+// const checkedCategories = ref([]);
+// const checkedFiltersObj = ref({});
 const selectedRowData = ref(null);
 const isRowModalOpen = ref(false);
 const selectedRows = ref([]);
@@ -102,7 +118,12 @@ const getCategoryFilters = async () => {
         
         const data = await axios.get(props.categoryFilters);
         // console.log(data);
-        categories.value = await data.data;
+        categories.value = data.data;
+        // categoriesCO.value = data.data.contact_outcome;
+        // categoriesS.value = data.data.stage;
+        // categoriesLA.value = data.data.last_called;
+        // categoriesGUA.value = data.data.give_up_at;
+        // categoriesA.value = data.data.assignee;
         // console.log(categories);
         // total_rows.value = data.data.length;
 
@@ -115,15 +136,14 @@ const getCategoryFilters = async () => {
 };
 
 // Get filtered data based on user selected filter
-const getFilteredData = async (category, category_name) => {
+const getFilteredData = async (checkedFilters) => {
     try {
         loading.value = true;
         
         const data = await axios.get(props.targetApi, {
             method: 'GET',
             params: {
-                category: category,
-                category_name: category_name,
+                checkedFilters: checkedFilters,
             }
         });
         console.log(data);
@@ -225,7 +245,6 @@ const exportToExcel = (type) => {
 
     clearSelectedRows()
 
-
     selected.forEach((col) => {
         selectedRows.value.push(col.id);
     });
@@ -261,10 +280,36 @@ const checkForBulkActions = () => {
         isExportable.value = true;
     }
 };
+
+const addFilter = (category, category_item) => {
+    // checkedCategories.value.forEach((col) => {
+    //     // cl(checkedCategories.value.indexOf(col));
+    //     if (checkedCategories.value.indexOf(col) > -1 && col.categoryItem === category_item) {
+    //         checkedCategories.value.splice(checkedCategories.value.indexOf(col), 1);
+    //     }
+    // });
+
+    // checkedCategories.value.push({category: category, categoryItem: category_item});
+    cl(checkedFilters);
+
+}
 </script>
 
 <template>
-    <div class="p-6 bg-white rounded-md shadow-md dark:bg-dark-eval-1">
+    <div class="p-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
+		<div class="flex justify-end pb-6">
+			<div class="rounded-md shadow-lg border border-gray-500 flex justify-end">
+				<Button 
+					:type="'button'"
+					:variant="'success'" 
+					:size="'sm'" 
+					class="justify-center px-6 py-2 gap-2 w-full h-full"
+					:href="route('leads.create')"
+				>
+					Create Lead
+				</Button>
+			</div>
+		</div>
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-5">
             <div class="col-span-2 md:w-full">
                 <div class="lg:col-start-1 grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -391,40 +436,64 @@ const checkForBulkActions = () => {
                                 <div class="flex flex-col justify-center divide-y divide-gray-500">
                                     <div class="p-2" v-for="(value, key) in categories">
                                         <p class="dark:text-gray-300">By {{ convertToHumanReadable(key) }}</p>
-                                        <div class="flex flex-row flex-wrap gap-2 p-2" v-if="key === 'assignee'">
-                                            <!-- for multi select loop through the array to display all assignee -->
-                                            <!-- can try to use built-in checkbox component -->
+                                        <div class="flex flex-row flex-wrap gap-2 p-2">
                                             <div v-for="(item, index) in value" :key="index">
                                                 <input 
                                                     :id="index" 
                                                     type="checkbox" 
-                                                    class="hidden peer" 
-                                                    name="filters[]" 
+                                                    class="" 
+                                                    name="contact_outcome[]" 
                                                     :value="item" 
-                                                    v-model="checkedFilters"
+                                                    v-model="checkedFilters.contact_outcome"
+                                                    v-if="key === 'contact_outcome'"
+                                                >
+                                                <input 
+                                                    :id="index" 
+                                                    type="checkbox" 
+                                                    class="" 
+                                                    name="stage[]" 
+                                                    :value="item" 
+                                                    v-model="checkedFilters.stage"
+                                                    v-else-if="key === 'stage'"
+                                                >
+                                                <input 
+                                                    :id="index" 
+                                                    type="checkbox" 
+                                                    class="" 
+                                                    name="assignee[]" 
+                                                    :value="item" 
+                                                    v-model="checkedFilters.assignee"
+                                                    v-else-if="key === 'assignee'"
+                                                >
+                                                <input 
+                                                    :id="index" 
+                                                    type="radio" 
+                                                    class="" 
+                                                    name="last_called" 
+                                                    :value="item" 
+                                                    v-model="checkedFilters.last_called"
+                                                    v-else-if="key === 'last_called'"
+                                                >
+                                                <input 
+                                                    :id="index" 
+                                                    type="radio" 
+                                                    class="" 
+                                                    name="give_up_at" 
+                                                    :value="item" 
+                                                    v-model="checkedFilters.give_up_at"
+                                                    v-else-if="key === 'give_up_at'"
                                                 >
                                                 <label 
                                                     :for="index" 
                                                     class="inline-flex items-center justify-between w-auto py-2 px-4 font-medium tracking-tight 
-                                                        border rounded-lg cursor-pointer bg-brand-light text-brand-black border-gray-500 
-                                                        peer-checked:border-violet-400 peer-checked:bg-violet-700 peer-checked:text-white">
+                                                        border rounded-lg cursor-pointer bg-brand-light text-brand-black border-gray-500">
                                                     <div class="flex items-center justify-center w-full">
                                                         <div class="text-sm dark:text-gray-300">{{ item }}</div>
                                                     </div>
                                                 </label>
                                             </div>
-
-                                            <!-- <Button 
-                                                :variant="'secondary'"
-                                                :size="'sm'"
-                                                class="justify-center gap-2 rounded-md border border-gray-500"
-                                                @click=""
-                                                v-for="(item, index) in value" :key="index"
-                                            >
-                                                eyeyye
-                                            </Button> -->
                                         </div>
-                                        <div class="flex flex-row flex-wrap gap-2 p-2" v-else>
+                                        <!-- <div class="flex flex-row flex-wrap gap-2 p-2" v-else>
                                             <Button 
                                                 :variant="'secondary'"
                                                 :size="'sm'"
@@ -434,7 +503,16 @@ const checkForBulkActions = () => {
                                             >
                                                 {{ item }}
                                             </Button>
-                                        </div>
+                                            <label 
+                                                :for="index" 
+                                                class="inline-flex items-center justify-between w-auto py-2 px-4 font-medium tracking-tight 
+                                                    border rounded-lg cursor-pointer bg-brand-light text-brand-black border-gray-500 
+                                                    peer-checked:border-violet-400 peer-checked:bg-violet-700 peer-checked:text-white">
+                                                <div class="flex items-center justify-center w-full">
+                                                    <div class="text-sm dark:text-gray-300">{{ index }}</div>
+                                                </div>
+                                            </label>
+                                        </div> -->
                                     </div>
                                 </div>
                                 <div class="flex justify-end px-9">
@@ -450,9 +528,16 @@ const checkForBulkActions = () => {
                                         <Button 
                                             :size="'sm'"
                                             class="justify-center px-6 py-2 rounded-md border border-gray-500" 
-                                            @click="getFilteredData('assignee', checkedFilters)"
+                                            @click="getFilteredData(checkedFilters)"
                                         >
                                             Apply
+                                        </Button>
+                                        <Button 
+                                            :size="'sm'"
+                                            class="justify-center px-6 py-2 rounded-md border border-gray-500" 
+                                            @click="cl(checkedFilters)"
+                                        >
+                                            Check
                                         </Button>
                                     </div>
                                 </div>

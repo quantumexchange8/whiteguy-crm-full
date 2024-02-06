@@ -35,41 +35,27 @@ const detailsLink = 'leads/';
 		title="Leads"
 	>
 		<template #header>
-			<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-				<h2 class="text-xl font-semibold leading-tight">
-					{{ pageTitle }}
-				</h2>
+			<div class="rounded-xl shadow-md bg-gray-200 dark:bg-dark-eval-1 pr-12 pl-14 py-6">
+				<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+					<h2 class="text-xl font-semibold leading-tight">
+						{{ pageTitle }}
+					</h2>
+				</div>
+				<Breadcrumbs 
+					:parentTitle="'CRM'" 
+					:title="pageTitle"
+				/>
 			</div>
-			<Breadcrumbs 
-				:parentTitle="'CRM'" 
-				:title="pageTitle"
-			/>
 		</template>
-		
-		<div class="flex justify-end p-4">
-			<div class="rounded-md shadow-lg border border-gray-500 flex justify-end">
-				<Button 
-					:type="'button'"
-					:variant="'success'" 
-					:size="'sm'" 
-					class="justify-center px-6 py-2 gap-2 w-full h-full"
-					:href="route('leads.create')"
-				>
-					Create Lead
-				</Button>
-			</div>
-		</div>
 
-		<div class="w-full pb-6 px-2">
-			<div class="rounded-xl bg-gray-600 p-2">
-				<Vue3Datatable 
-					:cols="colArray" 
-					:targetApi="targetApi"
-					:detailsLink="detailsLink"
-					:categoryFilters="categoryFilters"
-					:modalComponent="LeadDetailsModal"
-				></Vue3Datatable>
-			</div>
+		<div class="w-full pb-6">
+			<Vue3Datatable 
+				:cols="colArray" 
+				:targetApi="targetApi"
+				:detailsLink="detailsLink"
+				:categoryFilters="categoryFilters"
+				:modalComponent="LeadDetailsModal"
+			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>
 </template>

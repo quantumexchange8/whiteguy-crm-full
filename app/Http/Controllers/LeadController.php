@@ -373,64 +373,107 @@ class LeadController extends Controller
 
     public function getLeads(Request $request)
     {
-        // echo $request;
-        if ($request->category) {
-            // Fetch filtered leads based on array
-            if (is_array($request->category_name)) {
-                $data = Lead::whereIn($request->category, $request->category_name)
-                                ->get();
+        // $data = $request->all();
+        // $datas = $request['checkedFilters']['contact_outcome'][0];
+
+        if ($request['checkedFilters']) {
+            // // Fetch filtered leads based on array
+            // if (is_array($request->category_name)) {
+            //     $data = Lead::whereIn($request->category, $request->category_name)
+            //                     ->get();
                                 
-                return response()->json($data);
-            }
+            //     return response()->json($data);
+            // }
 
-            // Fetch filtered leads
-            if ($request->category === 'last_called' || $request->category === 'give_up_at') {
-                switch($request->category_name) {
-                    case('Today'):
-                        $data = Lead::whereBetween($request->category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()])
-                                        ->get();
+            // // Fetch filtered leads
+            // if ($request->category === 'last_called' || $request->category === 'give_up_at') {
+            //     switch($request->category_name) {
+            //         case('Today'):
+            //             $data = Lead::whereBetween($request->category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()])
+            //                             ->get();
                         
-                        // $date = Carbon::now()->subDays(7)->toDateTimeString();
-                        break;
-                    case('Past 7 days'):
-                        $data = Lead::whereBetween($request->category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()])
-                                        ->get();
+            //             // $date = Carbon::now()->subDays(7)->toDateTimeString();
+            //             break;
+            //         case('Past 7 days'):
+            //             $data = Lead::whereBetween($request->category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()])
+            //                             ->get();
                         
-                        break;
-                    case('This month'):
-                        $data = DB::table('leads')
-                                    ->whereMonth($request->category, Carbon::today()->month)
-                                    ->get();
+            //             break;
+            //         case('This month'):
+            //             $data = DB::table('leads')
+            //                         ->whereMonth($request->category, Carbon::today()->month)
+            //                         ->get();
                         
-                        break;
-                    case('This year'):
-                        $data = DB::table('leads')
-                                    ->whereYear($request->category, Carbon::today()->year)
-                                    ->get();
+            //             break;
+            //         case('This year'):
+            //             $data = DB::table('leads')
+            //                         ->whereYear($request->category, Carbon::today()->year)
+            //                         ->get();
                         
-                        break;
-                    case('No date'):
-                        $data = DB::table('leads')
-                                    ->whereNull($request->category)
-                                    ->get();
+            //             break;
+            //         case('No date'):
+            //             $data = DB::table('leads')
+            //                         ->whereNull($request->category)
+            //                         ->get();
                         
-                        break;
-                    case('Has date'):
-                        $data = DB::table('leads')
-                                    ->whereNotNull($request->category)
-                                    ->get();
+            //             break;
+            //         case('Has date'):
+            //             $data = DB::table('leads')
+            //                         ->whereNotNull($request->category)
+            //                         ->get();
                         
-                        break;
-                    default:
-                        $data = Lead::whereBetween($request->category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()])
-                                    ->get();
+            //             break;
+            //         default:
+            //             $data = Lead::whereBetween($request->category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()])
+            //                         ->get();
+            //     }
+            //     return response()->json($data);
+            // }
+
+            // $data = DB::table('leads')
+            //             ->where($request->category, '=', $request->category_name)
+            //             ->get();
+            $query = DB::table('leads');
+
+            foreach ($request['checkedFilters'] as $category => $options) {
+                if (is_array($options) && count($options) > 0) {
+                    $query->whereIn($category, $options);
+                } elseif (is_string($options) && $options !== '') {
+                    switch($options) {
+                        case('Today'):
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                            break;
+                        case('Past 7 days'):
+                            $query->whereBetween($category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()]);
+                            break;
+                        case('This month'):
+                            $query->whereMonth($category, Carbon::today()->month);
+                            break;
+                        case('This year'):
+                            $query->whereYear($category, Carbon::today()->year);
+                            break;
+                        case('No date'):
+                            $query->whereNull($category);
+                            break;
+                        case('Has date'):
+                            $query->whereNotNull($category);
+                            break;
+                        default:
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                    }
                 }
-                return response()->json($data);
             }
+            $data = $query->get();
+            
+            // if(isset($request['checkedFilters']['contact_outcome']) && count($request['checkedFilters']['contact_outcome']) > 0) {
+            //     $data = DB::table('leads')
+            //             ->whereIn('contact_outcome', $request['checkedFilters']['contact_outcome'])
+            //             ->whereIn('assignee', $request['checkedFilters']['assignee'])
+            //             ->get();
 
-            $data = DB::table('leads')
-                        ->where($request->category, '=', $request->category_name)
-                        ->get();
+            // } else {
+            //     $data = DB::table('leads')->get();
+            // }
 
             return response()->json($data);
         }
