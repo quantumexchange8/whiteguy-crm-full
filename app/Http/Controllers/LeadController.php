@@ -543,13 +543,30 @@ class LeadController extends Controller
 
     public function importExcel(Request $request)
     {
-        // dd($request->file('leadExcelFile'));
         $file = $request->file('leadExcelFile');
-        // dd($request);
+        $import = new LeadsImport();
+        $errors = [];
         
-        Excel::import(new LeadsImport, $file);
+        // Excel::import(new LeadsImport, $file);
+        try {
+            $import->import($file);
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            
+            foreach ($failures as $failure) {
+                $errors[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(),
+                ];
+            }
+        }
 
-        return redirect(route('leads.index'));
+        return Inertia::render('CRM/Leads/Index', [
+            'errors' => $errors,
+        ]);
+        // return redirect(route('leads.index'));
     }
 
     /**

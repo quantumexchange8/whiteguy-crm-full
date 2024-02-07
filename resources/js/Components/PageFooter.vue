@@ -7,17 +7,7 @@ import { HeartIcon } from '@heroicons/vue/solid'
         <p
             class="flex items-center justify-center gap-1 text-sm text-gray-600  dark:text-gray-400"
         >
-            <span>Made with</span>
-
-            <span>
-                <HeartIcon class="w-6 h-6 text-red-500" />
-
-                <span className="sr-only">Love</span>
-            </span>
-
-            <span>by</span>
-
-            <span>Current Tech</span>
+            <span>Made by Current Tech Industries</span>
         </p>
     </footer>
 </template>

@@ -3,57 +3,56 @@
 namespace App\Imports;
 
 use App\Models\Lead;
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\ToCollection;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Concerns\Importable;
 
-class LeadsImport implements ToCollection, WithHeadingRow, WithValidation
+class LeadsImport implements ToModel, WithHeadingRow, WithValidation
 {
-    public function collection(Collection $rows)
+    use Importable;
+
+    public function model(array $row)
     {
-        foreach ($rows as $row) 
-        {
-            Lead::create([
-                'first_name' => $row['first_name'], 
-                'last_name' => $row['last_name'], 
-                'country' => $row['country'], 
-                'address' => $row['address'],
-                'date_oppd_in' => $row['date_oppd_in'], 
-                'campaign_product' => $row['campaign_product'],
-                'sdm' => $row['sdm'],
-                'date_of_birth' => $row['date_of_birth'],
-                'occupation' => $row['occupation'],
-                'agents_book' => $row['agents_book'],
-                'account_manager' => $row['account_manager'],
-                'vc' => $row['vc'], 
-                'data_type' => $row['data_type'],
-                'data_source' => $row['data_source'],
-                'data_code' => $row['data_code'],
-                'email' => $row['email'], 
-                'email_alt_1' => $row['email_alt_1'],
-                'email_alt_2' => $row['email_alt_2'],
-                'email_alt_3' => $row['email_alt_3'],
-                'phone_number' => $row['phone_number'],
-                'phone_number_alt_1' => $row['phone_number_alt_1'],
-                'phone_number_alt_2' => $row['phone_number_alt_2'],
-                'phone_number_alt_3' => $row['phone_number_alt_3'],
-                'private_remark' => $row['private_remark'],
-                'remark' => $row['remark'],
-                'appointment_start_at' => $row['appointment_start_at'],
-                'appointment_end_at' => $row['appointment_end_at'],
-                'last_called' => $row['last_called'], 
-                'assignee_read_at' => $row['assignee_read_at'],
-                'give_up_at' => $row['give_up_at'], 
-                'appointment_label' => $row['appointment_label'],
-                'contact_outcome' => $row['contact_outcome'],
-                'stage' => $row['stage'],
-                'assignee' => $row['assignee'], 
-                'created_by' => $row['created_by'],
-                'delete_at' => $row['delete_at'],
-            ]);
-        }
+        return new Lead([
+            'first_name' => $row['first_name'], 
+            'last_name' => $row['last_name'], 
+            'country' => $row['country'], 
+            'address' => $row['address'],
+            'date_oppd_in' => $row['date_oppd_in'], 
+            'campaign_product' => $row['campaign_product'],
+            'sdm' => $row['sdm'],
+            'date_of_birth' => $row['date_of_birth'],
+            'occupation' => $row['occupation'],
+            'agents_book' => $row['agents_book'],
+            'account_manager' => $row['account_manager'],
+            'vc' => $row['vc'], 
+            'data_type' => $row['data_type'],
+            'data_source' => $row['data_source'],
+            'data_code' => $row['data_code'],
+            'email' => $row['email'], 
+            'email_alt_1' => $row['email_alt_1'],
+            'email_alt_2' => $row['email_alt_2'],
+            'email_alt_3' => $row['email_alt_3'],
+            'phone_number' => $row['phone_number'],
+            'phone_number_alt_1' => $row['phone_number_alt_1'],
+            'phone_number_alt_2' => $row['phone_number_alt_2'],
+            'phone_number_alt_3' => $row['phone_number_alt_3'],
+            'private_remark' => $row['private_remark'],
+            'remark' => $row['remark'],
+            'appointment_start_at' => $row['appointment_start_at'],
+            'appointment_end_at' => $row['appointment_end_at'],
+            'last_called' => $row['last_called'], 
+            'assignee_read_at' => $row['assignee_read_at'],
+            'give_up_at' => $row['give_up_at'], 
+            'appointment_label' => $row['appointment_label'],
+            'contact_outcome' => $row['contact_outcome'],
+            'stage' => $row['stage'],
+            'assignee' => $row['assignee'], 
+            'created_by' => $row['created_by'],
+            'delete_at' => $row['delete_at'],
+        ]);
     }
 
     public function headingRow(): int
@@ -143,5 +142,24 @@ class LeadsImport implements ToCollection, WithHeadingRow, WithValidation
             'created_by' => 'Created By', 
             'delete_at' => 'Delete At',
         ];
+    }
+
+    public function prepareForValidation($data, $index)
+    {
+        $data['last_called'] = ($data['last_called'] !== '' && $data['last_called'] !== null) ? date('Y-m-d H:i:s', strtotime($data['last_called'])) : $data['last_called'];
+        $data['date_of_birth'] = ($data['date_of_birth'] !== '' && $data['date_of_birth'] !== null) ? date('Y-m-d', strtotime($data['date_of_birth'])) : $data['date_of_birth'];
+        $data['date_oppd_in'] = ($data['date_oppd_in'] !== '' && $data['date_oppd_in'] !== null) ? date('Y-m-d H:i:s', strtotime($data['date_oppd_in'])) : $data['date_oppd_in'];
+        $data['appointment_start_at'] = ($data['appointment_start_at'] !== '' && $data['appointment_start_at'] !== null) ? date('Y-m-d H:i:s', strtotime($data['appointment_start_at'])) : $data['appointment_start_at'];
+        $data['appointment_end_at'] = ($data['appointment_end_at'] !== '' && $data['appointment_end_at'] !== null) ? date('Y-m-d H:i:s', strtotime($data['appointment_end_at'])) : $data['appointment_end_at'];
+        $data['assignee_read_at'] = ($data['assignee_read_at'] !== '' && $data['assignee_read_at'] !== null) ? date('Y-m-d H:i:s', strtotime($data['assignee_read_at'])) : $data['assignee_read_at'];
+        $data['give_up_at'] = ($data['give_up_at'] !== '' && $data['give_up_at'] !== null) ? date('Y-m-d H:i:s', strtotime($data['give_up_at'])) : $data['give_up_at'];
+        $data['delete_at'] = ($data['delete_at'] !== '' && $data['delete_at'] !== null) ? date('Y-m-d H:i:s', strtotime($data['delete_at'])) : $data['delete_at'];
+
+        // dd($data['give_up_at']);
+        if(isset($data['assignee']) && gettype($data['assignee']) !== 'string') {
+            $data['assignee'] = strval($data['assignee']);
+        }
+        
+        return $data;
     }
 }

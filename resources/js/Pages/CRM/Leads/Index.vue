@@ -6,6 +6,10 @@ import Vue3Datatable from '@/Components/Vue3Datatable.vue'
 import Button from '@/Components/Button.vue'
 import LeadDetailsModal from './Partials/LeadDetailsModal.vue';
 
+const props = defineProps({
+    errors:Object,
+})
+
 const pageTitle = "Leads";
 const colArray = ref([
 	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm", filter: false },
@@ -45,6 +49,7 @@ const detailsLink = 'leads/';
 					:parentTitle="'CRM'" 
 					:title="pageTitle"
 				/>
+				<pre>{{ props.errors }}</pre>
 			</div>
 		</template>
 

@@ -15,20 +15,13 @@ import Dropdown from './Dropdown.vue'
 import { router } from '@inertiajs/vue3'
 
 const categories = ref([]);
-const categoriesCO = ref([]);
-const categoriesS = ref([]);
-const categoriesLA = ref([]);
-const categoriesGUA = ref([]);
-const categoriesA = ref([]);
 const filterIsOpen = ref(false);
+const importModalIsOpen = ref(false);
 const datatable = ref(null);
 const total_rows = ref(0);
 const searchInput = ref(null);
 const loading = ref(true);
 const rows = ref(null);
-const checkedCO = ref([]);
-const checkedS = ref([]);
-const checkedA = ref([]);
 const checkedFilters = reactive({
     contact_outcome: [],
     stage: [],
@@ -36,8 +29,6 @@ const checkedFilters = reactive({
     last_called: '',
     give_up_at: '',
 });
-// const checkedCategories = ref([]);
-// const checkedFiltersObj = ref({});
 const selectedRowData = ref(null);
 const isRowModalOpen = ref(false);
 const selectedRows = ref([]);
@@ -64,6 +55,7 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    errors:Object,
 })
 
 onMounted(() => {
@@ -166,6 +158,22 @@ const closeFilterModal = () => {
     filterIsOpen.value = false;
 }
 
+const openImportModal = () => {
+    importModalIsOpen.value = true;
+}
+
+const closeImportModal = () => {
+    importModalIsOpen.value = false;
+}
+
+const checkIfHasFile = () => {
+    if (form.leadExcelFile !== undefined || form.leadExcelFile !== '') {
+        isImportable.value = false;
+    } else {
+        isImportable.value = true;
+    }
+}
+
 const clearColumnFiltersInts = () => {
     props.cols.forEach((col, index) => {
         // Reset the search value for each column
@@ -183,8 +191,12 @@ const reset = () => {
     clearColumnFiltersInts();
     params.search = '';
     getData();
-    checkedFilters.value = [];
-    // cl(checkedFilters.value);
+    checkedFilters.contact_outcome = [];
+    checkedFilters.stage = [];
+    checkedFilters.assignee = [];
+    checkedFilters.last_called = '';
+    checkedFilters.give_up_at = '';
+    closeFilterModal();
 };
 
 const closeRowModal = () => {
@@ -208,10 +220,14 @@ const form = useForm({
 });
 
 // Get input file and send to controller for importing to db
-const importExcel = () => {
-    form.post(route('leads.import'), {
-        preserveState : false,
-    })
+const importExcel = (e) => {
+    e.preventDefault();
+    cl(form.leadExcelFile);
+    if (form.leadExcelFile !== undefined || form.leadExcelFile !== '') {
+        form.post(route('leads.import'), {
+            preserveState : false,
+        })
+    }
 };
 
 // Gets selected rows or all rows based on user selection and sends to controller for exporting to excel file
@@ -261,7 +277,7 @@ const clearSelectedRows = () => {
 // Check if user selected any rows and only enable if more than 0
 const checkForBulkActions = () => {
     // Check if there is any file input - disable import button if no file
-    if (form.leadExcelFile !== undefined & form.leadExcelFile !== '') {
+    if (form.leadExcelFile !== undefined && form.leadExcelFile !== '') {
         isImportable.value = false;
     } else {
         isImportable.value = true;
@@ -280,6 +296,13 @@ const checkForBulkActions = () => {
         isExportable.value = true;
     }
 };
+
+const cancelImportFile = () => {
+    form.leadExcelFile = '';
+    closeImportModal();
+
+    cl(form.leadExcelFile);
+}
 
 const addFilter = (category, category_item) => {
     // checkedCategories.value.forEach((col) => {
@@ -358,7 +381,7 @@ const addFilter = (category, category_item) => {
                                     <hr class="border-b rounded-md border-gray-600 mb-2 w-11/12 mx-auto">
                                     <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Import Excel</p>
                                     <div class="px-6 pb-6">
-                                        <form class="flex flex-col gap-4" @submit="importExcel">
+                                        <!-- <form class="flex flex-col gap-4" @submit="importExcel">
                                             <CustomFileInputField
                                                 :inputId="'leadExcelFile'"
                                                 v-model="form.leadExcelFile"
@@ -371,12 +394,22 @@ const addFilter = (category, category_item) => {
                                             >
                                                 Import File
                                             </Button>
-                                        </form>
+                                        </form> -->
+                                        <Button 
+                                            :type="'button'"
+                                            :variant="'success'"
+                                            :size="'sm'"
+                                            class="justify-center gap-2 w-full h-full"
+                                            @click="openImportModal"
+                                        >
+                                            Import File
+                                        </Button>
                                     </div>
                                     <hr class="border-b rounded-md border-gray-600 mb-2 w-9/12 mx-auto">
                                     <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Export to Excel</p>
                                     <div class="px-6 pb-6 flex flex-col gap-2">
                                         <Button 
+                                            :type="'button'"
                                             :variant="'success'"
                                             :size="'sm'"
                                             class="justify-center gap-2 w-full h-full" 
@@ -385,6 +418,7 @@ const addFilter = (category, category_item) => {
                                             Export All
                                         </Button>
                                         <Button 
+                                            :type="'button'"
                                             :variant="'success'"
                                             :size="'sm'"
                                             class="justify-center gap-2 w-full h-full" 
@@ -393,6 +427,7 @@ const addFilter = (category, category_item) => {
                                             Export Filtered  ({{ filteredRowsLength }})
                                         </Button>
                                         <Button 
+                                            :type="'button'"
                                             :variant="'success'"
                                             :size="'sm'"
                                             :disabled="isExportable"
@@ -405,6 +440,47 @@ const addFilter = (category, category_item) => {
                                 </div>
                             </template>
                         </Dropdown>
+                        <Modal 
+                            :show="importModalIsOpen" 
+                            maxWidth="2xl" 
+                            :closeable="true" 
+                            @close="closeImportModal">
+
+                            <div class="p-9">
+                                <p class="text-gray-200 text-2xl bg-blue-500 p-4 rounded-md font-bold mb-6">Import Excel File</p>
+                                <div class="flex flex-col justify-center divide-y divide-gray-500">
+                                    <div class="p-2">
+                                        <form class="flex flex-col gap-4" @submit="importExcel">
+                                            <CustomFileInputField
+                                                :inputId="'leadExcelFile'"
+                                                v-model="form.leadExcelFile"
+                                                @change="checkIfHasFile"
+                                            />
+                                            <div class="flex justify-end px-9">
+                                                <div class="rounded-md shadow-lg flex flex-row gap-2">
+                                                    <Button 
+                                                        :type="'button'"
+                                                        :variant="'secondary'"
+                                                        :size="'sm'"
+                                                        class="justify-center px-6 py-2 border border-purple-500" 
+                                                        @click="cancelImportFile"
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                    <Button 
+                                                        :size="'sm'"
+                                                        :disabled="isImportable"
+                                                        class="justify-center px-6 py-2"
+                                                    >
+                                                        Import File
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </Modal>
                     </div>
                     <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
                         <Button 
@@ -418,6 +494,7 @@ const addFilter = (category, category_item) => {
                     </div>
                     <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
                         <Button 
+                            :type="'button'"
                             :variant="'secondary'"
 							:size="'sm'"
                             class="justify-center gap-2 w-full h-full" 
@@ -439,105 +516,54 @@ const addFilter = (category, category_item) => {
                                         <div class="flex flex-row flex-wrap gap-2 p-2">
                                             <div v-for="(item, index) in value" :key="index">
                                                 <input 
-                                                    :id="index" 
-                                                    type="checkbox" 
-                                                    class="" 
-                                                    name="contact_outcome[]" 
-                                                    :value="item" 
-                                                    v-model="checkedFilters.contact_outcome"
-                                                    v-if="key === 'contact_outcome'"
-                                                >
-                                                <input 
-                                                    :id="index" 
-                                                    type="checkbox" 
-                                                    class="" 
-                                                    name="stage[]" 
-                                                    :value="item" 
-                                                    v-model="checkedFilters.stage"
-                                                    v-else-if="key === 'stage'"
-                                                >
-                                                <input 
-                                                    :id="index" 
-                                                    type="checkbox" 
-                                                    class="" 
-                                                    name="assignee[]" 
-                                                    :value="item" 
-                                                    v-model="checkedFilters.assignee"
-                                                    v-else-if="key === 'assignee'"
-                                                >
-                                                <input 
-                                                    :id="index" 
+                                                    :id="key + index" 
                                                     type="radio" 
-                                                    class="" 
-                                                    name="last_called" 
+                                                    class="hidden peer" 
+                                                    :name="key" 
                                                     :value="item" 
-                                                    v-model="checkedFilters.last_called"
-                                                    v-else-if="key === 'last_called'"
+                                                    v-model="checkedFilters[key]"
+                                                    v-if="key === 'last_called' || key === 'give_up_at'"
                                                 >
                                                 <input 
-                                                    :id="index" 
-                                                    type="radio" 
-                                                    class="" 
-                                                    name="give_up_at" 
+                                                    :id="key + index" 
+                                                    type="checkbox" 
+                                                    class="hidden peer" 
+                                                    :name="key" 
                                                     :value="item" 
-                                                    v-model="checkedFilters.give_up_at"
-                                                    v-else-if="key === 'give_up_at'"
+                                                    v-model="checkedFilters[key]"
+                                                    v-else
                                                 >
                                                 <label 
-                                                    :for="index" 
+                                                    :for="key + index" 
                                                     class="inline-flex items-center justify-between w-auto py-2 px-4 font-medium tracking-tight 
-                                                        border rounded-lg cursor-pointer bg-brand-light text-brand-black border-gray-500">
+                                                        border rounded-lg cursor-pointer bg-brand-light text-brand-black border-gray-500
+                                                        peer-checked:border-violet-400 peer-checked:bg-violet-700 peer-checked:text-white">
                                                     <div class="flex items-center justify-center w-full">
                                                         <div class="text-sm dark:text-gray-300">{{ item }}</div>
                                                     </div>
                                                 </label>
                                             </div>
                                         </div>
-                                        <!-- <div class="flex flex-row flex-wrap gap-2 p-2" v-else>
-                                            <Button 
-                                                :variant="'secondary'"
-                                                :size="'sm'"
-                                                class="justify-center gap-2 rounded-md border border-gray-500"
-                                                @click="getFilteredData(key, item)"
-                                                v-for="(item, index) in value" :key="index"
-                                            >
-                                                {{ item }}
-                                            </Button>
-                                            <label 
-                                                :for="index" 
-                                                class="inline-flex items-center justify-between w-auto py-2 px-4 font-medium tracking-tight 
-                                                    border rounded-lg cursor-pointer bg-brand-light text-brand-black border-gray-500 
-                                                    peer-checked:border-violet-400 peer-checked:bg-violet-700 peer-checked:text-white">
-                                                <div class="flex items-center justify-center w-full">
-                                                    <div class="text-sm dark:text-gray-300">{{ index }}</div>
-                                                </div>
-                                            </label>
-                                        </div> -->
                                     </div>
                                 </div>
                                 <div class="flex justify-end px-9">
                                     <div class="rounded-md shadow-lg flex flex-row gap-2">
                                         <Button 
+                                            :type="'button'"
                                             :variant="'secondary'"
                                             :size="'sm'"
-                                            class="justify-center px-6 py-2 rounded-md border border-purple-500" 
+                                            class="justify-center px-6 py-2 border border-purple-500" 
                                             @click="reset"
                                         >
                                             Reset
                                         </Button>
                                         <Button 
+                                            :type="'button'"
                                             :size="'sm'"
-                                            class="justify-center px-6 py-2 rounded-md border border-gray-500" 
+                                            class="justify-center px-6 py-2" 
                                             @click="getFilteredData(checkedFilters)"
                                         >
                                             Apply
-                                        </Button>
-                                        <Button 
-                                            :size="'sm'"
-                                            class="justify-center px-6 py-2 rounded-md border border-gray-500" 
-                                            @click="cl(checkedFilters)"
-                                        >
-                                            Check
                                         </Button>
                                     </div>
                                 </div>
@@ -621,6 +647,7 @@ const addFilter = (category, category_item) => {
             <template #actions="rows">
                 <div class="flex flex-row flex-nowrap gap-4">
                     <Button 
+                        :type="'button'"
                         :size="'sm'"
                         class="justify-center gap-2 h-full" 
                         @click="rowShowDetails(rows.value)"
@@ -628,6 +655,7 @@ const addFilter = (category, category_item) => {
                         <EyeIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
                     </Button>
                     <Button 
+                        :type="'button'"
                         :variant="'info'"
                         :size="'sm'"
                         class="justify-center gap-2 h-full" 
@@ -636,6 +664,7 @@ const addFilter = (category, category_item) => {
                         <PageEditIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
                     </Button>
                     <Button 
+                        :type="'button'"
                         :variant="'danger'"
                         :size="'sm'"
                         class="justify-center gap-2 h-full" 
