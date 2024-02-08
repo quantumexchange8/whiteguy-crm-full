@@ -8,8 +8,9 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
 
-class LeadsImport implements ToModel, WithHeadingRow, WithValidation
+class LeadsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnError
 {
     use Importable;
 
@@ -161,5 +162,13 @@ class LeadsImport implements ToModel, WithHeadingRow, WithValidation
         }
         
         return $data;
+    }
+    
+    /**
+     * @param \Throwable $e
+     */
+    public function onError(\Throwable $e)
+    {
+        $e['first_name'] = 'yes';
     }
 }

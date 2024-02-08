@@ -1,16 +1,20 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
 import Vue3Datatable from '@/Components/Vue3Datatable.vue'
 import Button from '@/Components/Button.vue'
 import LeadDetailsModal from './Partials/LeadDetailsModal.vue';
+import CustomToastification from '@/Components/CustomToastification.vue';
+import { useToast } from "vue-toastification";
+import "vue-toastification/dist/index.css";
 
 const props = defineProps({
     errors:Object,
 })
 
 const pageTitle = "Leads";
+const toast = useToast();
 const colArray = ref([
 	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm", filter: false },
     { field: "id", title: "ID", headerClass: "dark:text-gray-300 text-sm" },
@@ -28,9 +32,26 @@ const colArray = ref([
     { field: "data_source", title: "DATA SOURCE", headerClass: "dark:text-gray-300 text-sm"  },
     { field: "data_code", title: "DATA CODE", headerClass: "dark:text-gray-300 text-sm"  },
 ]);
-const targetApi = '/data/leads';
-const categoryFilters = '/data/leads/categories';
-const detailsLink = 'leads/';
+
+// Custom Toastification
+const toastContent = {
+    // Toast Component
+    component: CustomToastification,
+
+    // Component props
+    props: {
+        errors: props.errors,
+        type: 'error',
+    },
+};
+
+const showToast = () => {
+	toast(toastContent);
+}
+
+onMounted(() => {
+    showToast();
+});
 
 </script>
 
@@ -49,16 +70,25 @@ const detailsLink = 'leads/';
 					:parentTitle="'CRM'" 
 					:title="pageTitle"
 				/>
-				<pre>{{ props.errors }}</pre>
+				<div class="flex justify-end">
+					<Button 
+						:variant="'secondary'"
+						:size="'sm'"
+						@click="showToast"
+						class="justify-center gap-2"
+					>
+						Toast
+					</Button>
+				</div>
 			</div>
 		</template>
 
 		<div class="w-full pb-6">
 			<Vue3Datatable 
 				:cols="colArray" 
-				:targetApi="targetApi"
-				:detailsLink="detailsLink"
-				:categoryFilters="categoryFilters"
+				:targetApi="'/data/leads'"
+				:detailsLink="'leads'"
+				:categoryFilters="'/data/leads/categories'"
 				:modalComponent="LeadDetailsModal"
 			></Vue3Datatable>
 		</div>

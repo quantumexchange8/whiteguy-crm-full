@@ -109,21 +109,89 @@ export const EmptyCircleIcon = defineComponent({
 export const CheckCircleIcon = defineComponent({
     setup() {
         return () => (
-            <svg
-                style="color: rgb(166, 158, 110);"
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                class="bi bi-check2-circle"
-                stroke="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
+            <svg 
+                id="successAnimation" 
+                class="animated animate-scaleAnimation" 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="70" 
+                height="70" 
+                viewBox="0 0 70 70"
             >
-                <path
-                    d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z"
-                    fill="#a69e6e"
+                <circle 
+                    id="successAnimationCircle" 
+                    class="animate-drawCircle" 
+                    cx="35" 
+                    cy="35" 
+                    r="24" 
+                    stroke="#4caf50" 
+                    stroke-width="2" 
+                    stroke-linecap="round" 
+                    fill="transparent"
                 />
-                <path d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z" fill="#a69e6e"></path>
+                <polyline 
+                    id="successAnimationCheck" 
+                    class="animate-drawCheck" 
+                    stroke="#4caf50" 
+                    stroke-width="2" 
+                    points="23 34 34 43 47 27" 
+                    fill="transparent"
+                />
+            </svg>
+        )
+    },
+})
+
+export const ErrorCircleIcon = defineComponent({
+    setup() {
+        return () => (
+            <svg 
+                class="animate-shake" 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="200" 
+                height="200" 
+                fill="#ef4444" 
+                viewBox="0 0 16 16" 
+                id="IconChangeColor"
+            > 
+                <path 
+                    d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" 
+                    id="mainIconPathAttribute"
+                >
+                </path> 
+                <path 
+                    d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 
+                    2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" 
+                    id="mainIconPathAttribute"
+                >
+                </path> 
+            </svg>
+        )
+    },
+})
+
+export const InfoCircleIcon = defineComponent({
+    setup() {
+        return () => (
+            <svg 
+                id="IconChangeColor"
+                class="animate-scaleAnimation" 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="200" 
+                height="200" 
+                fill="#06b6d4" 
+                viewBox="0 0 16 16" 
+            > 
+                <path 
+                    d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" 
+                    id="mainIconPathAttribute"
+                >
+                </path> 
+                <path 
+                    d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" 
+                    id="mainIconPathAttribute"
+                    class="animate-scaleAnimation" 
+                >
+                </path> 
             </svg>
         )
     },

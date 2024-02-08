@@ -212,7 +212,8 @@ const rowShowDetails = (data) => {
 
 // Redirects user to the selected row's edit page when user click on the table row
 const rowShowEdit = (data) => {
-    window.location.href = props.detailsLink + data.id + '/edit';
+    // window.location.href = props.detailsLink + data.id + '/edit';
+    window.location.href = route(props.detailsLink + '.edit', data.id);
 };
 
 const form = useForm({

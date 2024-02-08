@@ -236,13 +236,6 @@
 		background-color: #4b5563;
 		color: #d1d5db;
 	}
-
-	/* Vue 3 Datepicker */
-	.dp__input {
-		background-color: rgb(34 39 56 / var(--tw-bg-opacity))!important;
-		color: rgba(209, 213, 219, var(--tw-text-opacity))!important;
-		border-color: rgba(75, 85, 99, var(--tw-border-opacity))!important;
-	}
 }
 
 @media (min-width: 1024px) {
@@ -274,10 +267,61 @@
 	border-color: rgba(156, 163, 175, var(--tw-border-opacity))!important;
 }
 
+:is(:where(.dark)) { 
+	.dp__input {
+		background-color: rgb(34 39 56 / var(--tw-bg-opacity))!important;
+		color: rgba(209, 213, 219, var(--tw-text-opacity))!important;
+		border-color: rgba(75, 85, 99, var(--tw-border-opacity))!important;
+	}
+}
+
 /* ----------------------------------------------------- Modal Component  -------------------------------------------------------- */
 .modal {
 	padding: 30px;
 	height: 200px;
 	background-color: #222738;
 	overflow: auto;
+}
+
+/* ----------------------------------------------------- Custom Toastification Component  -------------------------------------------------------- */
+.Vue-Toastification__toast--default.default-background-color {
+	background-color: #EEEEEE;
+	border: 5px solid #a855f7;
+}
+
+.Vue-Toastification__close-button.default-close-button {
+	position: absolute!important;
+	right: 20px!important;
+	padding: 0!important;
+	height: 24px!important;
+}
+
+#successAnimationCircle {
+	stroke-dasharray: 151px 151px;
+}
+
+#successAnimationCheck {
+	stroke-dasharray: 36px 36px;
+}
+
+#defaultAnimationCircle {
+	stroke-dasharray: 15 15;
+}
+
+#defaultAnimationCheck {
+	stroke-dasharray: 15 15;
+}
+
+#errorAnimationCircle {
+	stroke-dasharray: 15 15;
+}
+
+#errorAnimationCheck {
+	stroke-dasharray: 15 15;
+}
+
+:is(:where(.dark)) { 
+	.Vue-Toastification__toast--default.default-background-color {
+		background: #222738!important;
+	}
 }
