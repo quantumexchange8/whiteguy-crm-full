@@ -2,20 +2,70 @@
 
 namespace App\Imports;
 
+use App\Models\DuplicatedLead;
 use App\Models\Lead;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Validators\Failure;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\SkipsErrors;
 
-class LeadsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnError
+class LeadsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
 {
-    use Importable;
+    use Importable, SkipsFailures;
 
     public function model(array $row)
     {
+        // Check for duplicates based on email and phone number
+        if (Lead::where('email', $row['email'])->orWhere('phone_number', $row['phone_number'])->exists()) {
+            // If a duplicate is found, insert the data into the duplicated_leads table
+            
+            DuplicatedLead::create([
+                'first_name' => $row['first_name'], 
+                'last_name' => $row['last_name'], 
+                'country' => $row['country'], 
+                'address' => $row['address'],
+                'date_oppd_in' => $row['date_oppd_in'], 
+                'campaign_product' => $row['campaign_product'],
+                'sdm' => $row['sdm'],
+                'date_of_birth' => $row['date_of_birth'],
+                'occupation' => $row['occupation'],
+                'agents_book' => $row['agents_book'],
+                'account_manager' => $row['account_manager'],
+                'vc' => $row['vc'], 
+                'data_type' => $row['data_type'],
+                'data_source' => $row['data_source'],
+                'data_code' => $row['data_code'],
+                'email' => $row['email'], 
+                'email_alt_1' => $row['email_alt_1'],
+                'email_alt_2' => $row['email_alt_2'],
+                'email_alt_3' => $row['email_alt_3'],
+                'phone_number' => $row['phone_number'],
+                'phone_number_alt_1' => $row['phone_number_alt_1'],
+                'phone_number_alt_2' => $row['phone_number_alt_2'],
+                'phone_number_alt_3' => $row['phone_number_alt_3'],
+                'private_remark' => $row['private_remark'],
+                'remark' => $row['remark'],
+                'appointment_start_at' => $row['appointment_start_at'],
+                'appointment_end_at' => $row['appointment_end_at'],
+                'last_called' => $row['last_called'], 
+                'assignee_read_at' => $row['assignee_read_at'],
+                'give_up_at' => $row['give_up_at'], 
+                'appointment_label' => $row['appointment_label'],
+                'contact_outcome' => $row['contact_outcome'],
+                'stage' => $row['stage'],
+                'assignee' => $row['assignee'], 
+                'created_by' => $row['created_by'],
+                'delete_at' => $row['delete_at'],
+            ]);
+            return null;
+        }
+
         return new Lead([
             'first_name' => $row['first_name'], 
             'last_name' => $row['last_name'], 
@@ -79,14 +129,14 @@ class LeadsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErr
             'data_type' => 'string|nullable|max:100',
             'data_source' => 'string|nullable|max:100',
             'data_code' => 'string|nullable|max:100',
-            'email' => 'required|email:rfc,dns|unique:leads',
-            'email_alt_1' => 'nullable|email:rfc,dns|unique:leads',
-            'email_alt_2' => 'nullable|email:rfc,dns|unique:leads',
-            'email_alt_3' => 'nullable|email:rfc,dns|unique:leads',
-            'phone_number' => 'required|integer|unique:leads',
-            'phone_number_alt_1' => 'nullable|integer|unique:leads',
-            'phone_number_alt_2' => 'nullable|integer|unique:leads',
-            'phone_number_alt_3' => 'nullable|integer|unique:leads',
+            'email' => 'required|email:rfc,dns',
+            'email_alt_1' => 'nullable|email:rfc,dns',
+            'email_alt_2' => 'nullable|email:rfc,dns',
+            'email_alt_3' => 'nullable|email:rfc,dns',
+            'phone_number' => 'required|integer',
+            'phone_number_alt_1' => 'nullable|integer',
+            'phone_number_alt_2' => 'nullable|integer',
+            'phone_number_alt_3' => 'nullable|integer',
             'private_remark' => 'string|nullable|max:1000', 
             'remark' => 'string|nullable|max:1000', 
             'appointment_start_at' => 'date_format:Y-m-d H:i:s|nullable',
@@ -163,12 +213,5 @@ class LeadsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErr
         
         return $data;
     }
-    
-    /**
-     * @param \Throwable $e
-     */
-    public function onError(\Throwable $e)
-    {
-        $e['first_name'] = 'yes';
-    }
+
 }

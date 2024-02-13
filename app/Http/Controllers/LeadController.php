@@ -16,6 +16,7 @@ use App\Imports\LeadsImport;
 use App\Models\LeadFront;
 use App\Models\LeadNote;
 use App\Models\Lead;
+use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 
 class LeadController extends Controller
@@ -23,8 +24,22 @@ class LeadController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        // Get the flashed messages from the session
+        $errors = $request->session()->get('errors');
+        $errorMsg = $request->session()->get('errorMsg');
+
+        // Clear the flashed messages from the session
+        $request->session()->forget('errors');
+        $request->session()->forget('errorMsg');
+
+        if (isset($errors) && isset($errorMsg)) {
+            return Inertia::render('CRM/Leads/Index', [
+                'errors' => $errors,
+                'errorMsg' => $errorMsg
+            ]);
+        }
         return Inertia::render('CRM/Leads/Index');
     }
 
@@ -545,28 +560,76 @@ class LeadController extends Controller
     {
         $file = $request->file('leadExcelFile');
         $import = new LeadsImport();
-        $errors = [];
+        $import->import($file);
         
-        // Excel::import(new LeadsImport, $file);
-        try {
-            $import->import($file);
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-            $failures = $e->failures();
-            
-            foreach ($failures as $failure) {
-                $errors[] = [
-                    'row' => $failure->row(),
-                    'attribute' => $failure->attribute(),
-                    'errors' => $failure->errors(),
-                    'values' => $failure->values(),
-                ];
-            }
+        $errors = [];
+        $duplicatedLeads = [];
+        
+        foreach ($import->failures() as $failure) {
+            $rowErrors = [
+                'row' => $failure->row(),
+                'attribute' => $failure->attribute(),
+                'errors' => $failure->errors(),
+                'values' => $failure->values(),
+            ];
+
+            array_push($errors, $rowErrors);
         }
 
-        return Inertia::render('CRM/Leads/Index', [
-            'errors' => $errors,
-        ]);
-        // return redirect(route('leads.index'));
+        // $errorMsgTitle = "";
+        // $errorMsgContent = "";
+
+        // dd($errors, $duplicatedLeads);
+
+        // Set error messages to be displayed based on whether there are any errors
+        if (count($errors) > 0) {
+            $errorMsgTitle = "You have partially imported the leads into the system.";
+            $errorMsgContent = "There are rows that have not been inputted correctly or filled completely. Any duplicated leads have been moved to the duplicated leads table. The import errors are as below.";
+            $errorMsgType = "error";
+        } else {
+            $errorMsgTitle = "You have successfully imported the leads into the system.";
+            $errorMsgContent = "Any duplicated leads have been moved to the duplicated leads table. The import errors are as below.";
+            $errorMsgType = "success";
+        }
+
+        // Excel::import(new LeadsImport, $file);
+        // try {
+        //     $import->import($file);
+        // } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+        //     $failures = $e->failures();
+            
+        //     foreach ($failures as $failure) {
+        //         $rowErrors = [
+        //             'row' => $failure->row(),
+        //             'attribute' => $failure->attribute(),
+        //             'errors' => $failure->errors(),
+        //             'values' => $failure->values(),
+        //         ];
+
+        //         array_push($errors, $rowErrors);
+        //         if ($failure->attribute() === 'Email' || $failure->attribute() === 'Phone Number') {
+        //             if ($failure->errors() === "The Email has already been taken." || $failure->errors() === "The Phone Number has already been taken.") {
+
+        //            }
+        //         }
+        //     }
+        // }
+
+        // dd($errors);
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'content' => $errorMsgContent,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('leads.index')
+                        ->with('errors', $errors)
+                        ->with('errorMsg', $errorMsg);
+        // return Inertia::render('CRM/Leads/Index', [
+        //     'errors' => $errors,
+        //     'errorMsg' => $errorMsg
+        // ]);
     }
 
     /**

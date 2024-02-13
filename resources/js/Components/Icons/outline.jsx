@@ -113,8 +113,8 @@ export const CheckCircleIcon = defineComponent({
                 id="successAnimation" 
                 class="animated animate-scaleAnimation" 
                 xmlns="http://www.w3.org/2000/svg" 
-                width="70" 
-                height="70" 
+                width="200" 
+                height="200" 
                 viewBox="0 0 70 70"
             >
                 <circle 
@@ -122,7 +122,7 @@ export const CheckCircleIcon = defineComponent({
                     class="animate-drawCircle" 
                     cx="35" 
                     cy="35" 
-                    r="24" 
+                    r="34" 
                     stroke="#4caf50" 
                     stroke-width="2" 
                     stroke-linecap="round" 

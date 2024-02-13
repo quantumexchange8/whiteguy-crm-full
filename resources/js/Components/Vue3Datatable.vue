@@ -223,7 +223,7 @@ const form = useForm({
 // Get input file and send to controller for importing to db
 const importExcel = (e) => {
     e.preventDefault();
-    cl(form.leadExcelFile);
+    // cl(form.leadExcelFile);
     if (form.leadExcelFile !== undefined || form.leadExcelFile !== '') {
         form.post(route('leads.import'), {
             preserveState : false,

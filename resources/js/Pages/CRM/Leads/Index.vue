@@ -11,6 +11,10 @@ import "vue-toastification/dist/index.css";
 
 const props = defineProps({
     errors:Object,
+	errorMsg: {
+		type: Object,
+        default: () => ({}),
+	}
 })
 
 const pageTitle = "Leads";
@@ -41,7 +45,9 @@ const toastContent = {
     // Component props
     props: {
         errors: props.errors,
-        type: 'error',
+        errorMsg: props.errorMsg,
+        type: props.errorMsg ? props.errorMsg.type : 'default',
+		isImport: true,
     },
 };
 
@@ -49,8 +55,21 @@ const showToast = () => {
 	toast(toastContent);
 }
 
+// const isErrorsEmpty = (object) => {
+//   for (let prop in object) {
+//     if (object.hasOwnProperty(prop)) {
+// 		console.log(object.hasOwnProperty(prop));
+//       	return false;
+//     }
+//   }
+//   return true;
+// };
+
 onMounted(() => {
-    showToast();
+	console.log(props.errorMsg);
+	if (Object.keys(props.errorMsg).length !== 0) {
+		showToast();
+	}
 });
 
 </script>
