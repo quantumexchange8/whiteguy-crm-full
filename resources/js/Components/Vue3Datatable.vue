@@ -11,7 +11,9 @@ import Input from '@/Components/Input.vue'
 import Modal from '@/Components/Modal.vue'
 import CustomFileInputField from '@/Components/CustomFileInputField.vue'
 import { TrashIcon, EyeIcon, PageEditIcon } from '@/Components/Icons/outline'
+import { ThreeDotsVertical } from '@/Components/Icons/solid'
 import Dropdown from './Dropdown.vue'
+import DropdownLink from './DropdownLink.vue'
 import { router } from '@inertiajs/vue3'
 
 const categories = ref([]);
@@ -32,10 +34,13 @@ const checkedFilters = reactive({
 const selectedRowData = ref(null);
 const isRowModalOpen = ref(false);
 const selectedRows = ref([]);
+const showDeleteModal = ref(false);
+const rowDataId = ref(null);
 const isExportable = ref(true);
 const selectedRowsLength = ref(0);
 const filteredRowsLength = ref(0);
 const isImportable = ref(true);
+const isDuplicate = ref(false);
 
 const props = defineProps({
     cols: {
@@ -55,12 +60,21 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    getDuplicatesURL: {
+        type: String,
+        default: '',
+    },
     errors:Object,
 })
 
 onMounted(() => {
-    getData();
-    getCategoryFilters();
+    loading.value = true;
+    
+    setTimeout(() => {
+        getData();
+        getCategoryFilters();
+        loading.value = false;
+    }, 500);
 });
 
 const params = reactive({
@@ -84,15 +98,42 @@ const getData = async () => {
                 limit: 10,
             }
         });
-        // cl(data);
+        
         rows.value = await data.data;
         total_rows.value = data.data.length;
+        isDuplicate.value = false;
 
     } catch (error) {
         console.error("Error fetching data:", error);
     } finally {
         loading.value = false;
     }
+};
+
+const getDuplicatedData = async () => {
+    try {
+        loading.value = true;
+        
+        const data = await axios.get(props.getDuplicatesURL);
+        rows.value = await data.data;
+        total_rows.value = data.data.length;
+        isDuplicate.value = true;
+
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    } finally {
+        loading.value = false;
+    }
+};
+
+const toggleLeadsData = () => {
+      isDuplicate.value = !isDuplicate.value;
+      
+      if (isDuplicate.value) {
+        getDuplicatedData();
+      } else {
+        getData();
+      }
 };
 
 const changePage = (data) => {
@@ -138,7 +179,7 @@ const getFilteredData = async (checkedFilters) => {
                 checkedFilters: checkedFilters,
             }
         });
-        console.log(data);
+        // console.log(data);
         rows.value = await data.data;
         total_rows.value = data.data.length;
 
@@ -214,6 +255,24 @@ const rowShowDetails = (data) => {
 const rowShowEdit = (data) => {
     // window.location.href = props.detailsLink + data.id + '/edit';
     window.location.href = route(props.detailsLink + '.edit', data.id);
+};
+
+const openDeleteModal = (id) => {
+    rowDataId.value = id;
+    showDeleteModal.value = true;
+};
+
+const closeDeleteModal = () => {
+    rowDataId.value = null;
+    showDeleteModal.value = false;
+};
+
+const deleteLead = () => {
+    // console.log(rowDataId.value);
+    router.delete(route('leads.destroy', rowDataId.value), {
+            preserveState : false,
+            onSuccess: () => closeDeleteModal(),
+        });
 };
 
 const form = useForm({
@@ -321,19 +380,49 @@ const addFilter = (category, category_item) => {
 
 <template>
     <div class="p-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
-		<div class="flex justify-end pb-6">
-			<div class="rounded-md shadow-lg border border-gray-500 flex justify-end">
-				<Button 
-					:type="'button'"
-					:variant="'success'" 
-					:size="'sm'" 
-					class="justify-center px-6 py-2 gap-2 w-full h-full"
-					:href="route('leads.create')"
-				>
-					Create Lead
-				</Button>
-			</div>
-		</div>
+        <div class="flex flex-row justify-between pb-6">
+            <p class="text-xl pl-8 dark:text-gray-300 font-semibold text-center">{{ isDuplicate ? 'Duplicates' : '' }}</p>
+            <div class="flex flex-row">
+                <div class="rounded-md shadow-lg border border-gray-500 flex justify-end">
+                    <Button 
+                        :type="'button'"
+                        :variant="'success'" 
+                        :size="'sm'" 
+                        class="justify-center px-6 py-2 gap-2 w-full h-full"
+                        :href="route('leads.create')"
+                    >
+                        Create Lead
+                    </Button>
+                </div>
+                <Dropdown 
+                    :align="'right'" 
+                    :width="50" 
+                    :contentClasses="'dark:bg-dark-eval-3'"
+                >
+                    <template #trigger>
+                        <ThreeDotsVertical class="flex-shrink-0 w-6 h-6 cursor-pointer mx-2" aria-hidden="true" />
+                    </template>
+    
+                    <template #content>
+                        <div class="p- w-full">
+                            <p class="text-md p-2 text-gray-300 text-center">Action</p>
+                            <hr class="border-b rounded-md border-gray-600 mb-2 w-10/12 mx-auto">
+                            <div class="px-6 pb-6 pt-2">
+                                <Button 
+                                    :type="'button'"
+                                    :variant="'info'" 
+                                    :size="'sm'" 
+                                    class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                    @click="toggleLeadsData()"
+                                >
+                                    {{ isDuplicate ? 'Leads' : 'Leads Duplicates' }}
+                                </Button>
+                            </div>
+                        </div>
+                    </template>
+                </Dropdown>
+            </div>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-5">
             <div class="col-span-2 md:w-full">
                 <div class="lg:col-start-1 grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -669,10 +758,43 @@ const addFilter = (category, category_item) => {
                         :variant="'danger'"
                         :size="'sm'"
                         class="justify-center gap-2 h-full" 
-                        @click=""
+                        @click="openDeleteModal(rows.value.id)"
                     >
                         <TrashIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
                     </Button>
+                    <Modal 
+                        :show="showDeleteModal" 
+                        maxWidth="2xl" 
+                        :closeable="true" 
+                        @close="closeDeleteModal">
+
+                        <div class="modal">
+                            <p class="text-gray-200 text-2xl bg-red-500 p-4 rounded-md font-bold">Delete Lead Confirmation.</p>
+                            <p class="text-gray-200 text-lg p-4">Are you sure that you want to <span class="font-bold">delete</span> this lead?</p>
+                        </div>
+                        <div class="flex flex-row justify-end p-9">
+                            <div class="dark:bg-gray-600 p-4 rounded-md flex gap-4">
+                                <Button 
+                                    :type="'button'"
+                                    :variant="'info'" 
+                                    :size="'sm'"
+                                    @click="closeDeleteModal"
+                                    class="justify-center px-6 py-2"
+                                >
+                                    <span>Back</span>   
+                                </Button>
+                                <Button 
+                                    :type="'button'"
+                                    :variant="'danger'" 
+                                    :size="'sm'" 
+                                    class="justify-center px-6 py-2"
+                                    @click="deleteLead"
+                                >
+                                    <span>Confirm</span>
+                                </Button>
+                            </div>
+                        </div>
+                    </Modal>
                     <!-- <button type="button" class="btn btn-success !py-1" @click="viewUser(rows.value)">View</button>
                     <button type="button" class="btn btn-danger !py-1" @click="deleteUser(rows.value)">Delete</button> -->
                 </div>

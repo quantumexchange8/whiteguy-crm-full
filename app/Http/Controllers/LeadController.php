@@ -33,8 +33,9 @@ class LeadController extends Controller
         // Clear the flashed messages from the session
         $request->session()->forget('errors');
         $request->session()->forget('errorMsg');
+        $request->session()->save();
 
-        if (isset($errors) && isset($errorMsg)) {
+        if (isset($errorMsg)) {
             return Inertia::render('CRM/Leads/Index', [
                 'errors' => $errors,
                 'errorMsg' => $errorMsg
@@ -151,8 +152,17 @@ class LeadController extends Controller
             $newLeadNoteData->save();
         }
         
+        
+        $errorMsgTitle = "You have successfully created a new lead.";
+        $errorMsgType = "success";
 
-		return redirect(route('leads.index'));
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('leads.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -341,7 +351,17 @@ class LeadController extends Controller
             }
         }
 
-		return redirect(route('leads.index'));
+		
+        $errorMsgTitle = "You have successfully updated the lead.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('leads.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -349,13 +369,20 @@ class LeadController extends Controller
      */
     public function destroy(string $id)
     {
-        // dd($id);
-        // $existingLeadFront = LeadNote::find($id);
-        // $linkedLead = $existingLeadFront->linked_lead;
-        // $existingLeadFront->delete();
+        $existingLead = Lead::find($id);
+        // dd($existingLead);
+        $existingLead->delete();
 
+        $errorMsgTitle = "You have successfully deleted the lead.";
+        $errorMsgType = "success";
 
-        // return redirect(route('leads.edit', $linkedLead));
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('leads.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -448,7 +475,7 @@ class LeadController extends Controller
             // $data = DB::table('leads')
             //             ->where($request->category, '=', $request->category_name)
             //             ->get();
-            $query = DB::table('leads');
+            $query = DB::table('leads')->whereNull('deleted_at');
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
@@ -494,7 +521,15 @@ class LeadController extends Controller
         }
 
         // Default fetch all on load
-        $data = DB::table('leads')->get();
+        $data = DB::table('leads')->whereNull('deleted_at')->get();
+
+        return response()->json($data);
+    }
+
+    public function getDuplicatedLeads(Request $request)
+    {
+        // Fetch all duplicated leads
+        $data = DB::table('duplicated_leads')->whereNull('deleted_at')->get();
 
         return response()->json($data);
     }
@@ -586,10 +621,12 @@ class LeadController extends Controller
             $errorMsgTitle = "You have partially imported the leads into the system.";
             $errorMsgContent = "There are rows that have not been inputted correctly or filled completely. Any duplicated leads have been moved to the duplicated leads table. The import errors are as below.";
             $errorMsgType = "error";
+            $rowErrorMsg = true;
         } else {
             $errorMsgTitle = "You have successfully imported the leads into the system.";
             $errorMsgContent = "Any duplicated leads have been moved to the duplicated leads table. The import errors are as below.";
             $errorMsgType = "success";
+            $rowErrorMsg = false;
         }
 
         // Excel::import(new LeadsImport, $file);
@@ -621,15 +658,12 @@ class LeadController extends Controller
             'title' => $errorMsgTitle,
             'content' => $errorMsgContent,
             'type' => $errorMsgType,
+            'rowErrorMsg' => $rowErrorMsg,
         ];
 
         return Redirect::route('leads.index')
                         ->with('errors', $errors)
                         ->with('errorMsg', $errorMsg);
-        // return Inertia::render('CRM/Leads/Index', [
-        //     'errors' => $errors,
-        //     'errorMsg' => $errorMsg
-        // ]);
     }
 
     /**
@@ -641,6 +675,15 @@ class LeadController extends Controller
 
         $softDeletedLead->restore();
 
+        return redirect(route('leads.index'));
+    }
+
+    public function clearSessionMessages(Request $request)
+    {
+        // Clear the flashed messages from the session
+        $request->session()->forget('errors');
+        $request->session()->forget('errorMsg');
+        
         return redirect(route('leads.index'));
     }
 }

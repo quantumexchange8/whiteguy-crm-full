@@ -1,5 +1,6 @@
 import { useDark, useToggle } from '@vueuse/core'
 import { reactive } from 'vue'
+import { router } from "@inertiajs/vue3";
 
 export const isDark = useDark()
 export const toggleDarkMode = useToggle(isDark)
@@ -55,7 +56,9 @@ export const cl = (val) => {
 }
 
 export const back = () => {
-    window.history.back();
+	router.post('/clear-session-messages'), {
+        onSuccess: () => window.history.back(),
+    };
 }
 
 export const convertToHumanReadable = (str) => {

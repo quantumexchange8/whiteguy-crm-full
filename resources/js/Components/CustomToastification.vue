@@ -19,7 +19,7 @@ const props = defineProps({
         type: String,
         default: 'default'
     },
-    isImport: {
+    rowErrorMsg: {
         type: Boolean,
         default: false
     },
@@ -53,7 +53,7 @@ const typeClass = computed(() => {
             <hr class="border-b rounded-md border-gray-600 mb-2 w-full mx-auto">
             <p class="dark:text-gray-300 text-gray-500 text-sm p-3">{{ props.errorMsg ? props.errorMsg.content : '' }}</p>
         </div>
-        <Disclosure v-slot="{ open }" v-if="isImport">
+        <Disclosure v-slot="{ open }" v-if="rowErrorMsg">
             <DisclosureButton 
                 class="py-2 bg-purple-700 px-6 rounded-lg text-sm mt-10 font-semibold"
             >

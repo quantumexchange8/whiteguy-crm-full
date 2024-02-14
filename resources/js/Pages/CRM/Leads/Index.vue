@@ -44,10 +44,10 @@ const toastContent = {
 
     // Component props
     props: {
-        errors: props.errors,
-        errorMsg: props.errorMsg,
+        errors: props.errors ? props.errors : {},
+        errorMsg: props.errorMsg ? props.errorMsg : {},
         type: props.errorMsg ? props.errorMsg.type : 'default',
-		isImport: true,
+		rowErrorMsg: props.errorMsg.rowErrorMsg ? props.errorMsg.rowErrorMsg : false,
     },
 };
 
@@ -55,18 +55,8 @@ const showToast = () => {
 	toast(toastContent);
 }
 
-// const isErrorsEmpty = (object) => {
-//   for (let prop in object) {
-//     if (object.hasOwnProperty(prop)) {
-// 		console.log(object.hasOwnProperty(prop));
-//       	return false;
-//     }
-//   }
-//   return true;
-// };
-
 onMounted(() => {
-	console.log(props.errorMsg);
+	// console.log(props.errorMsg);
 	if (Object.keys(props.errorMsg).length !== 0) {
 		showToast();
 	}
@@ -89,7 +79,7 @@ onMounted(() => {
 					:parentTitle="'CRM'" 
 					:title="pageTitle"
 				/>
-				<div class="flex justify-end">
+				<!-- <div class="flex justify-end">
 					<Button 
 						:variant="'secondary'"
 						:size="'sm'"
@@ -98,7 +88,7 @@ onMounted(() => {
 					>
 						Toast
 					</Button>
-				</div>
+				</div> -->
 			</div>
 		</template>
 
@@ -109,6 +99,7 @@ onMounted(() => {
 				:detailsLink="'leads'"
 				:categoryFilters="'/data/leads/categories'"
 				:modalComponent="LeadDetailsModal"
+				:getDuplicatesURL="'/data/leads/duplicates'"
 			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>

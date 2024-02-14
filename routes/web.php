@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/documents', [DocumentController::class, 'getDocuments']);
     Route::get('/data/internal-news', [InternalNewsController::class, 'getInternalNews']);
     Route::get('/data/leads', [LeadController::class, 'getLeads']);
+    Route::get('/data/leads/duplicates', [LeadController::class, 'getDuplicatedLeads']);
     Route::get('/data/leads/categories', [LeadController::class, 'getCategories']);
     Route::get('/data/lead-fronts', [LeadFrontController::class, 'getLeadFronts']);
     Route::get('/data/lead-uploads', [LeadUploadsController::class, 'getLeadUploads']);
@@ -77,6 +78,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/payment-submissions', [PaymentSubmissionController::class, 'getPaymentSubmissions']);
     Route::get('/data/sale-orders', [SaleOrderController::class, 'getSaleOrders']);
     Route::get('/data/user-clients', [UserClientController::class, 'getUserClients']);
+
+    // Route to function that clear session error messages: used by back function in composables
+    Route::post('/clear-session-messages', [LeadController::class, 'clearSessionMessages']);
 
 });
 
@@ -148,7 +152,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     Route::post('/leads/import', [LeadController::class, 'importExcel'])->name('leads.import');
     Route::get('/leads/export/{leads}', [LeadController::class, 'exportToExcel'])->name('leads.export');
     Route::delete('/leads/{id}/lead-front', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
-    Route::delete('/leads/{id}', [LeadController::class, 'deleteLeadNote'])->name('leads.deleteLeadNote');
+    Route::delete('/leads/{id}/lead-note', [LeadController::class, 'deleteLeadNote'])->name('leads.deleteLeadNote');
     Route::resource('/leads', LeadController::class);
 
     /*
