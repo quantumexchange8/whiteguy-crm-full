@@ -1,20 +1,17 @@
 <script setup>
-import { convertToHumanReadable, cl } from '@/Composables'
-import { get } from "@vueuse/core";
+import { useForm, router } from '@inertiajs/vue3'
 import { ref, onMounted, reactive, watch } from "vue";
-import { useForm } from '@inertiajs/vue3'
-import axios from "axios";
+import { convertToHumanReadable, cl } from '@/Composables'
+import { ThreeDotsVertical } from '@/Components/Icons/solid'
+import { TrashIcon, EyeIcon, PageEditIcon } from '@/Components/Icons/outline'
+import CustomFileInputField from '@/Components/CustomFileInputField.vue'
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
 import Button from '@/Components/Button.vue'
 import Input from '@/Components/Input.vue'
 import Modal from '@/Components/Modal.vue'
-import CustomFileInputField from '@/Components/CustomFileInputField.vue'
-import { TrashIcon, EyeIcon, PageEditIcon } from '@/Components/Icons/outline'
-import { ThreeDotsVertical } from '@/Components/Icons/solid'
 import Dropdown from './Dropdown.vue'
-import DropdownLink from './DropdownLink.vue'
-import { router } from '@inertiajs/vue3'
+import axios from "axios";
 
 const categories = ref([]);
 const filterIsOpen = ref(false);
@@ -150,16 +147,7 @@ const getCategoryFilters = async () => {
         loading.value = true;
         
         const data = await axios.get(props.categoryFilters);
-        // console.log(data);
         categories.value = data.data;
-        // categoriesCO.value = data.data.contact_outcome;
-        // categoriesS.value = data.data.stage;
-        // categoriesLA.value = data.data.last_called;
-        // categoriesGUA.value = data.data.give_up_at;
-        // categoriesA.value = data.data.assignee;
-        // console.log(categories);
-        // total_rows.value = data.data.length;
-
     } catch (error) {
         console.error("Error fetching data:", error);
     } finally {
@@ -802,7 +790,7 @@ const addFilter = (category, category_item) => {
         </vue3-datatable>
         <Modal 
             :show="isRowModalOpen" 
-            maxWidth="7xl"
+            maxWidth="custom-full"
             :closeable="true" 
             @close="closeRowModal">
 
