@@ -177,7 +177,7 @@ const addLeadNote = () => {
             <div class="sticky top-[72px] z-10 mb-6 border border-gray-700 rounded-md">
                 <div class="dark:bg-dark-eval-1 bg-white rounded-md flex flex-row items-center pr-12 pl-14 py-2 gap-8">
                     <p class="text-xl font-semibold leading-tight">Action</p>
-                    <div class="border-l border-gray-500 h-20"></div>
+                    <span class="border-l border-gray-500 h-20"></span>
                     <div class="action-button-group">
                         <Button 
                             :type="'button'"

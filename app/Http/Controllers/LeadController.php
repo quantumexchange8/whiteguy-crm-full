@@ -170,9 +170,7 @@ class LeadController extends Controller
      */
     public function show(string $id)
     {
-        // $data = Lead::find($id);
-
-        // return Inertia::render('', ['data'=> $data]);
+        //
     }
 
     /**
@@ -579,6 +577,13 @@ class LeadController extends Controller
         ];
         
         return response()->json($data);
+    }
+
+    public function getLeadFront($id)
+    {
+        $existingLeadFront = LeadFront::where('linked_lead', $id)->get();
+
+        return response()->json($existingLeadFront);
     }
 
     public function exportToExcel($leads)

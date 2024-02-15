@@ -60,7 +60,7 @@ const maxWidthClass = computed(() => {
         '5xl': 'sm:max-w-5xl',
         '6xl': 'sm:max-w-6xl',
         '7xl': 'sm:max-w-7xl',
-        'custom-full': 'sm:max-w-[2000px]',
+        'custom-full': 'sm:max-w-[1800px]',
         full: 'sm:max-w-full',
     }[props.maxWidth]
 })
@@ -113,47 +113,3 @@ const maxWidthClass = computed(() => {
         </transition>
     </teleport>
 </template>
-
-<!-- Example Usage -->
-<!-- 
-    
-const showModal = ref(false);
-
-const openModal = () => {
-     showModal.value = true;
-}
-
-const closeModal = () => {
-    showModal.value = false;
-}
-<Button 
-    :variant="'info'" 
-    :size="'base'" 
-    class="justify-center gap-2"
-    @click="openModal"
->
-    <span>Open Modal</span>
-</Button>
-<Modal 
-    :show="showModal" 
-    maxWidth="2xl" 
-    :closeable="true" 
-    @close="closeModal">
-    Content of modal goes here
-    <div class="modal">
-        <h1 class="text-gray-200">Modal Content</h1>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <CustomTextInputField
-                :inputType="'text'"
-                :inputId="'modalText'"
-                :labelValue="'Modal Text'"
-            />
-            <CustomTextInputField
-                :inputType="'text'"
-                :inputId="'modalText'"
-                :labelValue="'Modal Text'"
-            />
-        </div>
-    </div>
-</Modal>
- -->

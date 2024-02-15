@@ -797,6 +797,8 @@ const addFilter = (category, category_item) => {
             <component 
                 :is="modalComponent" 
                 :selectedRowData="selectedRowData"
+                @closeModal="closeRowModal"
+                @rowEdit="rowShowEdit"
             />
         </Modal>
     </div>

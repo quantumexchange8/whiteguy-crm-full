@@ -116,6 +116,14 @@ module.exports = {
                     transform: 'rotate(5deg)',
                 },
             },
+            pulse: {
+                '0%, 100%': {
+                    opacity: 1,
+                },
+                '50%': {
+                    opacity: .5,
+                },
+            },
         },
         animation: {
             scaleAnimation: 'scaleAnimation 1s ease-in-out',
@@ -125,6 +133,7 @@ module.exports = {
             drawCheck: 'drawCheck 1.3s ease-in',
             drawX: 'drawX 1.3s ease-in',
             shake: 'shake 1s linear infinite',
+            pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;',
         },
     },
 
