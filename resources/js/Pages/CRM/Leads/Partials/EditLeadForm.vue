@@ -46,7 +46,7 @@ onMounted(() => {
     // cl(props.leadFrontData.created_at);
     if (props.leadFrontData) {
         leadFrontCreatedAt.value = props.leadFrontData.created_at;
-        cl(leadFrontCreatedAt.value);
+        // cl(leadFrontCreatedAt.value);
     } else {
         leadFrontCreatedAt.value = '-';
     }

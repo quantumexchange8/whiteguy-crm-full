@@ -16,6 +16,7 @@ use App\Imports\LeadsImport;
 use App\Models\LeadFront;
 use App\Models\LeadNote;
 use App\Models\Lead;
+use App\Models\LeadChangelog;
 use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -58,7 +59,7 @@ class LeadController extends Controller
     public function store(LeadRequest $request)
     {
         $data = $request->all();
-        // dd($data['lead_notes']);
+        
         // Additional validation based on user selection (Lead Front | Lead Notes)
         if ($data['create_lead_front']) {
             $leadFrontRequest = new LeadFrontRequest();
@@ -70,6 +71,15 @@ class LeadController extends Controller
             $request->validate($leadNoteRequest->rules());
         }
 
+        // Log newly created lead
+        // $newLeadChangelog = LeadChangelog::create([
+        //     'lead_id' => 1,
+        //     'column_name' => 'leads',
+        //     'description' => 'Lead created',
+        // ]);
+        // $newLeadChangelog->save();
+        // dd($request);
+    
         // Insert into table
 		$newLeadData = Lead::create([
             'first_name' => $data['first_name'],
@@ -152,7 +162,6 @@ class LeadController extends Controller
             $newLeadNoteData->save();
         }
         
-        
         $errorMsgTitle = "You have successfully created a new lead.";
         $errorMsgType = "success";
 
@@ -214,8 +223,6 @@ class LeadController extends Controller
     public function update(LeadRequest $request, string $id)
     {
         $data = $request->all();
-        
-        // dd($data);
 
         // Additional validation based on user selection (Lead Front | Lead Notes)
         if ($data['create_lead_front']) {
@@ -227,6 +234,36 @@ class LeadController extends Controller
             $leadNoteRequest = new LeadNotesRequest();
             $request->validate($leadNoteRequest->rules());
         }
+
+        // $oldLeadData = Lead::find($id);
+        // $oldLeadFrontData = LeadFront::where('linked_lead', $id)->get();
+        // $oldLeadNotesData = LeadNote::where('linked_lead', $id)->get();
+
+        // dd($oldLeadData);
+
+        // Should loop through existing data across lead, lead front, and lead notes and compare against the request to detect any changes
+        // Only log found changes into lead changelog table
+        // if (isset($oldLeadData)) {
+        //     foreach ($oldLeadData as $key => $value) {
+        //         dd($value);
+        //     }
+        // }
+
+        // $newLeadChangelog = LeadChangelog::create([
+        //     'lead_id' => 1,
+        //     'column_name' => 'leads',
+        //     'old_values' => [
+        //         'color' => 'red',
+        //         'size' => 'medium',
+        //         'weight' => 0.5,
+        //     ],
+        //     'new_values' => [
+        //         'color' => 'red',
+        //         'size' => 'medium',
+        //         'weight' => 0.5,
+        //     ],
+        //     'description' => 'Lead created',
+        // ]);
         
         $existingLead = Lead::find($id);
         
@@ -579,11 +616,24 @@ class LeadController extends Controller
         return response()->json($data);
     }
 
-    public function getLeadFront($id)
+    public function getLeadFront(string $id)
     {
         $existingLeadFront = LeadFront::where('linked_lead', $id)->get();
 
         return response()->json($existingLeadFront);
+    }
+
+    public function getLeadNotes(string $id)
+    {
+        $existingLeadNotes = LeadNote::where('linked_lead', $id)
+                                        ->orderBy('id', 'desc')
+                                        ->get();
+
+        foreach($existingLeadNotes as $key=>$value) {
+            $existingLeadNotes[$key]->user_editable = boolval($existingLeadNotes[$key]->user_editable);
+        }
+
+        return response()->json($existingLeadNotes);
     }
 
     public function exportToExcel($leads)

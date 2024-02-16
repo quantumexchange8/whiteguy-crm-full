@@ -152,6 +152,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     Route::post('/leads/import', [LeadController::class, 'importExcel'])->name('leads.import');
     Route::get('/leads/export/{leads}', [LeadController::class, 'exportToExcel'])->name('leads.export');
     Route::get('/leads/{id}/lead-front', [LeadController::class, 'getLeadFront'])->name('leads.getLeadFront');
+    Route::get('/leads/{id}/lead-notes', [LeadController::class, 'getLeadNotes'])->name('leads.getLeadNotes');
     Route::delete('/leads/{id}/lead-front', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
     Route::delete('/leads/{id}/lead-note', [LeadController::class, 'deleteLeadNote'])->name('leads.deleteLeadNote');
     Route::resource('/leads', LeadController::class);

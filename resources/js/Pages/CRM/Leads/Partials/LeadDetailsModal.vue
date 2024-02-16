@@ -2,11 +2,18 @@
 import { ref, onMounted, reactive } from 'vue'
 import { cl, back } from '@/Composables'
 import { AtSymbolIcon } from '@heroicons/vue/outline'
-import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
-import { PhoneIcon, MapIcon, FlagIcon, CalendarIcon } from '@heroicons/vue/solid'
+import { 
+    TabGroup, TabList, Tab, TabPanels, TabPanel, Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot 
+} from '@headlessui/vue'
+import { 
+    PhoneIcon, MapIcon, FlagIcon, CalendarIcon 
+} from '@heroicons/vue/solid'
+import { CheckCircleIcon, ErrorCircleIcon } from '@/Components/Icons/outline';
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 import Button from '@/Components/Button.vue'
+import Label from '@/Components/Label.vue'
 import axios from "axios";
+import dayjs from 'dayjs';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -25,6 +32,7 @@ const leadFrontCategories = ref([
 ])
 
 const leadFrontData = reactive({});
+const leadNotesData = reactive({});
 
 const emit = defineEmits(['closeModal', 'rowEdit']);
 
@@ -33,7 +41,20 @@ const getLeadFront = async (id) => {
         const data = await axios.get(route('leads.getLeadFront', id));
 
         leadFrontData.value = data.data[0];
-        console.log(leadFrontData.value);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+}
+
+const getLeadNotes = async (id) => {
+    try {
+        const data = await axios.get(route('leads.getLeadNotes', id));
+
+        leadNotesData.value = data.data;
+        
+        leadNotesData.value.forEach((col, index) => {
+            col.created_at = dayjs(col.created_at).format('DD MMMM YYYY, hh:mm A');
+        });
     } catch (error) {
         console.error("Error fetching data:", error);
     }
@@ -42,6 +63,7 @@ const getLeadFront = async (id) => {
 onMounted(() => {
     setTimeout(() => {
         getLeadFront(props.selectedRowData.id);
+        getLeadNotes(props.selectedRowData.id);
     }, 200);
 });
 
@@ -50,7 +72,7 @@ onMounted(() => {
 <template>
     <div class="grid grid-cols-1 lg:grid-cols-3 p-9 lg:gap-6">
         <div class="col-span-2 flex flex-col divide-y divide-gray-500 gap-6 mb-8 lg:mb-0">
-            <div class="input-group">
+            <div class="input-group flex flex-wrap justify-between">
                 <p class="dark:text-gray-300 font-semibold text-3xl pb-2">
                     {{ props.selectedRowData.first_name ? props.selectedRowData.first_name : '' }} {{ props.selectedRowData.last_name ? props.selectedRowData.last_name : '' }}
                     <span class="text-xs font-thin pl-4">
@@ -520,34 +542,120 @@ onMounted(() => {
             </div>
         </div>
         <div class="col-span-1">
-            <div class="bg-gray-700 dark:bg-gray-900/60 py-4 px-6 rounded-xl">
+            <div class="bg-gray-700 dark:bg-gray-900/60 p-8 rounded-xl">
                 <div class="container">
-                    <div class="flex flex-col md:grid grid-cols-12 text-gray-50">
-                        <div class="flex md:contents">
-                            <div class="col-start-1 col-end-2 mr-10 md:mx-auto relative">
-                                <div class="h-full w-3 flex items-center justify-center">
-                                    <div class="h-full w-[2px] bg-purple-200/25 pointer-events-none"></div>
+                    <div v-for="leadNote in leadNotesData">
+                        <div class="flex flex-col md:grid grid-cols-12">
+                            <div class="flex md:contents" v-for="(item, i) in leadNote" :key="i">
+                                <div class="col-start-1 col-end-2 mr-10 md:mx-auto relative">
+                                    <div class="h-full w-3 flex items-center justify-center">
+                                        <div class="h-full w-[2px] bg-purple-200/25 pointer-events-none"></div>
+                                    </div>
+                                    <div class="w-3 h-3 absolute top-0 rounded-full bg-purple-300 shadow text-center ring ring-purple-200/25"></div>
                                 </div>
-                                <div class="w-3 h-3 absolute top-1/2 -mt-3 rounded-full bg-purple-300 shadow text-center ring ring-purple-200/25"></div>
-                            </div>
-                            <div class="bg-gray-700 dark:bg-gray-700/70 col-start-2 col-end-13 p-4 rounded-xl my-4 mr-auto shadow-md w-full">
-                                <h3 class="font-semibold text-gray-200">
-                                    You successfully created a new lead.
-                                </h3>
-                                <span class="text-xs text-gray-400">
-                                    21 July 2021, 04:30 PM
-                                </span>
+                                <div class="bg-gray-700 dark:bg-gray-700/70 col-start-2 col-end-13 p-4 rounded-xl mb-4 mr-auto shadow-md w-full">
+                                    <div class="mb-3">
+                                        <h3 class="font-semibold text-gray-200">
+                                            You successfully created a new lead.
+                                        </h3>
+                                        <span class="text-xs text-gray-400">
+                                            {{ leadNotesData.value ? item.created_at : '-' }}
+                                        </span>
+                                    </div>
+                                    <Disclosure v-slot="{ open }">
+                                        <DisclosureButton 
+                                            class="bg-gray-700 dark:bg-gray-800/50 rounded-xl text-gray-300 p-2 flex items-center w-full mb-1 text-sm font-bold"
+                                        >
+                                            Lead Note Details 
+                                            <span class="text-xs font-thin pl-4">
+                                                ( {{ leadNotesData.value ? item.id : '' }} )
+                                            </span>
+                                            <span
+                                                v-show="open || !open"
+                                                aria-hidden="true"
+                                                class="relative block w-6 h-6 ml-auto"
+                                            >
+                                                <span
+                                                    :class="[
+                                                        'absolute right-[9px] mt-[-5px] h-2 w-[2px] top-1/2 transition-all duration-200',
+                                                        {
+                                                            '-rotate-45': open,
+                                                            'rotate-45': !open,
+                                                            'bg-white': open,
+                                                            'bg-gray-400': !open,
+                                                        },
+                                                    ]"
+                                                ></span>
+                                                <span
+                                                    :class="[
+                                                        'absolute left-[9px] mt-[-5px] h-2 w-[2px] top-1/2 transition-all duration-200',
+                                                        {
+                                                            'rotate-45': open,
+                                                            '-rotate-45': !open,
+                                                            'bg-white': open,
+                                                            'bg-gray-400': !open,
+                                                        },
+                                                    ]"
+                                                ></span>
+                                            </span>
+                                        </DisclosureButton>
+                                        <TransitionRoot
+                                            enter="transition-all ease-in duration-500"
+                                            enter-from="transform opacity-0 scaleY-95"
+                                            enter-to="transform opacity-100 scaleY-100"
+                                            leave="transition-all ease-out duration-200"
+                                            leave-from="transform opacity-100 scaleY-100"
+                                            leave-to="transform opacity-0 scaleY-95"
+                                        >
+                                            <DisclosurePanel 
+                                                class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3"
+                                            >
+                                                <Label
+                                                    :inputId="'leadNotesNote'+i"
+                                                    :labelValue="'Lead Notes'"
+                                                    class="font-semibold !text-gray-200/75"
+                                                >
+                                                    Note: {{ leadNotesData.value ? item.note : '-' }}
+                                                </Label>
+                                                <Label
+                                                    :inputId="'leadNotesUserEditable'+i"
+                                                    :labelValue="'Lead Notes'"
+                                                    class="leading-relaxed font-semibold !text-gray-200/75"
+                                                >
+                                                    User editable: 
+                                                    <span class="inline-block align-middle">
+                                                        <component 
+                                                            :is="item.user_editable ? CheckCircleIcon : ErrorCircleIcon" 
+                                                            class="w-4 h-4 ring rounded-full ml-2"
+                                                            :class="{
+                                                                'ring-green-700': item.user_editable,
+                                                                'ring-red-500 ': !item.user_editable,
+                                                            }"
+                                                        />
+                                                    </span>
+                                                </Label>
+                                                <Label
+                                                    :inputId="'leadNotesCreatedBy'+i"
+                                                    :labelValue="'Lead Notes'"
+                                                    class="font-semibold !text-gray-200/75"
+                                                >
+                                                    Created by: <span class="inline-block bg-cyan-800 rounded-xl py-1 px-3">{{ leadNotesData.value ? item.created_by : '-' }}</span>
+                                                </Label>
+                                            </DisclosurePanel>
+                                        </TransitionRoot>
+                                    </Disclosure>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="flex md:contents">
+                        <!-- <div class="flex md:contents">
                             <div class="col-start-1 col-end-2 mr-10 md:mx-auto relative">
                                 <div class="h-full w-3 flex items-center justify-center">
                                     <div class="h-full w-[2px] bg-purple-200/25 pointer-events-none"></div>
                                 </div>
-                                <div class="w-3 h-3 absolute top-1/2 -mt-3 rounded-full bg-purple-300 shadow text-center ring ring-purple-200/25"></div>
+                                <div class="w-3 h-3 absolute top-0 rounded-full bg-purple-300 shadow text-center ring ring-purple-200/25"></div>
                             </div>
-                            <div class="bg-gray-700 dark:bg-gray-700/70 col-start-2 col-end-13 p-4 rounded-xl my-4 mr-auto shadow-md w-full">
+                            <div class="bg-gray-700 dark:bg-gray-700/70 col-start-2 col-end-13 p-4 rounded-xl mb-4 mr-auto shadow-md w-full">
                                 <h3 class="font-semibold text-gray-200">
                                     You have updated the lead details.
                                 </h3>
@@ -555,7 +663,7 @@ onMounted(() => {
                                     21 July 2021, 04:30 PM
                                 </span>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
