@@ -94,7 +94,10 @@
 	grid-template-columns: repeat(1, minmax(0, 1fr));
 	gap: 24px; */
 	/* margin-bottom: 24px; */
-	box-shadow: 3px 3px 12px #151823;
+	/* box-shadow: 3px 3px 12px #151823; */
+	background-clip: border-box;
+	border: 2px solid #2d3448;
+	box-shadow: 0 2px 4px #00000014;
 	border-radius: 12px;
 	padding: 30px;
 }

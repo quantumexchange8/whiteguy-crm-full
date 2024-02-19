@@ -19,6 +19,7 @@ use App\Models\Lead;
 use App\Models\LeadChangelog;
 use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Schema;
 
 class LeadController extends Controller
 {
@@ -72,12 +73,12 @@ class LeadController extends Controller
         }
 
         // Log newly created lead
-        // $newLeadChangelog = LeadChangelog::create([
-        //     'lead_id' => 1,
-        //     'column_name' => 'leads',
-        //     'description' => 'Lead created',
-        // ]);
-        // $newLeadChangelog->save();
+        $newLeadChangelog = LeadChangelog::create([
+            'lead_id' => 1,
+            'column_name' => 'leads',
+            'description' => 'Lead created',
+        ]);
+        $newLeadChangelog->save();
         // dd($request);
     
         // Insert into table
@@ -234,36 +235,147 @@ class LeadController extends Controller
             $leadNoteRequest = new LeadNotesRequest();
             $request->validate($leadNoteRequest->rules());
         }
+        
+        // Lead changes
+        $leadChanges = [];
+        $oldLeadData = Lead::find($id);
 
-        // $oldLeadData = Lead::find($id);
-        // $oldLeadFrontData = LeadFront::where('linked_lead', $id)->get();
-        // $oldLeadNotesData = LeadNote::where('linked_lead', $id)->get();
-
-        // dd($oldLeadData);
-
-        // Should loop through existing data across lead, lead front, and lead notes and compare against the request to detect any changes
+        // Loop through existing data across lead, lead front, and lead notes and compare against the request to detect any changes
         // Only log found changes into lead changelog table
-        // if (isset($oldLeadData)) {
-        //     foreach ($oldLeadData as $key => $value) {
-        //         dd($value);
-        //     }
-        // }
+        if (isset($oldLeadData)) {
+            foreach ($oldLeadData->toArray() as $key => $oldValue) {
+                if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at') {
+                    continue;
+                }
+                
+                $newValue = $data[$key] ?? null;
 
-        // $newLeadChangelog = LeadChangelog::create([
-        //     'lead_id' => 1,
-        //     'column_name' => 'leads',
-        //     'old_values' => [
-        //         'color' => 'red',
-        //         'size' => 'medium',
-        //         'weight' => 0.5,
-        //     ],
-        //     'new_values' => [
-        //         'color' => 'red',
-        //         'size' => 'medium',
-        //         'weight' => 0.5,
-        //     ],
-        //     'description' => 'Lead created',
-        // ]);
+                // Check if the value has changed
+                if ($newValue !== $oldValue) {
+                    $leadChanges[$key] = [
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+            }
+        }
+
+        // Lead Front changes
+        $leadFrontChanges = [];
+        $oldLeadFrontData = LeadFront::where('linked_lead', $id)->get();
+
+        // Retrieve all column names from the database table
+        $leadFrontColumns = Schema::getColumnListing('lead_front');
+
+        // Mapping between request column names and database column names
+        $leadFrontColumnMappings = [
+            'lead_front_name' => 'name',
+            'lead_front_mimo' => 'mimo',
+            'lead_front_product' => 'product',
+            'lead_front_quantity' => 'quantity',
+            'lead_front_price' => 'price',
+            'lead_front_sdm' => 'sdm',
+            'lead_front_liquid' => 'liquid',
+            'lead_front_bank_name' => 'bank_name',
+            'lead_front_bank_account' => 'bank_account',
+            'lead_front_note' => 'note',
+            'lead_front_commission' => 'commission',
+            'lead_front_vc' => 'vc',
+            'lead_front_edited_at' => 'edited_at',
+        ];
+
+        if (isset($oldLeadFrontData)) {
+            foreach ($leadFrontColumns as $columnName) {
+                // Skip 'created_at' and 'updated_at' columns
+                if ($columnName === 'id' || $columnName === 'created_at' || $columnName === 'updated_at' || $columnName === 'deleted_at') {
+                    continue;
+                }
+
+                $requestColumnName = array_search($columnName, $leadFrontColumnMappings);
+    
+                // Get the old value from the database
+                $oldValue = $oldLeadFrontData[0]->$columnName;
+    
+                // Get the new value from the request using the mapped column name
+                switch($columnName) {
+                    case('quantity'):
+                    case('price'):
+                    case('commission'):
+                        $oldValue = number_format($oldValue,2);
+                        $newValue = number_format($data[$requestColumnName],2) ?? null;
+                        break;
+                    case('sdm'):
+                    case('liquid'):
+                        $oldValue = boolval($oldValue);
+                        $newValue = $data[$requestColumnName] ?? null;
+                        break;
+                    case('assignee'):
+                        $newValue = $data['assignee'];
+                        break;
+                    case('total'):
+                        $newValue = $data['lead_front_quantity'] * $data['lead_front_price'];
+                        break;
+                    case('linked_lead'):
+                        $newValue = $id;
+                        break;
+                    default:
+                        $newValue = $data[$requestColumnName] ?? null;
+                }
+    
+                // Check if the value has changed
+                if ($newValue !== $oldValue) {
+                    $leadFrontChanges[$columnName] = [
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+            }
+        }
+
+        // Lead Notes changes
+        $leadNotesChanges = [];
+        $oldLeadNotesData = LeadNote::where('linked_lead', $id)->get();
+
+        // Check if lead notes data exists in the request
+        if (isset($data['lead_notes']) && is_array($data['lead_notes'])) {
+            // Retrieve old lead notes data from the database
+            $oldLeadNotesData = LeadNote::where('linked_lead', $id)->get();
+
+            // Iterate over each old lead note
+            foreach ($oldLeadNotesData as $oldLeadNote) {
+                // Get the ID of the lead note
+                $leadNoteId = $oldLeadNote->id;
+
+                // Find the corresponding lead note data in the request
+                $newLeadNoteData = collect($data['lead_notes'])->firstWhere('id', $leadNoteId);
+
+                // If lead note data exists in the request
+                if ($newLeadNoteData) {
+                    // Iterate over each attribute of the lead note
+                    foreach ($newLeadNoteData as $key => $newValue) {
+                        // Skip 'id', 'linked_lead', 'created_at', 'updated_at', and 'deleted_at' columns
+                        if (in_array($key, ['id', 'linked_lead', 'created_at', 'updated_at', 'deleted_at'])) {
+                            continue;
+                        }
+
+                        // Retrieve the corresponding old value from the database
+                        $oldValue = ($key === 'user_editable') ? boolval( $oldLeadNote->{$key}) : $oldLeadNote->{$key};
+                        // $oldValue = $oldLeadNote->{$key};
+
+                        // Check if the value has changed
+                        if ($newValue !== $oldValue) {
+                            // Add the change to the lead notes changes array
+                            $leadNotesChanges[$leadNoteId][$key] = [
+                                'old' => $oldValue,
+                                'new' => $newValue,
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+        
+        $updateActionCount = 0;
         
         $existingLead = Lead::find($id);
         
@@ -305,6 +417,7 @@ class LeadController extends Controller
             'created_by' => $data['created_by'],
             'delete_at' => $data['delete_at'],
 		]);
+        $updateActionCount++;
 
         // need to update / destroy the records when necessary [currently focus on other page]
         if ($data['create_lead_front']) {
@@ -334,6 +447,7 @@ class LeadController extends Controller
                         'linked_lead' => $id,
                         'edited_at' => $data['lead_front_edited_at'],
                     ]);
+                    $updateActionCount++;
                 }
 
             } else {
@@ -383,9 +497,25 @@ class LeadController extends Controller
                     ]);
                     $newLeadNote->save();
                 }
+                $updateActionCount++;
             }
         }
 
+        if ($updateActionCount > 0) {
+            if (count($leadChanges) > 0 || count($leadFrontChanges) > 0 || count($leadNotesChanges) > 0) {
+                $newLeadChangelog = new LeadChangelog;
+
+                $newLeadChangelog->lead_id = $id;
+                $newLeadChangelog->column_name = 'leads';
+                $newLeadChangelog->lead_changes = $leadChanges;
+                $newLeadChangelog->lead_front_changes = $leadFrontChanges;
+                // The lead note's id is placed as the key at the top level
+                $newLeadChangelog->lead_notes_changes = $leadNotesChanges;
+                $newLeadChangelog->description = 'The lead has been successfully updated.';
+
+                $newLeadChangelog->save();
+            }
+        }
 		
         $errorMsgTitle = "You have successfully updated the lead.";
         $errorMsgType = "success";
@@ -634,6 +764,15 @@ class LeadController extends Controller
         }
 
         return response()->json($existingLeadNotes);
+    }
+
+    public function getLeadChangelogs(string $id)
+    {
+        $existingLeadChangelogs = LeadChangelog::where('lead_id', $id)
+                                        ->orderBy('id', 'desc')
+                                        ->get();
+
+        return response()->json($existingLeadChangelogs);
     }
 
     public function exportToExcel($leads)

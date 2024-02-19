@@ -144,8 +144,6 @@ const formSubmit = () => {
     })
 };
 
-const isNull = (value) => value === null;
-
 // Check and allows only the following keypressed
 const isNumber = (e) => {
     const keysAllowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
