@@ -328,3 +328,12 @@
 		background: #222738!important;
 	}
 }
+
+/* Lead Show Modal */
+.hidden-scrollable {
+	overflow: auto;
+}
+
+.hidden-scrollable::-webkit-scrollbar {
+	display: none;
+  }

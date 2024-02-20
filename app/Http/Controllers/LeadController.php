@@ -325,6 +325,7 @@ class LeadController extends Controller
                 // Check if the value has changed
                 if ($newValue !== $oldValue) {
                     $leadFrontChanges[$columnName] = [
+                        'id' => $data['lead_front_id'],
                         'old' => $oldValue,
                         'new' => $newValue,
                     ];
@@ -366,6 +367,7 @@ class LeadController extends Controller
                         if ($newValue !== $oldValue) {
                             // Add the change to the lead notes changes array
                             $leadNotesChanges[$leadNoteId][$key] = [
+                                'id' => $oldLeadNote->id,
                                 'old' => $oldValue,
                                 'new' => $newValue,
                             ];
@@ -471,6 +473,12 @@ class LeadController extends Controller
                     'edited_at' => $data['lead_front_edited_at'],
                 ]);
                 $newLeadFront->save();
+
+                // Add the change to the lead notes changes array
+                $leadFrontChanges['New'] = [
+                    'id' => $newLeadFront->id,
+                    'description' => 'A new lead front has been created',
+                ];
             }
         }
 
@@ -496,6 +504,12 @@ class LeadController extends Controller
                         'created_by' => $value['created_by'],
                     ]);
                     $newLeadNote->save();
+
+                    // Add the change to the lead notes changes array
+                    $leadNotesChanges[$newLeadNote->id]['New'] = [
+                        'id' => $newLeadNote->id,
+                        'description' => 'A new lead note has been created',
+                    ];
                 }
                 $updateActionCount++;
             }
@@ -756,8 +770,12 @@ class LeadController extends Controller
     public function getLeadNotes(string $id)
     {
         $existingLeadNotes = LeadNote::where('linked_lead', $id)
-                                        ->orderBy('id', 'desc')
-                                        ->get();
+                                        ->orderBy('created_at', 'desc')
+                                        ->get()
+                                        ->map(function ($note) {
+                                            $note['source'] = 'lead_note';
+                                            return $note;
+                                        });
 
         foreach($existingLeadNotes as $key=>$value) {
             $existingLeadNotes[$key]->user_editable = boolval($existingLeadNotes[$key]->user_editable);
@@ -769,10 +787,45 @@ class LeadController extends Controller
     public function getLeadChangelogs(string $id)
     {
         $existingLeadChangelogs = LeadChangelog::where('lead_id', $id)
-                                        ->orderBy('id', 'desc')
-                                        ->get();
+                                                ->orderBy('created_at', 'desc')
+                                                ->get()
+                                                ->map(function ($changelog) {
+                                                    $changelog['source'] = 'lead_changelog';
+                                                    return $changelog;
+                                                });
 
         return response()->json($existingLeadChangelogs);
+    }
+
+    public function getLeadNotesAndChangelogs(string $id)
+    {
+        $existingLeadNotes = LeadNote::where('linked_lead', $id)
+                                        ->orderBy('created_at', 'desc')
+                                        ->get()
+                                        ->map(function ($note) {
+                                            $note['source'] = 'lead_note';
+                                            return $note;
+                                        });
+
+        foreach($existingLeadNotes as $key=>$value) {
+            $existingLeadNotes[$key]->user_editable = boolval($existingLeadNotes[$key]->user_editable);
+        }
+
+        $existingLeadChangelogs = LeadChangelog::where('lead_id', $id)
+                                        ->orderBy('created_at', 'desc')
+                                        ->get()
+                                        ->map(function ($changelog) {
+                                            $changelog['source'] = 'lead_changelog';
+                                            return $changelog;
+                                        });
+
+        // Combine lead notes and changelogs into a single collection
+        $combinedCollection = $existingLeadNotes->merge($existingLeadChangelogs);
+
+        // Sort the combined collection chronologically based on the timestamp
+        $sortedCollection = $combinedCollection->sortByDesc('created_at');
+        // dd($sortedCollection);
+        return response()->json($sortedCollection);
     }
 
     public function exportToExcel($leads)
