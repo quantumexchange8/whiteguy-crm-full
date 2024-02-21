@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Lead extends Model
 {
@@ -50,4 +52,28 @@ class Lead extends Model
         'created_by',
         'delete_at',
     ];
+
+    /**
+     * Get the linked lead front.
+     */
+    public function leadfront(): HasOne
+    {
+        return $this->hasOne(LeadFront::class, 'linked_lead');
+    }
+
+    /**
+     * Get the linked lead notes.
+     */
+    public function leadnotes(): HasMany
+    {
+        return $this->hasMany(LeadNote::class, 'linked_lead');
+    }
+
+    /**
+     * Get the linked lead changelogs.
+     */
+    public function leadchangelogs(): HasMany
+    {
+        return $this->hasMany(LeadChangelog::class, 'lead_id');
+    }
 }

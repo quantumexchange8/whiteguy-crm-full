@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LeadFront extends Model
 {
@@ -30,4 +31,12 @@ class LeadFront extends Model
         'linked_lead',
         'edited_at', 
     ];
+    
+    /**
+     * Get the user that owns the phone.
+     */
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class, 'id');
+    }
 }

@@ -121,7 +121,7 @@ const form = useForm({
 	lead_front_note: (props.leadFrontData) ? props.leadFrontData.note : '',
 	lead_front_commission: (props.leadFrontData) ? props.leadFrontData.commission : '',
 	lead_front_vc: (props.leadFrontData) ? props.leadFrontData.vc : '',
-	lead_front_edited_at: (props.leadFrontData) ? props.leadFrontData.edited_at : dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+	lead_front_edited_at: (props.leadFrontData) ? props.leadFrontData.edited_at : '-',
 	lead_front_created_at: (props.leadFrontData) ? props.leadFrontData.created_at : '-',
     lead_notes: (props.leadNotesData) ? props.leadNotesData : [],
 });
@@ -136,6 +136,7 @@ const formSubmit = () => {
 	form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : '';
 	form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : '';
 	form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : '';
+	form.lead_front_edited_at = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
 
 	form.put(route('leads.update', props.data.id), {
         preserveScroll: true,

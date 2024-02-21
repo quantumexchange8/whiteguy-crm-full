@@ -79,16 +79,6 @@ onMounted(() => {
 					:parentTitle="'CRM'" 
 					:title="pageTitle"
 				/>
-				<!-- <div class="flex justify-end">
-					<Button 
-						:variant="'secondary'"
-						:size="'sm'"
-						@click="showToast"
-						class="justify-center gap-2"
-					>
-						Toast
-					</Button>
-				</div> -->
 			</div>
 		</template>
 

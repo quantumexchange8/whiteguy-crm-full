@@ -91,7 +91,7 @@ const form = useForm({
 	lead_front_note: '',
 	lead_front_commission: '',
 	lead_front_vc: '',
-	lead_front_edited_at: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+	lead_front_edited_at: '',
     lead_notes: [],
 });
 
@@ -105,6 +105,7 @@ const formSubmit = () => {
 	form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : '';
 	form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : '';
 	form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : '';
+	form.lead_front_edited_at = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
 
 	form.post(route('leads.store'), {
         preserveScroll: true,
@@ -691,10 +692,12 @@ const addLeadNote = () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontEditedAt'"
                                             :labelValue="'Edited at'"
+                                            :dataValue="'-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontCreatedAt'"
                                             :labelValue="'Created at'"
+                                            :dataValue="'-'"
                                         />
                                     </div>
                                 </div>

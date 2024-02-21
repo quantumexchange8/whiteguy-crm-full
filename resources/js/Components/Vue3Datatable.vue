@@ -167,7 +167,6 @@ const getFilteredData = async (checkedFilters) => {
                 checkedFilters: checkedFilters,
             }
         });
-        // console.log(data);
         rows.value = await data.data;
         total_rows.value = data.data.length;
 
@@ -256,7 +255,6 @@ const closeDeleteModal = () => {
 };
 
 const deleteLead = () => {
-    // console.log(rowDataId.value);
     router.delete(route('leads.destroy', rowDataId.value), {
             preserveState : false,
             onSuccess: () => closeDeleteModal(),
@@ -352,18 +350,6 @@ const cancelImportFile = () => {
     cl(form.leadExcelFile);
 }
 
-const addFilter = (category, category_item) => {
-    // checkedCategories.value.forEach((col) => {
-    //     // cl(checkedCategories.value.indexOf(col));
-    //     if (checkedCategories.value.indexOf(col) > -1 && col.categoryItem === category_item) {
-    //         checkedCategories.value.splice(checkedCategories.value.indexOf(col), 1);
-    //     }
-    // });
-
-    // checkedCategories.value.push({category: category, categoryItem: category_item});
-    cl(checkedFilters);
-
-}
 </script>
 
 <template>
@@ -459,20 +445,6 @@ const addFilter = (category, category_item) => {
                                     <hr class="border-b rounded-md border-gray-600 mb-2 w-11/12 mx-auto">
                                     <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Import Excel</p>
                                     <div class="px-6 pb-6">
-                                        <!-- <form class="flex flex-col gap-4" @submit="importExcel">
-                                            <CustomFileInputField
-                                                :inputId="'leadExcelFile'"
-                                                v-model="form.leadExcelFile"
-                                            />
-                                            <Button 
-                                                :variant="'success'"
-                                                :size="'sm'"
-                                                :disabled="isImportable"
-                                                class="justify-center gap-2 w-full h-full"
-                                            >
-                                                Import File
-                                            </Button>
-                                        </form> -->
                                         <Button 
                                             :type="'button'"
                                             :variant="'success'"
