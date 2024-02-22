@@ -70,7 +70,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/leads', [LeadController::class, 'getLeads']);
     Route::get('/data/leads/duplicates', [LeadController::class, 'getDuplicatedLeads']);
     Route::get('/data/leads/categories', [LeadController::class, 'getCategories']);
-    Route::get('/data/lead-fronts', [LeadFrontController::class, 'getLeadFronts']);
+    Route::get('/data/lead-fronts/categories', [LeadFrontController::class, 'getLeadFrontCategories']);
+    Route::get('/data/lead-fronts', [LeadFrontController::class, 'getAllLeadFronts']);
     Route::get('/data/lead-uploads', [LeadUploadsController::class, 'getLeadUploads']);
     Route::get('/data/notifications', [NotificationController::class, 'getNotifications']);
     Route::get('/data/orders', [OrderController::class, 'getOrders']);
@@ -135,6 +136,8 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Lead Fronts Routes
     */
+    Route::get('/lead-fronts/leads-list', [LeadFrontController::class, 'getLeadList'])->name('lead-fronts.getLeadList');
+    Route::get('/lead-fronts/{id}/lead', [LeadFrontController::class, 'getLead'])->name('lead-fronts.getLead');
     Route::resource('/lead-fronts', LeadFrontController::class);
         
     /*

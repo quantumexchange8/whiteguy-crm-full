@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LeadFrontRequest;
+use App\Models\Lead;
+use App\Models\LeadChangelog;
 use App\Models\LeadFront;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 class LeadFrontController extends Controller
@@ -12,8 +18,23 @@ class LeadFrontController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        // Get the flashed messages from the session
+        $errors = $request->session()->get('errors');
+        $errorMsg = $request->session()->get('errorMsg');
+
+        // Clear the flashed messages from the session
+        $request->session()->forget('errors');
+        $request->session()->forget('errorMsg');
+        $request->session()->save();
+
+        if (isset($errorMsg)) {
+            return Inertia::render('CRM/LeadFronts/Index', [
+                'errors' => $errors,
+                'errorMsg' => $errorMsg
+            ]);
+        }
         return Inertia::render('CRM/LeadFronts/Index');
     }
 
@@ -28,9 +49,64 @@ class LeadFrontController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(LeadFrontRequest $request)
     {
-        //
+        $data = $request->all();
+        
+        $leadFrontChanges = [];
+
+        $total = $request->lead_front_quantity * $request->lead_front_price;
+
+        // Insert into lead_front table
+        $newLeadFrontData = LeadFront::create([
+            'name' => $data['lead_front_name'],
+            'assignee' => $data['assignee'],
+            'product' => $data['lead_front_product'],
+            'quantity' => $data['lead_front_quantity'],
+            'price' => $data['lead_front_price'],
+            'total' => $total,
+            'commission' => $data['lead_front_commission'],
+            'vc' => $data['lead_front_vc'],
+            'sdm' => $data['lead_front_sdm'],
+            'liquid' => $data['lead_front_liquid'],
+            'mimo' => $data['lead_front_mimo'],
+            'bank_name' => $data['lead_front_bank_name'],
+            'bank_account' => $data['lead_front_bank_account'],
+            'note' => $data['lead_front_note'],
+            'linked_lead' => $data['linked_lead'],
+            'edited_at' => $data['lead_front_edited_at'],
+        ]);
+        $newLeadFrontData->save();
+
+        // Add the change to the lead notes changes array
+        $leadFrontChanges['New'] = [
+            'id' => $newLeadFrontData->id,
+            'description' => 'A new lead front has been created',
+        ];
+
+        if (count($leadFrontChanges) > 0) {
+            $newLeadChangelog = new LeadChangelog;
+
+            $newLeadChangelog->lead_id = $data['linked_lead'];
+            $newLeadChangelog->column_name = 'lead_front';
+            $newLeadChangelog->lead_changes = [];
+            $newLeadChangelog->lead_front_changes = $leadFrontChanges;
+            $newLeadChangelog->lead_notes_changes = [];
+            $newLeadChangelog->description = 'The lead front has been successfully created';
+
+            $newLeadChangelog->save();
+        }
+        
+        $errorMsgTitle = "You have successfully created a new lead front.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('lead-fronts.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -56,9 +132,131 @@ class LeadFrontController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(LeadFrontRequest $request, string $id)
     {
-        //
+        $data = $request->all();
+        
+        // Log changes
+        $leadFrontChanges = [];
+        $oldLeadFrontData = LeadFront::find($id);
+
+        // Retrieve all column names from the database table
+        $leadFrontColumns = Schema::getColumnListing('lead_front');
+
+        // Mapping between request column names and database column names
+        $leadFrontColumnMappings = [
+            'lead_front_name' => 'name',
+            'lead_front_mimo' => 'mimo',
+            'lead_front_product' => 'product',
+            'lead_front_quantity' => 'quantity',
+            'lead_front_price' => 'price',
+            'lead_front_sdm' => 'sdm',
+            'lead_front_liquid' => 'liquid',
+            'lead_front_bank_name' => 'bank_name',
+            'lead_front_bank_account' => 'bank_account',
+            'lead_front_note' => 'note',
+            'lead_front_commission' => 'commission',
+            'lead_front_vc' => 'vc',
+            'lead_front_edited_at' => 'edited_at',
+        ];
+
+        if (isset($oldLeadFrontData)) {
+            foreach ($leadFrontColumns as $columnName) {
+                // Skip 'created_at' and 'updated_at' columns
+                if ($columnName === 'id' || $columnName === 'created_at' || $columnName === 'updated_at' || $columnName === 'deleted_at') {
+                    continue;
+                }
+
+                $requestColumnName = array_search($columnName, $leadFrontColumnMappings);
+    
+                // Get the old value from the database
+                $oldValue = $oldLeadFrontData->$columnName;
+    
+                // Get the new value from the request using the mapped column name
+                switch($columnName) {
+                    case('quantity'):
+                    case('price'):
+                    case('commission'):
+                        $oldValue = number_format($oldValue, 2);
+                        $newValue = number_format($data[$requestColumnName], 2) ?? null;
+                        break;
+                    case('sdm'):
+                    case('liquid'):
+                        $oldValue = boolval($oldValue);
+                        $newValue = $data[$requestColumnName] ?? null;
+                        break;
+                    case('assignee'):
+                        $newValue = $data['assignee'];
+                        break;
+                    case('total'):
+                        $oldValue = number_format($oldValue, 2);
+                        $newValue = number_format($data['lead_front_quantity'] * $data['lead_front_price'], 2) ?? null;
+                        break;
+                    case('linked_lead'):
+                        $newValue = $oldValue;
+                        break;
+                    default:
+                        $newValue = $data[$requestColumnName] ?? null;
+                }
+    
+                // Check if the value has changed
+                if ($newValue !== $oldValue) {
+                    $leadFrontChanges[$columnName] = [
+                        'id' => $id,
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+            }
+
+            // Update existing lead front or insert a new lead front
+            $total = $request->lead_front_quantity * $request->lead_front_price;
+
+            $oldLeadFrontData->update([
+                'name' => $data['lead_front_name'],
+                'assignee' => $data['assignee'],
+                'product' => $data['lead_front_product'],
+                'quantity' => $data['lead_front_quantity'],
+                'price' => $data['lead_front_price'],
+                'total' => $total,
+                'commission' => $data['lead_front_commission'],
+                'vc' => $data['lead_front_vc'],
+                'sdm' => $data['lead_front_sdm'],
+                'liquid' => $data['lead_front_liquid'],
+                'mimo' => $data['lead_front_mimo'],
+                'bank_name' => $data['lead_front_bank_name'],
+                'bank_account' => $data['lead_front_bank_account'],
+                'note' => $data['lead_front_note'],
+                'linked_lead' => $data['linked_lead'],
+                'edited_at' => $data['lead_front_edited_at'],
+            ]);
+            
+            $oldLeadFrontData->save();
+        }
+        
+        if (count($leadFrontChanges) > 0) {
+            $newLeadChangelog = new LeadChangelog;
+
+            $newLeadChangelog->lead_id = $data['linked_lead'];
+            $newLeadChangelog->column_name = 'leads';
+            $newLeadChangelog->lead_changes = [];
+            $newLeadChangelog->lead_front_changes = $leadFrontChanges;
+            $newLeadChangelog->lead_notes_changes = [];
+            $newLeadChangelog->description = 'The lead front has been successfully updated';
+
+            $newLeadChangelog->save();
+        }
+		
+        $errorMsgTitle = "You have successfully updated the lead front.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('lead-fronts.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -74,14 +272,105 @@ class LeadFrontController extends Controller
         // return redirect(route('leads.index'));
     }
 
-    public function getLeadFronts(Request $request)
-    {   
-        // Fetch total count
-        $dataTotalCount = DB::table('lead_front')->count();
+    public function getAllLeadFronts(Request $request)
+    {
+        if ($request['checkedFilters']) {
+            $query = DB::table('leads')->whereNull('deleted_at');
 
-        // Fetch announcements
-        $data = DB::table('lead_front')->get();
+            foreach ($request['checkedFilters'] as $category => $options) {
+                if (is_array($options) && count($options) > 0) {
+                    $query->whereIn($category, $options);
+                } elseif (is_string($options) && $options !== '') {
+                    switch($options) {
+                        case('Today'):
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                            break;
+                        case('Past 7 days'):
+                            $query->whereBetween($category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()]);
+                            break;
+                        case('This month'):
+                            $query->whereMonth($category, Carbon::today()->month);
+                            break;
+                        case('This year'):
+                            $query->whereYear($category, Carbon::today()->year);
+                            break;
+                        case('No date'):
+                            $query->whereNull($category);
+                            break;
+                        case('Has date'):
+                            $query->whereNotNull($category);
+                            break;
+                        default:
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                    }
+                }
+            }
+            $data = $query->get();
 
+            return response()->json($data);
+        }
+
+        // Default fetch all on load
+        $data = DB::table('lead_front')
+                    ->whereNull('deleted_at')
+                    ->get();
+
+        // dd($data);
+        return response()->json($data);
+    }
+    
+    public function getLead(string $id)
+    {
+        $linkedLead = Lead::where('id', $id)->get();
+
+        return response()->json($linkedLead);
+    }
+    
+    public function getLeadList()
+    {
+        // Fetch leads without associated lead fronts
+        $leadsWithoutFronts = Lead::whereDoesntHave('leadfront')
+                                    ->whereNull('deleted_at')
+                                    ->pluck('id');
+
+        // Fetch leads with associated lead fronts that are null
+        // $leadsWithNullFronts = Lead::whereHas('leadfront', function ($query) {
+        //                                 $query->whereNull('lead_front_id');
+        //                             })
+        //                             ->whereNull('deleted_at')
+        //                             ->pluck('id');
+
+        // Merge the two collections of lead IDs
+        // $data = $leadsWithoutFronts->merge($leadsWithNullFronts);
+
+        // dd($leadsWithoutFronts);
+
+        return response()->json($leadsWithoutFronts);
+    }
+
+    public function getLeadFrontCategories(Request $request)
+    {
+        // Fetch all filter categories
+        $vc = DB::table('lead_front')
+                        ->whereNull('deleted_at')
+                        ->orderBy('vc')
+                        ->groupBy('vc')
+                        ->pluck('vc');
+
+        $assignee = DB::table('lead_front')
+                        ->whereNull('deleted_at')
+                        ->orderBy('assignee')
+                        ->groupBy('assignee')
+                        ->pluck('assignee');
+                        
+        $created_at = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+
+        $data = [
+            'created_at' => $created_at,
+            'vc' => $vc,
+            'assignee' => $assignee,
+        ];
+        
         return response()->json($data);
     }
 }

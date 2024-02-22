@@ -3,7 +3,6 @@ import { ref, onMounted } from "vue";
 import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
 import Vue3Datatable from '@/Components/Vue3Datatable.vue'
-import Button from '@/Components/Button.vue'
 import LeadDetailsModal from './Partials/LeadDetailsModal.vue';
 import CustomToastification from '@/Components/CustomToastification.vue';
 import { useToast } from "vue-toastification";
@@ -56,7 +55,6 @@ const showToast = () => {
 }
 
 onMounted(() => {
-	// console.log(props.errorMsg);
 	if (Object.keys(props.errorMsg).length !== 0) {
 		showToast();
 	}
@@ -86,6 +84,7 @@ onMounted(() => {
 			<Vue3Datatable 
 				:cols="colArray" 
 				:targetApi="'/data/leads'"
+				:createLink="route('leads.create')"
 				:detailsLink="'leads'"
 				:categoryFilters="'/data/leads/categories'"
 				:modalComponent="LeadDetailsModal"

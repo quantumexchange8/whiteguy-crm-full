@@ -57,7 +57,7 @@ const updateDateValue = (date) => {
         <Label
             :value="labelValue"
             :for="inputId"
-            class="mt-4 mb-2"
+            class="mb-2"
         >
         </Label>
         <VueDatePicker 

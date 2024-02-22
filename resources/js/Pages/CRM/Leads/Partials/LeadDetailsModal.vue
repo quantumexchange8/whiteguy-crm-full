@@ -39,6 +39,10 @@ onMounted(async () => {
     const leadFrontResponse = await axios.get(route('leads.getLeadFront', props.selectedRowData.id));
     leadFrontData.value = leadFrontResponse.data[0];
 
+    
+    leadFrontData.value.sdm = (leadFrontData.value.sdm) ? 'Yes' : 'No';
+    leadFrontData.value.liquid = (leadFrontData.value.liquid) ? 'Yes' : 'No';
+
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -501,15 +505,6 @@ onMounted(async () => {
         <div class="flex justify-end p-9">
             <div class="rounded-md shadow-lg flex flex-row gap-2">
                 <div class="action-button-group">
-                    <!-- <Button 
-                        :type="'button'"
-                        :variant="'info'" 
-                        :size="'base'"
-                        class="justify-center gap-2 px-6 py-2 form-actions"
-                        @click="console.log(leadFrontData.value.name)"
-                    >
-                        <span>Output</span>
-                    </Button> -->
                     <Button 
                         :type="'button'"
                         :variant="'info'" 

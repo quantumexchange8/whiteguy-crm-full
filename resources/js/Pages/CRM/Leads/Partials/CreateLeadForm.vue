@@ -223,7 +223,7 @@ const addLeadNote = () => {
                     <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
                 </div>
                 <div class="input-group-wrapper grid grid-cols-1 lg:grid-cols-3 gap-8" v-show="showPersonalInformationSection">
-                    <div class="input-group col-span-1">
+                    <div class="input-group col-span-1 grid sm:grid-cols-1 gap-6">
                         <CustomTextInputField
                             :labelValue="'First Name'"
                             :inputId="'firstName'"
@@ -257,7 +257,7 @@ const addLeadNote = () => {
                             v-model="form.address"
                         />
                     </div>
-                    <div class="col-span-2 flex flex-col justify-between gap-8">
+                    <div class="col-span-2 flex flex-col gap-8">
                         <div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <CustomTextInputField
                                 :inputType="'number'"
@@ -349,7 +349,7 @@ const addLeadNote = () => {
                     <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
                 </div>
                 <div class="input-group-wrapper grid grid-cols-1 lg:grid-cols-3 gap-8" v-show="showLeadDetailsSection">
-                    <div class="input-group col-span-1">
+                    <div class="input-group col-span-1 flex flex-col gap-6">
                         <CustomDateTimeInputField
                             :labelValue="'Date Opp&rsquo;d In'"
                             :inputId="'dateOppdIn'"
@@ -420,7 +420,7 @@ const addLeadNote = () => {
                             :labelValue="'Attachment'"
                         />
                     </div> -->
-                    <div class="col-span-2 flex flex-col justify-between gap-8">
+                    <div class="col-span-2 flex flex-col gap-8">
                         <div class="input-group grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <CustomSelectInputField
                                 :inputArray="appointmentLabelArray"
@@ -732,7 +732,7 @@ const addLeadNote = () => {
                             <div class="grid grid-cols-1 sm:grid-cols-8 gap-8" v-for="(item, i) in form.lead_notes" :key="i">
                                 <hr class="divider !mb-0 col-span-8" v-if="i > 0">
                                 <div class="col-span-8 sm:col-span-7 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                    <div class="input-group col-span-3">
+                                    <div class="input-group col-span-3 flex flex-col gap-6">
                                         <CustomTextInputField
                                             :inputType="'textarea'"
                                             :inputId="'leadNotesNote_'+i"

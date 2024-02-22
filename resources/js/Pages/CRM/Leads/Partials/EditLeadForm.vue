@@ -37,16 +37,13 @@ const showLeadFrontForm = ref((props.leadFrontData) ? true : false);
 const showButtonShow = ref((props.leadFrontData) ? false : true);
 const clearButtonShow = ref((props.leadFrontData) ? true : false);
 const showModal = ref(false);
-// const showLeadNoteModal = ref(false);
 const selectedLeadNote = ref(null);
 const leadFrontEditedAt = ref('-');
 const leadFrontCreatedAt = ref('-');
 
 onMounted(() => {
-    // cl(props.leadFrontData.created_at);
     if (props.leadFrontData) {
         leadFrontCreatedAt.value = props.leadFrontData.created_at;
-        // cl(leadFrontCreatedAt.value);
     } else {
         leadFrontCreatedAt.value = '-';
     }
@@ -332,7 +329,7 @@ const closeLeadNoteModal = () => {
                     <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
                 </div>
                 <div class="input-group-wrapper grid grid-cols-1 lg:grid-cols-3 gap-8" v-show="showPersonalInformationSection">
-                    <div class="input-group col-span-1">
+                    <div class="input-group col-span-1 flex flex-col gap-6">
                         <CustomTextInputField
                             :labelValue="'First Name'"
                             :inputId="'firstName'"
@@ -371,7 +368,7 @@ const closeLeadNoteModal = () => {
                             v-model="form.address"
                         />
                     </div>
-                    <div class="col-span-2 flex flex-col justify-between">
+                    <div class="col-span-2 flex flex-col gap-8">
                         <div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <CustomTextInputField
                                 :inputType="'number'"
@@ -471,7 +468,7 @@ const closeLeadNoteModal = () => {
                     <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
                 </div>
                 <div class="input-group-wrapper grid grid-cols-1 lg:grid-cols-3 gap-8" v-show="showLeadDetailsSection">
-                    <div class="input-group col-span-1">
+                    <div class="input-group col-span-1 flex flex-col gap-6">
                         <CustomDateTimeInputField
                             :labelValue="'Date Opp&rsquo;d In'"
                             :inputId="'dateOppdIn'"
@@ -552,7 +549,7 @@ const closeLeadNoteModal = () => {
                             :labelValue="'Attachment'"
                         />
                     </div> -->
-                    <div class="col-span-2 flex flex-col justify-between">
+                    <div class="col-span-2 flex flex-col gap-8">
                         <div class="input-group grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <CustomSelectInputField
                                 :inputArray="appointmentLabelArray"
@@ -916,7 +913,7 @@ const closeLeadNoteModal = () => {
                             <div class="grid grid-cols-1 sm:grid-cols-8 gap-8" v-for="(item, i) in form.lead_notes" :key="i">
                                 <hr class="divider !mb-0 col-span-8" v-if="i > 0">
                                 <div class="col-span-8 sm:col-span-7 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                    <div class="input-group col-span-3">
+                                    <div class="input-group col-span-3 flex flex-col gap-6">
                                         <CustomTextInputField
                                             :inputType="'textarea'"
                                             :inputId="'leadNotesNote_'+i"

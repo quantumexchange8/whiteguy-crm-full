@@ -669,66 +669,7 @@ class LeadController extends Controller
 
     public function getLeads(Request $request)
     {
-        // $data = $request->all();
-        // $datas = $request['checkedFilters']['contact_outcome'][0];
-
         if ($request['checkedFilters']) {
-            // // Fetch filtered leads based on array
-            // if (is_array($request->category_name)) {
-            //     $data = Lead::whereIn($request->category, $request->category_name)
-            //                     ->get();
-                                
-            //     return response()->json($data);
-            // }
-
-            // // Fetch filtered leads
-            // if ($request->category === 'last_called' || $request->category === 'give_up_at') {
-            //     switch($request->category_name) {
-            //         case('Today'):
-            //             $data = Lead::whereBetween($request->category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()])
-            //                             ->get();
-                        
-            //             // $date = Carbon::now()->subDays(7)->toDateTimeString();
-            //             break;
-            //         case('Past 7 days'):
-            //             $data = Lead::whereBetween($request->category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()])
-            //                             ->get();
-                        
-            //             break;
-            //         case('This month'):
-            //             $data = DB::table('leads')
-            //                         ->whereMonth($request->category, Carbon::today()->month)
-            //                         ->get();
-                        
-            //             break;
-            //         case('This year'):
-            //             $data = DB::table('leads')
-            //                         ->whereYear($request->category, Carbon::today()->year)
-            //                         ->get();
-                        
-            //             break;
-            //         case('No date'):
-            //             $data = DB::table('leads')
-            //                         ->whereNull($request->category)
-            //                         ->get();
-                        
-            //             break;
-            //         case('Has date'):
-            //             $data = DB::table('leads')
-            //                         ->whereNotNull($request->category)
-            //                         ->get();
-                        
-            //             break;
-            //         default:
-            //             $data = Lead::whereBetween($request->category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()])
-            //                         ->get();
-            //     }
-            //     return response()->json($data);
-            // }
-
-            // $data = DB::table('leads')
-            //             ->where($request->category, '=', $request->category_name)
-            //             ->get();
             $query = DB::table('leads')->whereNull('deleted_at');
 
             foreach ($request['checkedFilters'] as $category => $options) {
@@ -818,7 +759,7 @@ class LeadController extends Controller
 
         $give_up_at = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
 
-        // Fetch filtered announcements
+        // Fetch all filter categories
         $assignee = DB::table('leads')
                         ->orderBy('assignee')
                         ->groupBy('assignee')
@@ -975,6 +916,6 @@ class LeadController extends Controller
         $request->session()->forget('errors');
         $request->session()->forget('errorMsg');
         
-        return redirect(route('leads.index'));
+        return;
     }
 }

@@ -56,9 +56,8 @@ export const cl = (val) => {
 }
 
 export const back = () => {
-	router.post('/clear-session-messages'), {
-        onSuccess: () => window.history.back(),
-    };
+	router.post('/clear-session-messages');
+    window.history.back();
 }
 
 export const convertToHumanReadable = (str) => {

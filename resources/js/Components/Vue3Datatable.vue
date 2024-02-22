@@ -47,6 +47,9 @@ const props = defineProps({
 	targetApi: {
 		type: String,
 	},
+	createLink: {
+		type: String,
+	},
 	detailsLink: {
 		type: String,
 	},
@@ -99,6 +102,7 @@ const getData = async () => {
         rows.value = await data.data;
         total_rows.value = data.data.length;
         isDuplicate.value = false;
+        // cl(data.data);
 
     } catch (error) {
         console.error("Error fetching data:", error);
@@ -363,7 +367,7 @@ const cancelImportFile = () => {
                         :variant="'success'" 
                         :size="'sm'" 
                         class="justify-center px-6 py-2 gap-2 w-full h-full"
-                        :href="route('leads.create')"
+                        :href="props.createLink"
                     >
                         Create Lead
                     </Button>

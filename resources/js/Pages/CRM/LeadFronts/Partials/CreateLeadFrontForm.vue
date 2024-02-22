@@ -1,6 +1,6 @@
 <script setup>
 import { cl, back } from '@/Composables'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { PlusIcon } from '@/Components/Icons/solid'
 import { DeleteIcon } from '@/Components/Icons/outline'
@@ -18,8 +18,27 @@ defineProps({
     errors:Object
 })
 
+const leadsList = ref([]);
+const selectedLeadError = ref()
+const selectedAssigneeError = ref()
+const assigneeArray  = ref(
+	[ "125", "124", "123", "122", "121", "120" ]
+);
+
+onMounted(async () => {
+  try {
+    const leadsListResponse = await axios.get(route('lead-fronts.getLeadList'));
+    leadsList.value = leadsListResponse.data;
+    // cl(leadsList.value);
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+});
+
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
+	linked_lead: '',
 	lead_front_name: '',
 	lead_front_mimo: '',
 	lead_front_product: '',
@@ -30,9 +49,10 @@ const form = useForm({
 	lead_front_bank_name: '',
 	lead_front_bank_account: '',
 	lead_front_note: '',
+	assignee: '',
 	lead_front_commission: '',
 	lead_front_vc: '',
-	lead_front_edited_at: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+	lead_front_edited_at: '',
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
@@ -41,12 +61,25 @@ const formSubmit = () => {
 	form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : '';
 	form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : '';
 	form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : '';
+	form.lead_front_edited_at = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
 
-	form.post(route('leads.store'), {
-        preserveScroll: true,
-        onSuccess: () => form.reset(),
-    
-    })
+	// Check and allow submit only if user has selected a lead to link the lead front to
+	if (form.linked_lead !== '' && form.assignee !== '') {
+		selectedLeadError.value = '';
+		selectedAssigneeError.value = '';
+
+		form.post(route('lead-fronts.store'), {
+		    preserveScroll: true,
+		    onSuccess: () => form.reset(),
+		
+		})
+	} else {
+		selectedLeadError.value = 'A linked lead is required.';
+		selectedAssigneeError.value = 'An assignee is required.';
+	}
+	// cl(selectedLeadError.value);
+	// cl(selectedAssigneeError.value);
+
 };
 
 
@@ -70,6 +103,31 @@ const isValidNumber = (value) => {
 <template>
     <div class="form-wrapper">
         <form novalidate @submit.prevent="formSubmit">
+            <div class="sticky top-[72px] z-10 mb-6 border border-gray-700 rounded-md">
+                <div class="dark:bg-dark-eval-1 bg-white rounded-md flex flex-row items-center pr-12 pl-14 py-2 gap-8">
+                    <p class="text-xl font-semibold leading-tight">Action</p>
+                    <span class="border-l border-gray-500 h-20"></span>
+                    <div class="action-button-group">
+                        <Button 
+                            :type="'button'"
+                            :variant="'info'" 
+                            :size="'base'"
+                            @click="back"
+                            class="justify-center gap-2 form-actions"
+                        >
+                            <span>Back</span>
+                        </Button>
+                        <Button 
+                            :variant="'primary'" 
+                            :size="'base'" 
+                            class="justify-center gap-2 form-actions"
+                            :disabled="form.processing"
+                        >
+                            <span>{{ form.processing ? 'Saving...' : 'Save' }}</span>
+                        </Button>
+                    </div>
+                </div>
+            </div>
             <div class="form-input-section dark:bg-dark-eval-1">
                 <div class="px-3">
                     <div class="flex flex-row justify-between items-center mb-2">
@@ -83,12 +141,14 @@ const isValidNumber = (value) => {
                 </div>
 				<div class="input-group-wrapper grid grid-cols-1 lg:grid-cols-2 gap-8">
 					<div class="flex flex-col col-span-1 gap-8">
-						<div class="input-group col-span-2 grid grid-cols-1 lg:grid-cols-2">
-							<Checkbox
-								:inputId="'createLeadFront'"
-								v-model:checked="form.create_lead_front"
-								v-show="false"
-							/>
+						<div class="input-group col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <CustomSelectInputField
+                                :inputArray="leadsList"
+                                :inputId="'linked_lead'"
+                                :labelValue="'Lead'"
+                                :errorMessage="selectedLeadError ?? ''"
+                                v-model="form.linked_lead"
+                            />
 							<CustomTextInputField
 								:inputType="'text'"
 								:inputId="'leadFrontName'"
@@ -99,34 +159,33 @@ const isValidNumber = (value) => {
 							/>
 							<CustomTextInputField
 								:inputType="'text'"
+								:inputId="'leadFrontProduct'"
+								:labelValue="'Product'"
+								:dataValue="form.lead_front_product"
+								:errorMessage="(form.errors) ? form.errors.lead_front_product : '' "
+								v-model="form.lead_front_product"
+							/>
+							<CustomTextInputField
+								:inputType="'text'"
 								:inputId="'leadFrontVc'"
 								:labelValue="'VC'"
 								:dataValue="form.lead_front_vc"
 								:errorMessage="(form.errors) ? form.errors.lead_front_vc : '' "
 								v-model="form.lead_front_vc"
 							/>
+							<CustomTextInputField
+								:inputType="'textarea'"
+								:inputId="'leadFrontMimo'"
+								:labelValue="'MIMO'"
+								:dataValue="form.lead_front_mimo"
+								class="col-span-2 w-full"
+								:errorMessage="(form.errors) ? form.errors.lead_front_mimo : '' "
+								v-model="form.lead_front_mimo"
+							/>
 						</div>
 						<div class="col-span-2 flex flex-col gap-10">
 							<div class="grid grid-cols-1 gap-10">
 								<div class="input-group grid grid-cols-1 lg:grid-cols-4 gap-6">
-									<CustomTextInputField
-										:inputType="'textarea'"
-										:inputId="'leadFrontMimo'"
-										:labelValue="'MIMO'"
-										:dataValue="form.lead_front_mimo"
-										class="col-span-4 w-full"
-										:errorMessage="(form.errors) ? form.errors.lead_front_mimo : '' "
-										v-model="form.lead_front_mimo"
-									/>
-									<CustomTextInputField
-										:inputType="'text'"
-										:inputId="'leadFrontProduct'"
-										:labelValue="'Product'"
-										:dataValue="form.lead_front_product"
-										class="col-span-2 w-full"
-										:errorMessage="(form.errors) ? form.errors.lead_front_product : '' "
-										v-model="form.lead_front_product"
-									/>
 									<CustomTextInputField
 										:inputType="'number'"
 										:inputId="'leadFrontQuantity'"
@@ -167,7 +226,7 @@ const isValidNumber = (value) => {
 										:inputId="'leadFrontBankName'"
 										:labelValue="'Bank Name'"
 										:dataValue="form.lead_front_bank_name"
-										class="col-span-2"
+										class="col-span-2 col-start-1"
 										:errorMessage="(form.errors) ? form.errors.lead_front_bank_name : '' "
 										v-model="form.lead_front_bank_name"
 									/>
@@ -186,65 +245,52 @@ const isValidNumber = (value) => {
 					</div>
 					<div class="grid grid-cols-1 lg:grid-cols-2 col-span-1 gap-8">
 						<div class="col-span-2 flex flex-col gap-5">
-							<div class="input-group">
+							<div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
 								<CustomTextInputField
 									:inputType="'textarea'"
 									:inputId="'leadFrontNote'"
 									:labelValue="'Special Note'"
+									class="col-span-2"
 									:dataValue="form.lead_front_note"
 									:errorMessage="(form.errors) ? form.errors.lead_front_note : '' "
 									v-model="form.lead_front_note"
 								/>
+								<CustomSelectInputField
+									:inputArray="assigneeArray"
+									:inputId="'assignee'"
+									:labelValue="'Assignee'"
+									:errorMessage="selectedAssigneeError ?? '' "
+									v-model="form.assignee"
+								/>
+								<CustomTextInputField
+									:inputType="'number'"
+									:inputId="'leadFrontCommission'"
+									:labelValue="'Agent Commission %'"
+									:dataValue="String(form.lead_front_commission)"
+									:decimalOption="true"
+									:step="0.01"
+									:errorMessage="(form.errors) ? form.errors.lead_front_commission : '' "
+									@keypress="isNumber($event)"
+									v-model="form.lead_front_commission"
+								/>
 							</div>
-							<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-								<div class="input-group">
-									<CustomTextInputField
-										:inputType="'number'"
-										:inputId="'leadFrontCommission'"
-										:labelValue="'Agent Commission %'"
-										:dataValue="String(form.lead_front_commission)"
-										:decimalOption="true"
-										:step="0.01"
-										:errorMessage="(form.errors) ? form.errors.lead_front_commission : '' "
-										@keypress="isNumber($event)"
-										v-model="form.lead_front_commission"
-									/>
-								</div>
-								<div class="input-group">
-									<CustomLabelGroup
-										:inputId="'leadFrontEditedAt'"
-										:labelValue="'Edited at'"
-									/>
-									<CustomLabelGroup
-										:inputId="'leadFrontCreatedAt'"
-										:labelValue="'Created at'"
-									/>
-								</div>
+							<div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
+								<CustomLabelGroup
+									:inputId="'leadFrontEditedAt'"
+									:labelValue="'Edited at'"
+									:dataValue="'-'"
+								/>
+								<CustomLabelGroup
+									:inputId="'leadFrontCreatedAt'"
+									:labelValue="'Created at'"
+									:dataValue="'-'"
+								/>
 							</div>
+							<!-- <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+							</div> -->
 						</div>
 					</div>
 				</div>
-            </div>
-            <div class="form-action-section">
-                <div class="action-button-group">
-                    <Button 
-                        :type="'button'"
-                        :variant="'info'" 
-                        :size="'base'" 
-                        class="justify-center gap-2"
-                        @click="back"
-                    >
-                        <span>Back</span>
-                    </Button>
-                    <Button 
-                        :variant="'primary'" 
-                        :size="'base'" 
-                        class="justify-center gap-2"
-                        :disabled="form.processing"
-                    >
-                        <span>{{ form.processing ? 'Saving...' : 'Save' }}</span>
-                    </Button>
-                </div>
             </div>
         </form>
     </div>
