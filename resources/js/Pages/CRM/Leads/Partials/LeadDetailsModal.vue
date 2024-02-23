@@ -39,9 +39,10 @@ onMounted(async () => {
     const leadFrontResponse = await axios.get(route('leads.getLeadFront', props.selectedRowData.id));
     leadFrontData.value = leadFrontResponse.data[0];
 
-    
-    leadFrontData.value.sdm = (leadFrontData.value.sdm) ? 'Yes' : 'No';
-    leadFrontData.value.liquid = (leadFrontData.value.liquid) ? 'Yes' : 'No';
+    if (leadFrontData.value) {
+        leadFrontData.value.sdm = (leadFrontData.value.sdm) ? 'Yes' : 'No';
+        leadFrontData.value.liquid = (leadFrontData.value.liquid) ? 'Yes' : 'No';
+    }
 
   } catch (error) {
     console.error('Error fetching data:', error);

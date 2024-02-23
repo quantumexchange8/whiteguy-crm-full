@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LeadFrontsExport;
 use App\Http\Requests\LeadFrontRequest;
 use App\Models\Lead;
 use App\Models\LeadChangelog;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LeadFrontController extends Controller
 {
@@ -238,7 +240,7 @@ class LeadFrontController extends Controller
             $newLeadChangelog = new LeadChangelog;
 
             $newLeadChangelog->lead_id = $data['linked_lead'];
-            $newLeadChangelog->column_name = 'leads';
+            $newLeadChangelog->column_name = 'lead_front';
             $newLeadChangelog->lead_changes = [];
             $newLeadChangelog->lead_front_changes = $leadFrontChanges;
             $newLeadChangelog->lead_notes_changes = [];
@@ -264,18 +266,44 @@ class LeadFrontController extends Controller
      */
     public function destroy(string $id)
     {
-        // dd($id);
-        // $existingLeadFront = LeadFront::find($id);
-        // $existingLeadFront->delete();
+        $existingLeadFront = LeadFront::find($id);
+        $linked_lead = $existingLeadFront->linked_lead;
+        $existingLeadFront->delete();
 
+        $leadFrontChanges = [];
+        
+        $leadFrontChanges['Delete'] = [
+            'id' => $id,
+            'description' => 'This lead front has been deleted',
+        ];
 
-        // return redirect(route('leads.index'));
+        $newLeadChangelog = new LeadChangelog;
+
+        $newLeadChangelog->lead_id = $linked_lead;
+        $newLeadChangelog->column_name = 'lead_front';
+        $newLeadChangelog->lead_changes = [];
+        $newLeadChangelog->lead_front_changes = $leadFrontChanges;
+        $newLeadChangelog->lead_notes_changes = [];
+        $newLeadChangelog->description = 'This lead front has been deleted';
+
+        $newLeadChangelog->save();
+
+        $errorMsgTitle = "You have successfully deleted the lead front.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('lead-fronts.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     public function getAllLeadFronts(Request $request)
     {
         if ($request['checkedFilters']) {
-            $query = DB::table('leads')->whereNull('deleted_at');
+            $query = DB::table('lead_front')->whereNull('deleted_at');
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
@@ -333,18 +361,6 @@ class LeadFrontController extends Controller
                                     ->whereNull('deleted_at')
                                     ->pluck('id');
 
-        // Fetch leads with associated lead fronts that are null
-        // $leadsWithNullFronts = Lead::whereHas('leadfront', function ($query) {
-        //                                 $query->whereNull('lead_front_id');
-        //                             })
-        //                             ->whereNull('deleted_at')
-        //                             ->pluck('id');
-
-        // Merge the two collections of lead IDs
-        // $data = $leadsWithoutFronts->merge($leadsWithNullFronts);
-
-        // dd($leadsWithoutFronts);
-
         return response()->json($leadsWithoutFronts);
     }
 
@@ -372,5 +388,44 @@ class LeadFrontController extends Controller
         ];
         
         return response()->json($data);
+    }
+    
+    public function exportToExcel($selectedRowsData)
+    {
+        $leadFrontsArr = explode(',', $selectedRowsData);
+        foreach ($leadFrontsArr as $key => $value) {
+            $leadFrontsArr[$key] = (int)$value;
+        }
+
+        $currentDate = Carbon::now()->format('Ymd_His');
+        $exportTitle = 'lead-fronts_' . $currentDate . '.xlsx';
+        
+        return (new LeadFrontsExport($leadFrontsArr))->download($exportTitle);
+    }
+
+    public function getLeadFrontChangelogs(string $id)
+    {
+        $existingLeadFrontChangelogs = LeadChangelog::where('lead_id', $id)
+                                                    ->whereNull('deleted_at')
+                                                    ->orderBy('created_at', 'desc')
+                                                    ->get();
+
+        $leadFrontIds = [];
+        foreach ($existingLeadFrontChangelogs as $changelog) {
+            $changes = $changelog->lead_front_changes;
+            if (isset($changes)) {
+                foreach ($changes as $change) {
+                    if (isset($change['id'])) {
+                        $leadFrontIds[] = $change['id'];
+                    }
+                }
+            }
+        }
+    
+        // Filter out duplicate IDs
+        $leadFrontIds = array_unique($leadFrontIds);
+        dd($leadFrontIds);
+
+        return response()->json($existingLeadFrontChangelogs);
     }
 }

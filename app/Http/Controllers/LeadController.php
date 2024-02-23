@@ -813,14 +813,18 @@ class LeadController extends Controller
         return response()->json($existingLeadChangelogs);
     }
 
-    public function exportToExcel($leads)
+    public function exportToExcel($selectedRowsData)
     {
-        $leadsArr = explode(',', $leads);
+        $leadsArr = explode(',', $selectedRowsData);
         foreach ($leadsArr as $key => $value) {
             $leadsArr[$key] = (int)$value;
         }
+
+        $currentDate = Carbon::now()->format('Ymd_His');
+        dd($currentDate);
+        $exportTitle = 'leads_' . $currentDate . '.xlsx';
         
-        return (new LeadsExport($leadsArr))->download('leads.xlsx');
+        return (new LeadsExport($leadsArr))->download($exportTitle);
     }
 
     public function importExcel(Request $request)

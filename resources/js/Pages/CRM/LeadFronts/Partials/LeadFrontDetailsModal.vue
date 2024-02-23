@@ -8,7 +8,7 @@ import {
 import { 
     PhoneIcon, MapIcon, FlagIcon, CalendarIcon 
 } from '@heroicons/vue/solid'
-// import LeadChangelogsModalSection from './LeadChangelogsModalSection.vue'
+import LeadFrontChangelogsSection from './LeadFrontChangelogsSection.vue'
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 import Button from '@/Components/Button.vue'
 import axios from "axios";
@@ -268,6 +268,10 @@ onMounted(async () => {
                 </div>
             </div>
             <div class="col-span-1">
+                <LeadFrontChangelogsSection
+                    :selectedRowData="props.selectedRowData"
+                    class="w-full"
+                />
             </div>
         </div>
         <div class="flex justify-end p-9">

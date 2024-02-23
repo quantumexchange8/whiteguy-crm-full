@@ -14,6 +14,7 @@ import Dropdown from './Dropdown.vue'
 import axios from "axios";
 
 const categories = ref([]);
+const filterDateColumns = reactive([]);
 const filterIsOpen = ref(false);
 const importModalIsOpen = ref(false);
 const datatable = ref(null);
@@ -21,13 +22,7 @@ const total_rows = ref(0);
 const searchInput = ref(null);
 const loading = ref(true);
 const rows = ref(null);
-const checkedFilters = reactive({
-    contact_outcome: [],
-    stage: [],
-    assignee: [],
-    last_called: '',
-    give_up_at: '',
-});
+const checkedFilters = reactive({});
 const selectedRowData = ref(null);
 const isRowModalOpen = ref(false);
 const selectedRows = ref([]);
@@ -63,6 +58,13 @@ const props = defineProps({
     getDuplicatesURL: {
         type: String,
         default: '',
+    },
+    hasImport: {
+        type: Boolean,
+        default: false,
+    },
+    exportRoute: {
+        type: String,
     },
     errors:Object,
 })
@@ -102,7 +104,6 @@ const getData = async () => {
         rows.value = await data.data;
         total_rows.value = data.data.length;
         isDuplicate.value = false;
-        // cl(data.data);
 
     } catch (error) {
         console.error("Error fetching data:", error);
@@ -223,11 +224,14 @@ const reset = () => {
     clearColumnFiltersInts();
     params.search = '';
     getData();
-    checkedFilters.contact_outcome = [];
-    checkedFilters.stage = [];
-    checkedFilters.assignee = [];
-    checkedFilters.last_called = '';
-    checkedFilters.give_up_at = '';
+    Object.keys(checkedFilters).forEach(key => {
+        checkedFilters[key] = [];
+    });
+    // checkedFilters.contact_outcome = [];
+    // checkedFilters.stage = [];
+    // checkedFilters.assignee = [];
+    // checkedFilters.last_called = '';
+    // checkedFilters.give_up_at = '';
     closeFilterModal();
 };
 
@@ -259,7 +263,7 @@ const closeDeleteModal = () => {
 };
 
 const deleteLead = () => {
-    router.delete(route('leads.destroy', rowDataId.value), {
+    router.delete(route(props.detailsLink + '.destroy', rowDataId.value), {
             preserveState : false,
             onSuccess: () => closeDeleteModal(),
         });
@@ -290,15 +294,12 @@ const exportToExcel = (type) => {
     switch (type) {
         case 'All':
             selectedRows.value = rows.value.map(col => col.id);
-
             break;
         case 'Filtered':
             selectedRows.value = filteredRows.map(col => col.id);
-
             break;
         case 'Selected':
             selectedRows.value = selected.map(col => col.id);
-
             break;
         default:
             selectedRows.value = [];
@@ -306,7 +307,7 @@ const exportToExcel = (type) => {
     }
 
     if (selectedRows.value.length > 0) {
-        window.location.href = route('leads.export', { leads: selectedRows.value });
+        window.location.href = route(props.exportRoute, { selectedRowsData: selectedRows.value });
     }
 
     clearSelectedRows()
@@ -314,7 +315,7 @@ const exportToExcel = (type) => {
     selected.forEach((col) => {
         selectedRows.value.push(col.id);
     });
-    router.get(route('leads.export', { leads: selectedRows.value }), {
+    router.get(route(props.exportRoute, { selectedRowsData: selectedRows.value }), {
         onSuccess: () => clearSelectedRows(),
     })
 };
@@ -354,6 +355,23 @@ const cancelImportFile = () => {
     cl(form.leadExcelFile);
 }
 
+// Watch categories for changes
+watch(() => categories.value, () => {
+    Object.keys(categories.value).forEach(key => {
+        if (categories.value[key].includes("Today")) {
+            filterDateColumns.push(key);
+        }
+    });
+}, { immediate: true });
+
+// Watch for changes in filter categories and initialize checkedFilters object
+watch(() => categories.value, (newVal) => {
+    Object.keys(newVal).forEach(key => {
+        checkedFilters[key] = [];
+    });
+    
+}, { immediate: true });
+
 </script>
 
 <template>
@@ -376,6 +394,7 @@ const cancelImportFile = () => {
                     :align="'right'" 
                     :width="50" 
                     :contentClasses="'dark:bg-dark-eval-3'"
+                    v-if="hasImport"
                 >
                     <template #trigger>
                         <ThreeDotsVertical class="flex-shrink-0 w-6 h-6 cursor-pointer mx-2" aria-hidden="true" />
@@ -447,19 +466,21 @@ const cancelImportFile = () => {
                                 <div class="p-2 w-full">
                                     <p class="text-base p-2 dark:text-gray-300 text-center">Actions</p>
                                     <hr class="border-b rounded-md border-gray-600 mb-2 w-11/12 mx-auto">
-                                    <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Import Excel</p>
-                                    <div class="px-6 pb-6">
-                                        <Button 
-                                            :type="'button'"
-                                            :variant="'success'"
-                                            :size="'sm'"
-                                            class="justify-center gap-2 w-full h-full"
-                                            @click="openImportModal"
-                                        >
-                                            Import File
-                                        </Button>
+                                    <div v-if="hasImport">
+                                        <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Import Excel</p>
+                                        <div class="px-6 pb-6">
+                                            <Button 
+                                                :type="'button'"
+                                                :variant="'success'"
+                                                :size="'sm'"
+                                                class="justify-center gap-2 w-full h-full"
+                                                @click="openImportModal"
+                                            >
+                                                Import File
+                                            </Button>
+                                        </div>
+                                        <hr class="border-b rounded-md border-gray-600 mb-2 w-9/12 mx-auto">
                                     </div>
-                                    <hr class="border-b rounded-md border-gray-600 mb-2 w-9/12 mx-auto">
                                     <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Export to Excel</p>
                                     <div class="px-6 pb-6 flex flex-col gap-2">
                                         <Button 
@@ -498,8 +519,9 @@ const cancelImportFile = () => {
                             :show="importModalIsOpen" 
                             maxWidth="2xl" 
                             :closeable="true" 
-                            @close="closeImportModal">
-
+                            @close="closeImportModal"
+                            v-if="hasImport"
+                        >
                             <div class="p-9">
                                 <p class="text-gray-200 text-2xl bg-blue-500 p-4 rounded-md font-bold mb-6">Import Excel File</p>
                                 <div class="flex flex-col justify-center divide-y divide-gray-500">
@@ -576,7 +598,7 @@ const cancelImportFile = () => {
                                                     :name="key" 
                                                     :value="item" 
                                                     v-model="checkedFilters[key]"
-                                                    v-if="key === 'last_called' || key === 'give_up_at'"
+                                                    v-if="filterDateColumns.includes(key)"
                                                 >
                                                 <input 
                                                     :id="key + index" 
@@ -733,8 +755,13 @@ const cancelImportFile = () => {
                         @close="closeDeleteModal">
 
                         <div class="modal">
-                            <p class="text-gray-200 text-2xl bg-red-500 p-4 rounded-md font-bold">Delete Lead Confirmation.</p>
-                            <p class="text-gray-200 text-lg p-4">Are you sure that you want to <span class="font-bold">delete</span> this lead?</p>
+                            <p class="text-gray-200 text-2xl bg-red-500 p-4 rounded-md font-bold">
+                                Delete {{ convertToHumanReadable(props.detailsLink) }} Confirmation.
+                            </p>
+                            <p class="text-gray-200 text-lg p-4">
+                                Are you sure that you want to <span class="font-bold">delete</span> this 
+                                {{ convertToHumanReadable(props.detailsLink).toLowerCase().slice(0, props.detailsLink.length - 1) }}?
+                            </p>
                         </div>
                         <div class="flex flex-row justify-end p-9">
                             <div class="dark:bg-gray-600 p-4 rounded-md flex gap-4">
@@ -759,8 +786,6 @@ const cancelImportFile = () => {
                             </div>
                         </div>
                     </Modal>
-                    <!-- <button type="button" class="btn btn-success !py-1" @click="viewUser(rows.value)">View</button>
-                    <button type="button" class="btn btn-danger !py-1" @click="deleteUser(rows.value)">Delete</button> -->
                 </div>
             </template>
         </vue3-datatable>

@@ -136,10 +136,12 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Lead Fronts Routes
     */
+    Route::get('/lead-fronts/export/{selectedRowsData}', [LeadFrontController::class, 'exportToExcel'])->name('lead-fronts.export');
     Route::get('/lead-fronts/leads-list', [LeadFrontController::class, 'getLeadList'])->name('lead-fronts.getLeadList');
     Route::get('/lead-fronts/{id}/lead', [LeadFrontController::class, 'getLead'])->name('lead-fronts.getLead');
+    Route::get('/lead-fronts/{id}/lead-front-changelogs', [LeadFrontController::class, 'getLeadFrontChangelogs'])->name('lead-fronts.getLeadFrontChangelogs');
     Route::resource('/lead-fronts', LeadFrontController::class);
-        
+    
     /*
     |--------------------------------------------------------------------------
     | Lead Uploads Routes
@@ -153,7 +155,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     | Leads Routes
     */
     Route::post('/leads/import', [LeadController::class, 'importExcel'])->name('leads.import');
-    Route::get('/leads/export/{leads}', [LeadController::class, 'exportToExcel'])->name('leads.export');
+    Route::get('/leads/export/{selectedRowsData}', [LeadController::class, 'exportToExcel'])->name('leads.export');
     Route::get('/leads/{id}/lead-front', [LeadController::class, 'getLeadFront'])->name('leads.getLeadFront');
     Route::get('/leads/{id}/lead-notes', [LeadController::class, 'getLeadNotes'])->name('leads.getLeadNotes');
     Route::get('/leads/{id}/lead-changelogs', [LeadController::class, 'getLeadChangelogs'])->name('leads.getLeadChangelogs');

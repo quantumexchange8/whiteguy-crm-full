@@ -89,6 +89,8 @@ onMounted(() => {
 				:categoryFilters="'/data/leads/categories'"
 				:modalComponent="LeadDetailsModal"
 				:getDuplicatesURL="'/data/leads/duplicates'"
+				:hasImport="true"
+				:exportRoute="'leads.export'"
 			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>
