@@ -403,29 +403,35 @@ class LeadFrontController extends Controller
         return (new LeadFrontsExport($leadFrontsArr))->download($exportTitle);
     }
 
+    // Get the changelogs with this lead front id from the lead changelog table
     public function getLeadFrontChangelogs(string $id)
     {
-        $existingLeadFrontChangelogs = LeadChangelog::where('lead_id', $id)
+        $leadFront = LeadFront::find($id);
+        
+        $existingLeadFrontChangelogs = LeadChangelog::where('lead_id', $leadFront->lead->id)
                                                     ->whereNull('deleted_at')
                                                     ->orderBy('created_at', 'desc')
                                                     ->get();
 
-        $leadFrontIds = [];
+        $leadFrontChanges = [];
         foreach ($existingLeadFrontChangelogs as $changelog) {
             $changes = $changelog->lead_front_changes;
             if (isset($changes)) {
                 foreach ($changes as $change) {
-                    if (isset($change['id'])) {
-                        $leadFrontIds[] = $change['id'];
+                    $leadFrontChanges[$changelog->id]['lead_changelog_id'] = $changelog->id;
+                    $leadFrontChanges[$changelog->id]['description'] = $changelog->description;
+                    $leadFrontChanges[$changelog->id]['created_at'] = $changelog->created_at->toDateTimeString();
+                    
+                    foreach ($changes as $field => $data) {
+                        // Check if the 'id' key exists in the change data
+                        if (isset($data['id']) && (string)$data['id'] === $id) {
+                            $leadFrontChanges[$changelog->id]['lead_front_changes'][$field] = $data; // Collect changes for each lead front
+                        }
                     }
                 }
             }
         }
-    
-        // Filter out duplicate IDs
-        $leadFrontIds = array_unique($leadFrontIds);
-        dd($leadFrontIds);
 
-        return response()->json($existingLeadFrontChangelogs);
+        return response()->json($leadFrontChanges);
     }
 }

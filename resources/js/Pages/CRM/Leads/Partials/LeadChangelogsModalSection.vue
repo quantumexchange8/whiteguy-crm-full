@@ -5,9 +5,11 @@ import {
     TabGroup, TabList, Tab, TabPanels, TabPanel, Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot 
 } from '@headlessui/vue'
 import { CheckCircleIcon, ErrorCircleIcon } from '@/Components/Icons/outline';
+import { ThreeDotsVertical } from '@/Components/Icons/solid';
 import { ChevronUpIcon } from '@heroicons/vue/solid'
 import Button from '@/Components/Button.vue'
 import Label from '@/Components/Label.vue'
+import Dropdown from '@/Components/Dropdown.vue'
 import axios from "axios";
 import dayjs from 'dayjs';
 
@@ -26,14 +28,19 @@ const leadChangelogsCategories = ref([
 const leadNotesData = reactive({});
 const leadChangelogsData = reactive({});
 const combinedLogsData = reactive([]);
+let originalCombinedLogsData = null;
+let originalLeadNoteslogsData = null;
+let originalLeadChangelogsData = null;
 
 onMounted(async () => {
   try {
     const leadNotesResponse = await axios.get(route('leads.getLeadNotes', props.selectedRowData.id));
     leadNotesData.value = leadNotesResponse.data;
+    originalLeadNoteslogsData = leadNotesData.value;
 
     const leadChangelogsResponse = await axios.get(route('leads.getLeadChangelogs', props.selectedRowData.id));
     leadChangelogsData.value = leadChangelogsResponse.data;
+    originalLeadChangelogsData = leadChangelogsData.value;
 
     let combinedLogsArray = [];
 
@@ -54,17 +61,141 @@ onMounted(async () => {
 
     // Convert sorted array back to object
     combinedLogsData.value = combinedLogsArray;
+    originalCombinedLogsData = combinedLogsData.value;
 
   } catch (error) {
     console.error('Error fetching data:', error);
   }
 });
 
+const filterByToday = () => {
+  const today = dayjs();
+  combinedLogsData.value = originalCombinedLogsData.filter((log) =>
+    dayjs(log.created_at).isSame(today, 'day')
+  );
+  leadNotesData.value = originalLeadNoteslogsData.filter((log) =>
+    dayjs(log.created_at).isSame(today, 'day')
+  );
+  leadChangelogsData.value = originalLeadChangelogsData.filter((log) =>
+    dayjs(log.created_at).isSame(today, 'day')
+  );
+};
+
+const filterByPast7Days = () => {
+  const sevenDaysAgo = dayjs().subtract(7, 'day');
+  combinedLogsData.value = originalCombinedLogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(sevenDaysAgo)
+  );
+  leadNotesData.value = originalLeadNoteslogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(sevenDaysAgo)
+  );
+  leadChangelogsData.value = originalLeadChangelogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(sevenDaysAgo)
+  );
+};
+
+const filterByThisMonth = () => {
+  const startOfMonth = dayjs().startOf('month');
+  combinedLogsData.value = originalCombinedLogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(startOfMonth)
+  );
+  leadNotesData.value = originalLeadNoteslogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(startOfMonth)
+  );
+  leadChangelogsData.value = originalLeadChangelogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(startOfMonth)
+  );
+};
+
+const filterByThisYear = () => {
+  const startOfYear = dayjs().startOf('year');
+  combinedLogsData.value = originalCombinedLogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(startOfYear)
+  );
+  leadNotesData.value = originalLeadNoteslogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(startOfYear)
+  );
+  leadChangelogsData.value = originalLeadChangelogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(startOfYear)
+  );
+};
+
+const showAll = () => {
+    combinedLogsData.value = originalCombinedLogsData;
+    leadNotesData.value = originalLeadNoteslogsData;
+    leadChangelogsData.value = originalLeadChangelogsData;
+};
+
 </script>
 
 <template>
     <div class="input-group p-8 rounded-xl">
-        <p class="dark:text-gray-300 font-semibold text-2xl pb-2">Lead Notes Details</p>
+        <div class="flex justify-between">
+            <p class="dark:text-gray-300 font-semibold text-2xl pb-2">Lead Notes Details</p>
+            <Dropdown 
+                :align="'right'" 
+                :width="50" 
+                :contentClasses="'dark:bg-dark-eval-3'"
+            >
+                <template #trigger>
+                    <ThreeDotsVertical class="flex-shrink-0 w-6 h-6 cursor-pointer mx-2" aria-hidden="true" />
+                </template>
+
+                <template #content>
+                    <div class="p- w-full">
+                        <p class="text-md p-2 text-gray-300 text-center">Date Filter</p>
+                        <hr class="border-b rounded-md border-gray-600 mb-2 w-10/12 mx-auto">
+                        <div class="px-6 pb-6 pt-2 flex flex-col gap-2">
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="showAll"
+                            >
+                                {{ 'All' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="filterByToday"
+                            >
+                                {{ 'Today' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="filterByPast7Days"
+                            >
+                                {{ 'Past 7 days' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="filterByThisMonth"
+                            >
+                                {{ 'This month' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="filterByThisYear"
+                            >
+                                {{ 'This year' }}
+                            </Button>
+                        </div>
+                    </div>
+                </template>
+            </Dropdown>
+        </div>
         <div class="container">
             <TabGroup>
                 <TabList class="flex space-x-1 rounded-xl bg-blue-600/30 p-1 flex-wrap md:flex-nowrap">

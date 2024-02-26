@@ -78,20 +78,6 @@ onMounted(() => {
 			</div>
 		</template>
 		
-		<!-- <div class="flex justify-end p-4">
-			<div class="rounded-md shadow-lg border border-gray-500 flex justify-end">
-				<Button 
-					:type="'button'"
-					:variant="'success'" 
-					:size="'sm'" 
-					class="justify-center px-6 py-2 gap-2 w-full h-full"
-					:href="route('lead-fronts.create')"
-				>
-					Create Lead Front
-				</Button>
-			</div>
-		</div> -->
-		
 		<div class="w-full pb-6">
 			<Vue3Datatable 
 				:cols="colArray" 

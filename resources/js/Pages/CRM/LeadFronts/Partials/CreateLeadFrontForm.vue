@@ -42,15 +42,15 @@ const form = useForm({
 	lead_front_name: '',
 	lead_front_mimo: '',
 	lead_front_product: '',
-	lead_front_quantity: '',
-	lead_front_price: '',
+	lead_front_quantity: 0,
+	lead_front_price: 0,
 	lead_front_sdm: false,
 	lead_front_liquid: false,
 	lead_front_bank_name: '',
 	lead_front_bank_account: '',
 	lead_front_note: '',
 	assignee: '',
-	lead_front_commission: '',
+	lead_front_commission: 0,
 	lead_front_vc: '',
 	lead_front_edited_at: '',
 });
@@ -84,15 +84,17 @@ const formSubmit = () => {
 
 
 // Check and allows only the following keypressed
-const isNumber = (e) => {
-    const keysAllowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
+const isNumber = (e, withDot = true) => {
+    const keysAllowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    if (withDot) {
+        keysAllowed.push('.');
+    }
     const keyPressed = e.key;
     
     if (!keysAllowed.includes(keyPressed)) {
 		e.preventDefault();
     }
 };
-
 // Check if the value is not empty and is a valid number
 const isValidNumber = (value) => {
     return value !== '' && !isNaN(parseFloat(value)) && isFinite(value);
@@ -190,7 +192,7 @@ const isValidNumber = (value) => {
 										:inputType="'number'"
 										:inputId="'leadFrontQuantity'"
 										:labelValue="'Amount of Shares'"
-										:dataValue="String(form.lead_front_quantity)"
+										:dataValue="parseFloat(form.lead_front_quantity).toFixed(2)"
 										:decimalOption="true"
 										:step="0.01"
 										@keypress="isNumber($event)"
@@ -202,7 +204,7 @@ const isValidNumber = (value) => {
 										:inputType="'number'"
 										:inputId="'leadFrontPrice'"
 										:labelValue="'Price per Share'"
-										:dataValue="String(form.lead_front_price)"
+										:dataValue="parseFloat(form.lead_front_price).toFixed(2)"
 										:decimalOption="true"
 										:step="0.01"
 										class="col-span-2"
@@ -237,7 +239,7 @@ const isValidNumber = (value) => {
 										class="col-span-2"
 										:errorMessage="(form.errors) ? form.errors.lead_front_bank_account : '' "
 										v-model="form.lead_front_bank_account"
-										@keypress="isNumber($event)"
+										@keypress="isNumber($event, false)"
 									/>
 								</div>
 							</div>
@@ -266,7 +268,7 @@ const isValidNumber = (value) => {
 									:inputType="'number'"
 									:inputId="'leadFrontCommission'"
 									:labelValue="'Agent Commission %'"
-									:dataValue="String(form.lead_front_commission)"
+									:dataValue="parseFloat(form.lead_front_commission).toFixed(2)"
 									:decimalOption="true"
 									:step="0.01"
 									:errorMessage="(form.errors) ? form.errors.lead_front_commission : '' "

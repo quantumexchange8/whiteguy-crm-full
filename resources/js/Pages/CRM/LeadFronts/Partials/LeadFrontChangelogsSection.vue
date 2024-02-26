@@ -4,7 +4,10 @@ import { cl, back, convertToHumanReadable } from '@/Composables'
 import { 
     Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot 
 } from '@headlessui/vue'
+import { ThreeDotsVertical } from '@/Components/Icons/solid';
 import { ChevronUpIcon } from '@heroicons/vue/solid'
+import Dropdown from '@/Components/Dropdown.vue'
+import Button from '@/Components/Button.vue'
 import Label from '@/Components/Label.vue'
 import axios from "axios";
 import dayjs from 'dayjs';
@@ -18,28 +21,135 @@ const props = defineProps({
 })
 
 const leadFrontChangelogsData = reactive({});
+let originalLeadFrontChangelogsData = null;
 
 onMounted(async () => {
   try {
-    // cl(props.selectedRowData);
-    const leadFrontChangelogsResponse = await axios.get(route('lead-fronts.getLeadFrontChangelogs', props.selectedRowData.linked_lead));
+    const leadFrontChangelogsResponse = await axios.get(route('lead-fronts.getLeadFrontChangelogs', props.selectedRowData.id));
     leadFrontChangelogsData.value = leadFrontChangelogsResponse.data;
 
-    // Format the created_at dates
-    leadFrontChangelogsData.value.forEach(log => {
-      log.created_at = dayjs(log.created_at).format('DD MMMM YYYY, hh:mm A');
-    });
+    let leadFrontLogsArray = [];
+    for (let key in leadFrontChangelogsData.value) {
+        leadFrontLogsArray.push(leadFrontChangelogsData.value[key]);
+    }
 
+    leadFrontLogsArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    Object.keys(leadFrontChangelogsData.value).forEach((col, index) => {
+        leadFrontChangelogsData.value[col].created_at = dayjs(leadFrontChangelogsData.value[col].created_at).format('DD MMMM YYYY, hh:mm A');;
+    });
+    
+    leadFrontChangelogsData.value = leadFrontLogsArray;
+    originalLeadFrontChangelogsData = leadFrontChangelogsData.value;
+
+    // cl(originalLeadFrontChangelogsData);
   } catch (error) {
     console.error('Error fetching data:', error);
   }
 });
 
+const filterByToday = () => {
+  const today = dayjs();
+  leadFrontChangelogsData.value = originalLeadFrontChangelogsData.filter((log) =>
+    dayjs(log.created_at).isSame(today, 'day')
+  );
+};
+
+const filterByPast7Days = () => {
+  const sevenDaysAgo = dayjs().subtract(7, 'day');
+  leadFrontChangelogsData.value = originalLeadFrontChangelogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(sevenDaysAgo)
+  );
+};
+
+const filterByThisMonth = () => {
+  const startOfMonth = dayjs().startOf('month');
+  leadFrontChangelogsData.value = originalLeadFrontChangelogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(startOfMonth)
+  );
+};
+
+const filterByThisYear = () => {
+  const startOfYear = dayjs().startOf('year');
+  leadFrontChangelogsData.value = originalLeadFrontChangelogsData.filter((log) =>
+    dayjs(log.created_at).isAfter(startOfYear)
+  );
+};
+
+const showAll = () => {
+  leadFrontChangelogsData.value = originalLeadFrontChangelogsData;
+};
+
 </script>
 
 <template>
     <div class="input-group p-8 rounded-xl">
-        <p class="dark:text-gray-300 font-semibold text-2xl pb-2">Lead Front Changelog</p>
+        <div class="flex justify-between">
+            <p class="dark:text-gray-300 font-semibold text-2xl pb-2">Lead Front Changelog</p>
+            <Dropdown 
+                :align="'right'" 
+                :width="50" 
+                :contentClasses="'dark:bg-dark-eval-3'"
+            >
+                <template #trigger>
+                    <ThreeDotsVertical class="flex-shrink-0 w-6 h-6 cursor-pointer mx-2" aria-hidden="true" />
+                </template>
+
+                <template #content>
+                    <div class="p- w-full">
+                        <p class="text-md p-2 text-gray-300 text-center">Date Filter</p>
+                        <hr class="border-b rounded-md border-gray-600 mb-2 w-10/12 mx-auto">
+                        <div class="px-6 pb-6 pt-2 flex flex-col gap-2">
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="showAll"
+                            >
+                                {{ 'All' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="filterByToday"
+                            >
+                                {{ 'Today' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="filterByPast7Days"
+                            >
+                                {{ 'Past 7 days' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="filterByThisMonth"
+                            >
+                                {{ 'This month' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-6 py-2 w-full h-full whitespace-nowrap"
+                                @click="filterByThisYear"
+                            >
+                                {{ 'This year' }}
+                            </Button>
+                        </div>
+                    </div>
+                </template>
+            </Dropdown>
+        </div>
         <div class="container">
             <!-- For Lead Front Changelogs -->
             <div class="w-full flex justify-center" v-if="!leadFrontChangelogsData.value || leadFrontChangelogsData.value.length === 0">
@@ -68,7 +178,7 @@ onMounted(async () => {
                                     >
                                         Lead Front Changelogs 
                                         <span class="text-xs font-thin pl-4">
-                                            ( {{ log.id }} )
+                                            ( {{ log.lead_changelog_id }} )
                                         </span>
                                         <ChevronUpIcon
                                             :class="[

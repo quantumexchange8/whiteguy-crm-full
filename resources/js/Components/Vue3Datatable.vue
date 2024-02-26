@@ -1,16 +1,16 @@
 <script setup>
-import { useForm, router } from '@inertiajs/vue3'
+import { useForm, router } from '@inertiajs/vue3';
 import { ref, onMounted, reactive, watch } from "vue";
-import { convertToHumanReadable, cl } from '@/Composables'
-import { ThreeDotsVertical } from '@/Components/Icons/solid'
-import { TrashIcon, EyeIcon, PageEditIcon } from '@/Components/Icons/outline'
-import CustomFileInputField from '@/Components/CustomFileInputField.vue'
+import { convertToHumanReadable, cl } from '@/Composables';
+import { ThreeDotsVertical } from '@/Components/Icons/solid';
+import { TrashIcon, EyeIcon, PageEditIcon } from '@/Components/Icons/outline';
+import CustomFileInputField from '@/Components/CustomFileInputField.vue';
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
-import Button from '@/Components/Button.vue'
-import Input from '@/Components/Input.vue'
-import Modal from '@/Components/Modal.vue'
-import Dropdown from './Dropdown.vue'
+import Button from '@/Components/Button.vue';
+import Input from '@/Components/Input.vue';
+import Modal from '@/Components/Modal.vue';
+import Dropdown from './Dropdown.vue';
 import axios from "axios";
 
 const categories = ref([]);
@@ -387,7 +387,7 @@ watch(() => categories.value, (newVal) => {
                         class="justify-center px-6 py-2 gap-2 w-full h-full"
                         :href="props.createLink"
                     >
-                        Create Lead
+                        Create {{ convertToHumanReadable(props.detailsLink).slice(0, props.detailsLink.length - 1) }}
                     </Button>
                 </div>
                 <Dropdown 

@@ -37,6 +37,6 @@ class LeadFront extends Model
      */
     public function lead(): BelongsTo
     {
-        return $this->belongsTo(Lead::class, 'id');
+        return $this->belongsTo(Lead::class, 'linked_lead');
     }
 }

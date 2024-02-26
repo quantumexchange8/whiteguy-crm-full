@@ -77,8 +77,11 @@ const formSubmit = () => {
 
 
 // Check and allows only the following keypressed
-const isNumber = (e) => {
-    const keysAllowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
+const isNumber = (e, withDot = true) => {
+    const keysAllowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    if (withDot) {
+        keysAllowed.push('.');
+    }
     const keyPressed = e.key;
     
     if (!keysAllowed.includes(keyPressed)) {
@@ -180,7 +183,7 @@ const isValidNumber = (value) => {
 										:inputType="'number'"
 										:inputId="'leadFrontQuantity'"
 										:labelValue="'Amount of Shares'"
-										:dataValue="String(props.data.quantity)"
+										:dataValue="parseFloat(props.data.quantity).toFixed(2)"
 										:decimalOption="true"
 										:step="0.01"
 										@keypress="isNumber($event)"
@@ -192,7 +195,7 @@ const isValidNumber = (value) => {
 										:inputType="'number'"
 										:inputId="'leadFrontPrice'"
 										:labelValue="'Price per Share'"
-										:dataValue="String(props.data.price)"
+										:dataValue="parseFloat(props.data.price).toFixed(2)"
 										:decimalOption="true"
 										:step="0.01"
 										class="col-span-2"
@@ -233,7 +236,7 @@ const isValidNumber = (value) => {
 										class="col-span-2"
 										:errorMessage="(form.errors) ? form.errors.lead_front_bank_account : '' "
 										v-model="form.lead_front_bank_account"
-										@keypress="isNumber($event)"
+										@keypress="isNumber($event, false)"
 									/>
 								</div>
 							</div>

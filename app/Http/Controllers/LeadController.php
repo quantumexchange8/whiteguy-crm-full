@@ -580,7 +580,7 @@ class LeadController extends Controller
         // Add the change to the lead notes changes array
         $leadChanges['Delete'] = [
             'id' => $id,
-            'description' => 'This lead has been deleted',
+            'description' => 'The lead has been deleted',
         ];
 
         $newLeadChangelog = new LeadChangelog;
@@ -590,7 +590,7 @@ class LeadController extends Controller
         $newLeadChangelog->lead_changes = $leadChanges;
         $newLeadChangelog->lead_front_changes = [];
         $newLeadChangelog->lead_notes_changes = [];
-        $newLeadChangelog->description = 'This lead has been deleted';
+        $newLeadChangelog->description = 'The lead has been deleted';
 
         $newLeadChangelog->save();
 
@@ -619,7 +619,7 @@ class LeadController extends Controller
         // Add the change to the lead notes changes array
         $leadFrontChanges['Delete'] = [
             'id' => $id,
-            'description' => 'This lead front has been deleted',
+            'description' => 'The lead front has been deleted',
         ];
 
         $newLeadChangelog = new LeadChangelog;
@@ -629,7 +629,7 @@ class LeadController extends Controller
         $newLeadChangelog->lead_changes = [];
         $newLeadChangelog->lead_front_changes = $leadFrontChanges;
         $newLeadChangelog->lead_notes_changes = [];
-        $newLeadChangelog->description = 'This lead front has been deleted';
+        $newLeadChangelog->description = 'The lead front has been deleted';
 
         $newLeadChangelog->save();
 
@@ -649,7 +649,7 @@ class LeadController extends Controller
         // Add the change to the lead notes changes array
         $leadNotesChanges[$id]['Delete'] = [
             'id' => $id,
-            'description' => 'This lead note has been deleted',
+            'description' => 'The lead note has been deleted',
         ];
 
         $newLeadChangelog = new LeadChangelog;
@@ -659,7 +659,7 @@ class LeadController extends Controller
         $newLeadChangelog->lead_changes = [];
         $newLeadChangelog->lead_front_changes = [];
         $newLeadChangelog->lead_notes_changes = $leadNotesChanges;
-        $newLeadChangelog->description = 'This lead note has been deleted';
+        $newLeadChangelog->description = 'The lead note has been deleted';
 
         $newLeadChangelog->save();
 
@@ -793,6 +793,7 @@ class LeadController extends Controller
                                             return $note;
                                         });
 
+
         foreach($existingLeadNotes as $key=>$value) {
             $existingLeadNotes[$key]->user_editable = boolval($existingLeadNotes[$key]->user_editable);
         }
@@ -809,6 +810,7 @@ class LeadController extends Controller
                                                     $changelog['source'] = 'lead_changelog';
                                                     return $changelog;
                                                 });
+        // dd($existingLeadChangelogs);
 
         return response()->json($existingLeadChangelogs);
     }
@@ -846,11 +848,6 @@ class LeadController extends Controller
 
             array_push($errors, $rowErrors);
         }
-
-        // $errorMsgTitle = "";
-        // $errorMsgContent = "";
-
-        // dd($errors, $duplicatedLeads);
 
         // Set error messages to be displayed based on whether there are any errors
         if (count($errors) > 0) {

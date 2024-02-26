@@ -403,12 +403,12 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontQuantity'"
                                             :labelValue="'Amount of Shares'"
-                                            :dataValue="leadFrontData.value ? leadFrontData.value.quantity : '-'"
+                                            :dataValue="leadFrontData.value ? parseFloat(leadFrontData.value.quantity).toFixed(2) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontPrice'"
                                             :labelValue="'Price per Share'"
-                                            :dataValue="leadFrontData.value ? leadFrontData.value.price : '-'"
+                                            :dataValue="leadFrontData.value ? parseFloat(leadFrontData.value.price).toFixed(2) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontSdm'"
@@ -448,7 +448,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontCommission'"
                                             :labelValue="'Agent Commission %'"
-                                            :dataValue="leadFrontData.value ? leadFrontData.value.commission : '-'"
+                                            :dataValue="leadFrontData.value ? parseFloat(leadFrontData.value.commission).toFixed(2) : '-'"
                                         />
                                     </div>
                                 </TabPanel>

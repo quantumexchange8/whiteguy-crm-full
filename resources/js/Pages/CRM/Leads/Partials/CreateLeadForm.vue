@@ -82,14 +82,14 @@ const form = useForm({
 	lead_front_name: '',
 	lead_front_mimo: '',
 	lead_front_product: '',
-	lead_front_quantity: '',
-	lead_front_price: '',
+	lead_front_quantity: 0,
+	lead_front_price: 0,
 	lead_front_sdm: false,
 	lead_front_liquid: false,
 	lead_front_bank_name: '',
 	lead_front_bank_account: '',
 	lead_front_note: '',
-	lead_front_commission: '',
+	lead_front_commission: 0,
 	lead_front_vc: '',
 	lead_front_edited_at: '',
     lead_notes: [],
@@ -102,9 +102,9 @@ const formSubmit = () => {
 	form.phone_number_alt_2 = form.phone_number_alt_2 ? parseInt(form.phone_number_alt_2) : '';
 	form.phone_number_alt_3 = form.phone_number_alt_3 ? parseInt(form.phone_number_alt_3) : '';
 	form.lead_front_bank_account = form.lead_front_bank_account ? parseInt(form.lead_front_bank_account) : '';
-	form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : '';
-	form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : '';
-	form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : '';
+	form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : 0;
+	form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : 0;
+	form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : 0;
 	form.lead_front_edited_at = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
 
 	form.post(route('leads.store'), {
@@ -116,8 +116,11 @@ const formSubmit = () => {
 
 
 // Check and allows only the following keypressed
-const isNumber = (e) => {
-    const keysAllowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
+const isNumber = (e, withDot = true) => {
+    const keysAllowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    if (withDot) {
+        keysAllowed.push('.');
+    }
     const keyPressed = e.key;
     
     if (!keysAllowed.includes(keyPressed)) {
@@ -148,14 +151,14 @@ const clearLeadFrontForm = () => {
 	form.lead_front_name = '';
 	form.lead_front_mimo = '';
 	form.lead_front_product = '';
-	form.lead_front_quantity = '';
-	form.lead_front_price = '';
+	form.lead_front_quantity = 0;
+	form.lead_front_price = 0;
 	form.lead_front_sdm = false;
 	form.lead_front_liquid = false;
 	form.lead_front_bank_name = '';
 	form.lead_front_bank_account = '';
 	form.lead_front_note = '';
-	form.lead_front_commission = '';
+	form.lead_front_commission = 0;
 	form.lead_front_vc = '';
 }
 
@@ -265,7 +268,7 @@ const addLeadNote = () => {
                                 :labelValue="'Phone Number'"
                                 :errorMessage="(form.errors) ? form.errors.phone_number : '' "
                                 v-model="form.phone_number"
-                                @keypress="isNumber($event)"
+                                @keypress="isNumber($event, false)"
                             />
                             <CustomTextInputField
                                 :inputType="'number'"
@@ -273,7 +276,7 @@ const addLeadNote = () => {
                                 :labelValue="'Additional Phone Number 1'"
                                 :errorMessage="(form.errors) ? form.errors.phone_number_alt_1 : '' "
                                 v-model="form.phone_number_alt_1"
-                                @keypress="isNumber($event)"
+                                @keypress="isNumber($event, false)"
                             />
                             <CustomTextInputField
                                 :inputType="'number'"
@@ -281,7 +284,7 @@ const addLeadNote = () => {
                                 :labelValue="'Additional Phone Number 2'"
                                 :errorMessage="(form.errors) ? form.errors.phone_number_alt_2 : '' "
                                 v-model="form.phone_number_alt_2"
-                                @keypress="isNumber($event)"
+                                @keypress="isNumber($event, false)"
                             />
                             <CustomTextInputField
                                 :inputType="'number'"
@@ -289,7 +292,7 @@ const addLeadNote = () => {
                                 :labelValue="'Additional Phone Number 3'"
                                 :errorMessage="(form.errors) ? form.errors.phone_number_alt_3 : '' "
                                 v-model="form.phone_number_alt_3"
-                                @keypress="isNumber($event)"
+                                @keypress="isNumber($event, false)"
                             />
                         </div>
                         <div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -611,7 +614,7 @@ const addLeadNote = () => {
                                             :inputType="'number'"
                                             :inputId="'leadFrontQuantity'"
                                             :labelValue="'Amount of Shares'"
-                                            :dataValue="String(form.lead_front_quantity)"
+                                            :dataValue="parseFloat(form.lead_front_quantity).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             @keypress="isNumber($event)"
@@ -623,7 +626,7 @@ const addLeadNote = () => {
                                             :inputType="'number'"
                                             :inputId="'leadFrontPrice'"
                                             :labelValue="'Price per Share'"
-                                            :dataValue="String(form.lead_front_price)"
+                                            :dataValue="parseFloat(form.lead_front_price).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             class="col-span-2"
@@ -658,7 +661,7 @@ const addLeadNote = () => {
                                             class="col-span-2"
                                             :errorMessage="(form.errors) ? form.errors.lead_front_bank_account : '' "
                                             v-model="form.lead_front_bank_account"
-                                            @keypress="isNumber($event)"
+                                            @keypress="isNumber($event, false)"
                                         />
                                     </div>
                                 </div>
@@ -680,7 +683,7 @@ const addLeadNote = () => {
                                             :inputType="'number'"
                                             :inputId="'leadFrontCommission'"
                                             :labelValue="'Agent Commission %'"
-                                            :dataValue="String(form.lead_front_commission)"
+                                            :dataValue="parseFloat(form.lead_front_commission).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             :errorMessage="(form.errors) ? form.errors.lead_front_commission : '' "
