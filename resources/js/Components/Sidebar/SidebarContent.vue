@@ -108,9 +108,9 @@ import { TemplateIcon } from '@heroicons/vue/outline'
                 :active="route().current('crm.sale-orders')" 
             />
             <SidebarCollapsibleItem 
-                :href="route('crm.users-clients')" 
+                :href="route('users-clients.index')" 
                 title="Users / Clients" 
-                :active="route().current('crm.users-clients')" 
+                :active="route().current('users-clients.index')" 
             />
         </SidebarCollapsible>
 

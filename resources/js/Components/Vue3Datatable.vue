@@ -2,7 +2,7 @@
 import { useForm, router } from '@inertiajs/vue3';
 import { ref, onMounted, reactive, watch } from "vue";
 import { convertToHumanReadable, cl } from '@/Composables';
-import { ThreeDotsVertical } from '@/Components/Icons/solid';
+import { ThreeDotsVertical, CheckCircleFillIcon, TimesCircleIcon } from '@/Components/Icons/solid';
 import { TrashIcon, EyeIcon, PageEditIcon } from '@/Components/Icons/outline';
 import CustomFileInputField from '@/Components/CustomFileInputField.vue';
 import Vue3Datatable from "@bhplugin/vue3-datatable";
@@ -787,6 +787,26 @@ watch(() => categories.value, (newVal) => {
                         </div>
                     </Modal>
                 </div>
+            </template>
+            <template #sdm="rows">
+                <CheckCircleFillIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-if="Boolean(rows.value.sdm)"
+                />
+                <TimesCircleIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-else-if="!Boolean(rows.value.sdm)"
+                />
+            </template>
+            <template #liquid="rows">
+                <CheckCircleFillIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-if="Boolean(rows.value.liquid)"
+                />
+                <TimesCircleIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-else-if="!Boolean(rows.value.liquid)"
+                />
             </template>
         </vue3-datatable>
         <Modal 

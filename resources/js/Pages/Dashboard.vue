@@ -53,7 +53,7 @@ const pageTitle = "Dashboard";
 			<CoreCard 
 				#title 
 				class="rounded-xl bg-gray-600 p-2" 
-				:viewMoreHref="route('crm.users-clients')"
+				:viewMoreHref="route('users-clients.index')"
 			>
 				Users / Clients
 			</CoreCard>

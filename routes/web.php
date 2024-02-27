@@ -78,7 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/payment-methods', [PaymentMethodController::class, 'getPaymentMethods']);
     Route::get('/data/payment-submissions', [PaymentSubmissionController::class, 'getPaymentSubmissions']);
     Route::get('/data/sale-orders', [SaleOrderController::class, 'getSaleOrders']);
-    Route::get('/data/user-clients', [UserClientController::class, 'getUserClients']);
+    Route::get('/data/users-clients', [UserClientController::class, 'getUsersClients']);
 
     // Route to function that clear session error messages: used by back function in composables
     Route::post('/clear-session-messages', [LeadController::class, 'clearSessionMessages']);
@@ -216,10 +216,8 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Users / Clients Routes
     */
-        Route::get('/users-clients', function () {
-            return Inertia::render('CRM/UsersClients/Index');
-        })->name('crm.users-clients');
-});
+        Route::resource('/users-clients', UserClientController::class);
+    });
 
 Route::middleware(['auth', 'verified'])->group(function () {
     /*
