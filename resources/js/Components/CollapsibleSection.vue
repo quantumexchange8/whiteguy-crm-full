@@ -4,10 +4,17 @@ import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
 
 const props = defineProps({
-  title: String
+  title: {
+    type: String,
+    default: '',
+  },
+  hideSection: {
+    type: Boolean,
+    default: false,
+  }
 });
 
-let showSection = ref(true);
+let showSection = ref(!props.hideSection);
 </script>
 
 <template>
@@ -25,7 +32,7 @@ let showSection = ref(true);
           class="justify-center px-6 py-2"
           @click="showSection = !showSection"
         >
-          {{ showSection ? 'Collapse' : 'Expand' }}
+          {{ showSection ? 'Hide' : 'Show' }}
         </Button>
       </div>
       <hr class="border-b rounded-md border-gray-600 mb-6 w-full">

@@ -216,6 +216,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Users / Clients Routes
     */
+        Route::get('/users-clients/generate-account-id', [UserClientController::class, 'generateAccountId'])->name('users-clients.generateAccountId');
         Route::resource('/users-clients', UserClientController::class);
     });
 

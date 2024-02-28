@@ -77,8 +77,6 @@ const formSubmit = () => {
 		selectedLeadError.value = 'A linked lead is required.';
 		selectedAssigneeError.value = 'An assignee is required.';
 	}
-	// cl(selectedLeadError.value);
-	// cl(selectedAssigneeError.value);
 
 };
 

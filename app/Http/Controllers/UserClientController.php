@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Inertia\Inertia;
+use App\Models\UserClient;
+use App\Models\LeadChangelog;
+use App\Http\Requests\UserClientRequest;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class UserClientController extends Controller
 {
@@ -43,9 +46,10 @@ class UserClientController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(UserClientRequest $request)
     {
-        //
+        $data = $request->all();
+        dd($data);
     }
 
     /**
@@ -86,5 +90,31 @@ class UserClientController extends Controller
         $data = DB::table('users_clients')->whereNull('deleted_at')->get();
 
         return response()->json($data);
+    }
+
+    public function generateAccountId($length = 12) 
+    {
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $accountId = '';
+
+        do {
+            for ($i = 0; $i < $length; $i++) {
+                $accountId .= $characters[rand(0, $charactersLength - 1)];
+            }
+        } while ($this->checkExistingAccountId($accountId)); // Regenerate if string exists in database
+
+        return response()->json(['account_id' => $accountId]);
+    }
+    
+    public function checkExistingAccountId($string)
+    {
+        $existingUser = UserClient::where('account_id', $string)->get();
+
+        if (count($existingUser) > 0) {
+            return true;
+        }
+        
+        return false;
     }
 }

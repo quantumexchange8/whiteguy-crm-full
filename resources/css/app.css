@@ -448,4 +448,58 @@
 }
 
 /* -------------------------------------------------------------------------------------------------------------------------------------- */
+.tooltip-icon {
+	height: 24px;
+	width: 24px;
+	position: relative;
+	cursor: pointer;
+}
 
+.tooltip-icon:hover .tooltip {
+	display: block;
+}
+
+.tooltip {
+	padding: 8px;
+	position: absolute;
+	width: auto;
+	white-space: nowrap;
+	border-radius: 5px;
+	background-color: #000000;
+	top: 40px;
+	left: 50%;
+	transform: translate(-50%);
+	transform-style: preserve-3d;
+	z-index: 200;
+	font-size: 12px;
+	color: #afd5d1;
+	display: none;
+}
+
+.tooltip:after {
+	content: '';
+	position: absolute;
+	display: block;
+	width: 10px;
+	height: 10px;
+	transform-origin: 50% 50%;
+	transform: rotate(45deg) translateX(-50%);
+	background-color: #000000;
+	left: 50%;
+	top: -1px;
+	z-index: 400;
+}
+
+.tooltip:before {
+	content: '';
+	display: block;
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	transform-origin: 50% 50%;
+	transform: rotate(45deg) translateX(-50%) translateZ(-1px);
+	background-color: #000000;
+	left: 50%;
+	top: 0px;
+	z-index: -1;
+}
