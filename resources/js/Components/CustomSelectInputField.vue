@@ -1,7 +1,8 @@
 <script setup>
-import Label from '@/Components/Label.vue'
-import InputError from '@/Components/InputError.vue'
 import { ref, onMounted } from 'vue'
+import InputError from '@/Components/InputError.vue'
+import Tooltip from '@/Components/Tooltip.vue'
+import Label from '@/Components/Label.vue'
 
 const props = defineProps({
 	inputId: {
@@ -22,7 +23,11 @@ const props = defineProps({
     errorMessage: {
         type: String,
         default: ''
-    }
+    },
+    withTooltip: {
+        type: Boolean,
+        default: false
+    },
 })
 
 defineEmits(['update:modelValue'])
@@ -37,12 +42,17 @@ onMounted(() => {
 
 <template>
     <div class="input-wrapper">
-        <Label
-            :value="labelValue"
-            :for="inputId"
-            class="mb-2"
-        >
-        </Label>
+        <span class="flex flex-row gap-2">
+            <Label
+                :value="labelValue"
+                :for="inputId"
+                class="mb-2"
+            >
+            </Label>
+            <Tooltip v-if="withTooltip">
+                <slot></slot>
+            </Tooltip>
+        </span>
         <div class="relative">
             <select 
                 v-if="inputArray.length"

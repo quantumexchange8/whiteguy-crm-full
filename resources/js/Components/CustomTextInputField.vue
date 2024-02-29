@@ -1,11 +1,12 @@
 <script setup>
+import { onMounted, ref } from 'vue'
+import { DashboardIcon } from '@/Components/Icons/outline'
 import InputIconWrapper from '@/Components/InputIconWrapper.vue'
 import TextareaInput from '@/Components/TextareaInput.vue'
 import InputError from '@/Components/InputError.vue'
+import Tooltip from '@/Components/Tooltip.vue'
 import Input from '@/Components/Input.vue'
 import Label from '@/Components/Label.vue'
-import { DashboardIcon } from '@/Components/Icons/outline'
-import { onMounted, ref } from 'vue'
 
 const props = defineProps({
 	inputType: {
@@ -34,18 +35,27 @@ const props = defineProps({
     errorMessage: {
         type: String,
         default: ''
-    }
+    },
+    withTooltip: {
+        type: Boolean,
+        default: false
+    },
 })
 </script>
 
 <template>
 	<div class="input-wrapper">
-        <Label
-            :value="labelValue"
-            :for="inputId"
-            class="mb-2"
-        >
-        </Label>
+        <span class="flex flex-row gap-2">
+            <Label
+                :value="labelValue"
+                :for="inputId"
+                class="mb-2"
+            >
+            </Label>
+            <Tooltip v-if="withTooltip">
+                <slot></slot>
+            </Tooltip>
+        </span>
         <InputIconWrapper>
             <template #icon>
                 <DashboardIcon 

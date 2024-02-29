@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/payment-submissions', [PaymentSubmissionController::class, 'getPaymentSubmissions']);
     Route::get('/data/sale-orders', [SaleOrderController::class, 'getSaleOrders']);
     Route::get('/data/users-clients', [UserClientController::class, 'getUsersClients']);
+    Route::get('/data/users-clients/categories', [UserClientController::class, 'getCategories']);
 
     // Route to function that clear session error messages: used by back function in composables
     Route::post('/clear-session-messages', [LeadController::class, 'clearSessionMessages']);

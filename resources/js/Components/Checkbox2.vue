@@ -1,6 +1,5 @@
 <script setup>
 import { computed } from 'vue'
-import { InfoCircleIcon } from '@/Components/Icons/outline';
 import InputError from '@/Components/InputError.vue'
 import Tooltip from '@/Components/Tooltip.vue'
 import Label from '@/Components/Label.vue'

@@ -751,7 +751,8 @@ class LeadController extends Controller
             "Misc", 
             "Voicemail (Ring)", 
             "Not speak English", 
-            "Dup Batch" ];
+            "Dup Batch" 
+        ];
 
         $stage = [ "Contact Made", "HTR", "Failed Close", "Front (Front Form)", "New Account (Sale Order Form)" ];
 

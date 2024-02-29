@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\UserClient;
 use App\Models\LeadChangelog;
 use App\Http\Requests\UserClientRequest;
+use App\Models\UserClientChangelog;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -49,7 +50,68 @@ class UserClientController extends Controller
     public function store(UserClientRequest $request)
     {
         $data = $request->all();
-        dd($data);
+        // dd($data);
+        
+        $userClientChanges = [];
+
+        // Insert into users_clients table
+        $newUserClientData = UserClient::create([
+            'site' => $data['site'],
+            'username' => $data['username'],
+            'password' => $data['password'],
+            'account_id' => $data['account_id'],
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'],
+            'full_legal_name' => $data['full_legal_name'],
+            'email' => $data['email'],
+            'phone_number' => $data['phone_number'],
+            'address' => $data['address'],
+            'country_of_citizenship' => $data['country_of_citizenship'],
+            'account_holder' => $data['account_holder'],
+            'account_type' => $data['account_type'],
+            'customer_type' => $data['customer_type'],
+            'account_manager' => $data['account_manager'],
+            'lead_status' => $data['lead_status'],
+            'client_stage' => $data['client_stage'],
+            'rank' => $data['rank'],
+            'remark' => $data['remark'],
+            'previous_broker_name' => $data['previous_broker_name'],
+            'kyc_status' => $data['kyc_status'],
+            'is_active' => $data['is_active'],
+            'has_crm_access' => $data['has_crm_access'],
+            'has_leads_access' => $data['has_leads_access'],
+            'is_staff' => $data['is_staff'],
+            'is_superuser' => $data['is_superuser'],
+            'last_login' => $data['last_login'],
+        ]);
+        $newUserClientData->save();
+
+        // Add the change to the user changes array
+        $userClientChanges['New'] = [
+            'description' => 'A new user has been created',
+        ];
+
+        if (count($userClientChanges) > 0) {
+            $newUserClientChangelog = new UserClientChangelog;
+
+            $newUserClientChangelog->users_clients_id = $newUserClientData->id;
+            $newUserClientChangelog->column_name = 'users_clients';
+            $newUserClientChangelog->changes = $userClientChanges;
+            $newUserClientChangelog->description = 'The user has been successfully created';
+
+            $newUserClientChangelog->save();
+        }
+        
+        $errorMsgTitle = "You have successfully created a new user.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('users-clients.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -92,6 +154,7 @@ class UserClientController extends Controller
         return response()->json($data);
     }
 
+    // Generate random unique 12 characters account id (Checked against db)
     public function generateAccountId($length = 12) 
     {
         $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -116,5 +179,44 @@ class UserClientController extends Controller
         }
         
         return false;
+    }
+
+    public function getCategories(Request $request)
+    {
+        $site = DB::table('users_clients')
+                        ->orderBy('site')
+                        ->groupBy('site')
+                        ->pluck('site');
+
+        $is_active = [ 0, 1 ];
+        $account_type = [ 0, 1 ];
+        $client_stage = [ 0, 1 ];
+        $rank = [ 0, 1 ];
+        $kyc_status = [ 
+            "Not started", 
+            "Pending documents", 
+            "In progress", 
+            "Rejected", 
+            "Approved" 
+        ];
+        $has_crm_access = [ 0, 1 ];
+        $has_leads_access = [ 0, 1 ];
+        $is_staff = [ 0, 1 ];
+        $is_superuser = [ 0, 1 ];
+
+        $data = [
+            'site' => $site,
+            'is_active' => $is_active,
+            'account_type' => $account_type,
+            'client_stage' => $client_stage,
+            'rank' => $rank,
+            'kyc_status' => $kyc_status,
+            'has_crm_access' => $has_crm_access,
+            'has_leads_access' => $has_leads_access,
+            'is_staff' => $is_staff,
+            'is_superuser' => $is_superuser,
+        ];
+        
+        return response()->json($data);
     }
 }

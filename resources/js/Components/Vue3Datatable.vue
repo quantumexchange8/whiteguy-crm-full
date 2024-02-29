@@ -105,6 +105,8 @@ const getData = async () => {
         total_rows.value = data.data.length;
         isDuplicate.value = false;
 
+        cl(data.data);
+
     } catch (error) {
         console.error("Error fetching data:", error);
     } finally {
@@ -720,6 +722,9 @@ watch(() => categories.value, (newVal) => {
             <template #id="rows">
                 <strong><span class="text-purple-300">#{{ rows.value.id }}</span></strong>
             </template>
+            <template #site="rows">
+                <strong><span class="text-purple-300">{{ rows.value.site }}</span></strong>
+            </template>
             <template #actions="rows">
                 <div class="flex flex-row flex-nowrap gap-4">
                     <Button 
@@ -806,6 +811,46 @@ watch(() => categories.value, (newVal) => {
                 <TimesCircleIcon 
                     class="flex-shrink-0 w-5 h-5"
                     v-else-if="!Boolean(rows.value.liquid)"
+                />
+            </template>
+            <template #is_active="rows">
+                <CheckCircleFillIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-if="Boolean(rows.value.is_active)"
+                />
+                <TimesCircleIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-else-if="!Boolean(rows.value.is_active)"
+                />
+            </template>
+            <template #is_staff="rows">
+                <CheckCircleFillIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-if="Boolean(rows.value.is_staff)"
+                />
+                <TimesCircleIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-else-if="!Boolean(rows.value.is_staff)"
+                />
+            </template>
+            <template #has_crm_access="rows">
+                <CheckCircleFillIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-if="Boolean(rows.value.has_crm_access)"
+                />
+                <TimesCircleIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-else-if="!Boolean(rows.value.has_crm_access)"
+                />
+            </template>
+            <template #has_leads_access="rows">
+                <CheckCircleFillIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-if="Boolean(rows.value.has_leads_access)" 
+                />
+                <TimesCircleIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-else-if="!Boolean(rows.value.has_leads_access)"
                 />
             </template>
         </vue3-datatable>

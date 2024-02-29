@@ -254,14 +254,6 @@ const isValidNumber = (value) => {
 									:errorMessage="(form.errors) ? form.errors.lead_front_note : '' "
 									v-model="form.lead_front_note"
 								/>
-								<!-- <CustomSelectInputField
-									:inputArray="assigneeArray"
-									:inputId="'assignee'"
-									:labelValue="'Assignee'"
-                                    :dataValue="props.data.assignee"
-									:errorMessage="selectedAssigneeError ?? '' "
-									v-model="form.assignee"
-								/> -->
                                 <CustomLabelGroup
                                     :inputId="'assignee'"
                                     :labelValue="'Assignee'"
@@ -272,17 +264,6 @@ const isValidNumber = (value) => {
                                     :labelValue="'Agent Commission %'"
                                     :dataValue="parseFloat(props.data.commission).toFixed(2)"
                                 />
-								<!-- <CustomTextInputField
-									:inputType="'number'"
-									:inputId="'leadFrontCommission'"
-									:labelValue="'Agent Commission %'"
-									:dataValue="String(props.data.commission)"
-									:decimalOption="true"
-									:step="0.01"
-									:errorMessage="(form.errors) ? form.errors.lead_front_commission : '' "
-									@keypress="isNumber($event)"
-									v-model="form.lead_front_commission"
-								/> -->
 							</div>
 							<div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
 								<CustomLabelGroup

@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
-import Breadcrumbs from '@/Components/Breadcrumbs.vue'
-import Vue3Datatable from '@/Components/Vue3Datatable.vue'
-import CustomToastification from '@/Components/CustomToastification.vue';
 import { useToast } from "vue-toastification";
+import CustomToastification from '@/Components/CustomToastification.vue';
+import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
+import Vue3Datatable from '@/Components/Vue3Datatable.vue'
+import Breadcrumbs from '@/Components/Breadcrumbs.vue'
 import "vue-toastification/dist/index.css";
 
 const props = defineProps({
@@ -19,7 +19,7 @@ const pageTitle = "Users / Clients";
 const toast = useToast();
 const colArray = ref([
 	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm", filter: false },
-    { field: "username_site", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm" },
+    { field: "site", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm" },
     { field: "account_id", title: "ACCOUNT ID", headerClass: "text-gray-300 text-sm"  },
     { field: "full_legal_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm"  },
     { field: "lead_status", title: "LEAD STATUS", headerClass: "text-gray-300 text-sm", type: 'number'  },
@@ -27,11 +27,10 @@ const colArray = ref([
     { field: "rank", title: "RANK", headerClass: "text-gray-300 text-sm", type: 'number'  },
     { field: "account_manager", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm", type: 'number'  },
     { field: "kyc_status", title: "KYC STATUS", headerClass: "text-gray-300 text-sm"  },
-    { field: "active", title: "ACTIVE", headerClass: "text-gray-300 text-sm"  },
-    { field: "sdm", title: "STAFF", headerClass: "text-gray-300 text-sm"  },
-    { field: "crm", title: "CRM", headerClass: "text-gray-300 text-sm"  },
-    { field: "leads", title: "LEADS", headerClass: "text-gray-300 text-sm"  },
-    { field: "timezone", title: "TIMEZONE", headerClass: "text-gray-300 text-sm"  },
+    { field: "is_active", title: "ACTIVE", headerClass: "text-gray-300 text-sm"  },
+    { field: "is_staff", title: "STAFF", headerClass: "text-gray-300 text-sm"  },
+    { field: "has_crm_access", title: "CRM", headerClass: "text-gray-300 text-sm"  },
+    { field: "has_leads_access", title: "LEADS", headerClass: "text-gray-300 text-sm"  },
 ]);
 
 // Custom Toastification
@@ -79,16 +78,14 @@ onMounted(() => {
 		</template>
 
 		<div class="w-full pb-6">
-			<!-- <Vue3Datatable 
+			<Vue3Datatable 
 				:cols="colArray" 
 				:targetApi="'/data/users-clients'"
 				:createLink="route('users-clients.create')"
 				:detailsLink="'users-clients'"
-				:categoryFilters="'/data/lead-fronts/categories'"
-				:modalComponent="LeadFrontDetailsModal"
-				:getDuplicatesURL="'/data/leads/duplicates'"
+				:categoryFilters="'/data/users-clients/categories'"
 				:exportRoute="'lead-fronts.export'"
-			></Vue3Datatable> -->
+			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>
 </template>

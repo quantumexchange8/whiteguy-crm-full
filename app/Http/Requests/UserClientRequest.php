@@ -26,7 +26,11 @@ class UserClientRequest extends FormRequest
         if ($this->input('id')) {
             return [
                 'site' => 'required|string',
-                'username' => 'required|string',
+                'username' => [
+                    'required',
+                    'string',
+                    Rule::unique('users_clients')->ignore($this->input('id')),
+                ],
                 'password' => [
                     'required', 
                     Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised(),
@@ -70,7 +74,7 @@ class UserClientRequest extends FormRequest
         } else {
             return [
                 'site' => 'required|string',
-                'username' => 'required|string',
+                'username' => 'required|string|unique:users_clients',
                 'password' => [
                     'required', 
                     Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised(),

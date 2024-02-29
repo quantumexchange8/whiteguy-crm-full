@@ -2,19 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { cl, back } from '@/Composables'
 import { useForm } from '@inertiajs/vue3'
-import { PlusIcon } from '@/Components/Icons/solid'
-import { DashboardIcon, TrashIcon } from '@/Components/Icons/outline'
-import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue'
 import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
 import CustomTextInputField from '@/Components/CustomTextInputField.vue'
 import CollapsibleSection from '@/Components/CollapsibleSection.vue'
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
-import InputIconWrapper from '@/Components/InputIconWrapper.vue'
-import CheckboxTile from '@/Components/CheckboxTile.vue'
-import AltCheckbox from '@/Components/AltCheckbox.vue'
+import Checkbox2 from '@/Components/Checkbox2.vue'
 import Button from '@/Components/Button.vue'
 import Label from '@/Components/Label.vue'
-import Input from '@/Components/Input.vue'
 import dayjs from 'dayjs';
 import PasswordInputField from '@/Components/PasswordInputField.vue'
 
@@ -24,22 +18,26 @@ defineProps({
 })
 
 const siteArray = ref(
-	[ "Call Back", "Close", "Front Follow Up", "Close Follow Up", "Service Call" ]
+	[ "namba1.com", "namba2.com", "namba3.com" ]
+);
+const countriesArray = ref(
+	[ "Malaysia", "USA", "China", "Japan" ]
 );
 const accountTypeArray = ref(
-	[ "Call Back", "Close", "Front Follow Up", "Close Follow Up", "Service Call" ]
+	[ "Individual", "Joint", "Trust", "Corporate" ]
 );
 const accountManagerArray  = ref(
-	[ "Disconnected Line", "Voicemail", "No Answer", "W/N", "Line not connecting", "H/U", "HU/DC", "N/I", "Deceased", "Left company", "Gate Keeper", "HU/NI", "Voip Blocker", "Front", "Call Back", "DEAL!", "Misc", "Voicemail (Ring)", "Not speak English", "Dup Batch" ]
+	[ "122", "123", "124" ]
 );
 const rankArray  = ref(
-	[ "125", "124", "123", "122", "121", "120" ]
+	[ "Normal", "VIP" ]
 );
 const clientArray  = ref(
-	[ "Contact Made", "HTR", "Failed Close", "Front (Front Form)", "New Account (Sale Order Form)" ]
+	[ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ]
 );
+
 const kycArray  = ref(
-	[ "125", "124", "123", "122", "121", "120" ]
+	[ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ]
 );
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
@@ -78,7 +76,6 @@ onMounted(async () => {
   try {
     const accountIdResponse = await axios.get(route('users-clients.generateAccountId'));
     form.account_id = accountIdResponse.data.account_id;
-    // cl(generatedAccountId.value);
 
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -193,16 +190,21 @@ const isValidNumber = (value) => {
                                     :labelValue="'Password'"
                                     :inputId="'password'"
                                     class=" col-start-1 col-span-4"
+                                    :withTooltip="true"
                                     :errorMessage="form?.errors?.password ?? '' "
                                     v-model="form.password"
                                 />
-                                <CustomTextInputField
+                                <PasswordInputField
                                     :labelValue="'Confirm Password'"
                                     :inputId="'password_confirmation'"
                                     class="col-span-4"
+                                    :withTooltip="true"
+                                    :customTooltipContent="true"
                                     :errorMessage="form?.errors?.password_confirmation ?? '' "
                                     v-model="form.password_confirmation"
-                                />
+                                >
+                                    Enter the same password as before, for verification.
+                                </PasswordInputField>
                             </div>
                         </div>
                     </div>
@@ -224,10 +226,13 @@ const isValidNumber = (value) => {
                                 :labelValue="'Account ID'"
                                 :inputId="'account_id'"
                                 class="col-span-3"
+                                :withTooltip="true"
                                 :dataValue="form.account_id"
                                 :errorMessage="form?.errors?.account_id ?? '' "
                                 v-model="form.account_id"
-                            />
+                            >
+                                Account ID is auto generated.
+                            </CustomTextInputField>
                             <CustomTextInputField
                                 :labelValue="'First name'"
                                 :inputId="'first_name'"
@@ -246,9 +251,13 @@ const isValidNumber = (value) => {
                                 :labelValue="'Full Legal Name'"
                                 :inputId="'full_legal_name'"
                                 class="col-span-2"
+                                :withTooltip="true"
                                 :errorMessage="form?.errors?.full_legal_name ?? '' "
                                 v-model="form.full_legal_name"
-                            />
+                            >
+                                Please enter full legal name for the owner of this account.<br>
+                                For business, enter your full business name.
+                            </CustomTextInputField>
                         </div>
                     </div>
                     <div class="col-span-6">
@@ -259,7 +268,10 @@ const isValidNumber = (value) => {
                                 class="col-span-2"
                                 :errorMessage="form?.errors?.email ?? '' "
                                 v-model="form.email"
-                            />
+                                :withTooltip="true"
+                            >
+                                Email is required for account recovery in case you lose your password.
+                            </CustomTextInputField>
                             <CustomTextInputField
                                 :labelValue="'Phone number'"
                                 :inputId="'phone_number'"
@@ -268,11 +280,12 @@ const isValidNumber = (value) => {
                                 v-model="form.phone_number"
                                 @keypress="isNumber($event, false)"
                             />
-                            <CustomTextInputField
-                                :labelValue="'Country of Citizenship'"
+                            <CustomSelectInputField
+                                :inputArray="countriesArray"
                                 :inputId="'country_of_citizenship'"
-                                class=" col-span-2"
-                                :errorMessage="form?.errors?.country_of_citizenship ?? '' "
+                                :labelValue="'Country of Citizenship'"
+                                class="col-span-2"
+                                :errorMessage="form?.errors?.country_of_citizenship ?? ''"
                                 v-model="form.country_of_citizenship"
                             />
                             <CustomTextInputField
@@ -303,9 +316,12 @@ const isValidNumber = (value) => {
                                 :labelValue="'Account Holder Name'"
                                 :inputId="'account_holder'"
                                 class="col-span-3"
+                                :withTooltip="true"
                                 :errorMessage="form?.errors?.account_holder ?? '' "
                                 v-model="form.account_holder"
-                            />
+                            >
+                                The name of the primary holder of this account.
+                            </CustomTextInputField>
                             <CustomSelectInputField
                                 :inputArray="accountTypeArray"
                                 :inputId="'account_type'"
@@ -319,9 +335,12 @@ const isValidNumber = (value) => {
                                 :inputId="'account_manager'"
                                 :labelValue="'Account manager'"
                                 class="col-span-2"
+                                :withTooltip="true"
                                 :errorMessage="form?.errors?.account_manager ?? ''"
                                 v-model="form.account_manager"
-                            />
+                            >
+                                Only CRM users can be assigned as account manager.
+                            </CustomSelectInputField>
                             <CustomSelectInputField
                                 :inputArray="rankArray"
                                 :inputId="'rank'"
@@ -407,47 +426,47 @@ const isValidNumber = (value) => {
                         >
                             <div class="input-group-wrapper">
                                 <div class="input-group flex flex-col gap-3">
-									<AltCheckbox
+									<Checkbox2
                                         :inputId="'is_active'"
                                         :labelValue="'Active'"
                                         :errorMessage="form?.errors?.is_active ?? '' "
                                         :checked="true"
                                         v-model:checked="form.is_active"
 									>
-                                        Designates whether this user should be treated as active. Unselect this instead of deleting accounts.
-                                    </AltCheckbox>
-									<AltCheckbox
+                                        Designates whether this user should be treated as active.<br>Unselect this instead of deleting accounts.
+                                    </Checkbox2>
+									<Checkbox2
                                         :inputId="'has_crm_access'"
                                         :labelValue="'CRM Access'"
                                         :errorMessage="form?.errors?.has_crm_access ?? '' "
 										v-model:checked="form.has_crm_access"
 									>
                                         User can access CRM system.
-                                    </AltCheckbox>
-									<AltCheckbox
+                                    </Checkbox2>
+									<Checkbox2
                                         :inputId="'has_leads_access'"
                                         :labelValue="'Lead Management Access'"
                                         :errorMessage="form?.errors?.has_leads_access ?? '' "
 										v-model:checked="form.has_leads_access"
 									>
                                         User can access Lead Management System.
-                                    </AltCheckbox>
-									<AltCheckbox
+                                    </Checkbox2>
+									<Checkbox2
                                         :inputId="'is_staff'"
                                         :labelValue="'Staff status'"
                                         :errorMessage="form?.errors?.is_staff ?? '' "
 										v-model:checked="form.is_staff"
                                     >
                                         Designates whether the user can log into this admin site.
-                                    </AltCheckbox>
-									<AltCheckbox
+                                    </Checkbox2>
+									<Checkbox2
                                         :inputId="'is_superuser'"
                                         :labelValue="'Superuser status'"
                                         :errorMessage="form?.errors?.is_superuser ?? '' "
 										v-model:checked="form.is_superuser"
                                     >
                                         Designates that this user has all permissions without explicitly assigning them.
-                                    </AltCheckbox>
+                                    </Checkbox2>
                                 </div>
                             </div>
                         </CollapsibleSection>

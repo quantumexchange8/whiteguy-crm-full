@@ -21,7 +21,15 @@ const props = defineProps({
     errorMessage: {
         type: String,
         default: ''
-    }
+    },
+    withTooltip: {
+        type: Boolean,
+        default: false
+    },
+    customTooltipContent: {
+        type: Boolean,
+        default: false
+    },
 })
 </script>
 
@@ -34,15 +42,20 @@ const props = defineProps({
                 class="mb-2"
             >
             </Label>
-            <Tooltip>
-                <h3>The password must contain:</h3>
-                <ul class="pl-6 list-disc">
-                    <li>at least 8 characters.</li>
-                    <li>at least one uppercase letter.</li>
-                    <li>at least one lowercase letter.</li>
-                    <li>at least one symbol.</li>
-                    <li>at least one number.</li>
-                </ul>
+            <Tooltip v-if="withTooltip">
+                <span v-if="customTooltipContent">
+                    <slot></slot>
+                </span>
+                <span v-else>
+                    <p class="font-bold">The password must contain:</p>
+                    <ul class="pl-6 list-disc font-semibold">
+                        <li>at least 8 characters.</li>
+                        <li>at least one uppercase letter.</li>
+                        <li>at least one lowercase letter.</li>
+                        <li>at least one symbol.</li>
+                        <li>at least one number.</li>
+                    </ul>
+                </span>
             </Tooltip>
         </span>
         <InputIconWrapper>
