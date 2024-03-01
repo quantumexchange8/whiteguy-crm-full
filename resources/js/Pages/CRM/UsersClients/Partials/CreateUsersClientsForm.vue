@@ -365,7 +365,7 @@ const isValidNumber = (value) => {
                                 :inputId="'lead_status'"
                                 class="col-span-2"
                                 :errorMessage="form?.errors?.lead_status ?? '' "
-                                v-model="form.password_confirmation"
+                                v-model="form.lead_status"
                             />
                             <CustomSelectInputField
                                 :inputArray="clientArray"

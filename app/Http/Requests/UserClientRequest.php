@@ -23,6 +23,7 @@ class UserClientRequest extends FormRequest
      */
     public function rules(): array
     {
+        dd($this->input('id'));
         if ($this->input('id')) {
             return [
                 'site' => 'required|string',

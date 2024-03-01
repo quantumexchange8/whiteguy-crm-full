@@ -105,7 +105,7 @@ const getData = async () => {
         total_rows.value = data.data.length;
         isDuplicate.value = false;
 
-        cl(data.data);
+        // cl(data.data);
 
     } catch (error) {
         console.error("Error fetching data:", error);
