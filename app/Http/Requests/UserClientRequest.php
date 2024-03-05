@@ -23,7 +23,7 @@ class UserClientRequest extends FormRequest
      */
     public function rules(): array
     {
-        dd($this->input('id'));
+        // dd($this->input('id'));
         if ($this->input('id')) {
             return [
                 'site' => 'required|string',
@@ -35,7 +35,6 @@ class UserClientRequest extends FormRequest
                 'password' => [
                     'required', 
                     Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised(),
-                    'confirmed',
                 ],
                 'account_id' => 'required|string',
                 'first_name' => 'required|string',
@@ -49,7 +48,7 @@ class UserClientRequest extends FormRequest
                     Rule::unique('users_clients')->ignore($this->input('id')),
                 ],
                 'phone_number' => [
-                    'required',
+                    'nullable',
                     'integer',
                     Rule::unique('users_clients')->ignore($this->input('id')),
                 ],

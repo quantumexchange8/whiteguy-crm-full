@@ -2,8 +2,10 @@
 import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
 import CoreCard from '@/Components/CoreCard.vue'
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
+import { usePermission } from '@/Composables'
 
 const pageTitle = "Dashboard";
+const { is } = usePermission();
 
 </script>
 
@@ -15,6 +17,7 @@ const pageTitle = "Dashboard";
 								{{ pageTitle }}
 						</h2>
 				</div>
+				<h2 v-if="is('staff') || is('crm_user')">{{ $page.props.auth.user.roles }}</h2>
 				<Breadcrumbs 
 					:title="pageTitle"
 				/>

@@ -100,8 +100,9 @@ const getData = async () => {
                 limit: 10,
             }
         });
-        
-        rows.value = await data.data;
+
+        let unprocessedData = await data.data;
+        rows.value = processRows(unprocessedData);
         total_rows.value = data.data.length;
         isDuplicate.value = false;
 
@@ -112,6 +113,17 @@ const getData = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const processRows = (rows) => {
+  return rows.map(row => {
+    for (let key in row) {
+      if (row[key] === null || row[key] === '') {
+        row[key] = '-';
+      }
+    }
+    return row;
+  });
 };
 
 const getDuplicatedData = async () => {

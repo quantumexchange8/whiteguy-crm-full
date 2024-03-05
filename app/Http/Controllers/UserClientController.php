@@ -127,15 +127,96 @@ class UserClientController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data = UserClient::find($id);
+
+        return Inertia::render('CRM/UsersClients/Edit', [
+            'data' => $data,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UserClientRequest $request, string $id)
     {
-        //
+        $data = $request->all();
+        // dd($data);
+        
+        $userClientChanges = [];
+
+        $oldUserClientData = UserClient::find($id);
+
+        // Insert into users_clients table
+        $oldUserClientData->update([
+            'site' => $data['site'],
+            'username' => $data['username'],
+            'password' => $data['password'],
+            'account_id' => $data['account_id'],
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'],
+            'full_legal_name' => $data['full_legal_name'],
+            'email' => $data['email'],
+            'phone_number' => $data['phone_number'],
+            'address' => $data['address'],
+            'country_of_citizenship' => $data['country_of_citizenship'],
+            'account_holder' => $data['account_holder'],
+            'account_type' => $data['account_type'],
+            'customer_type' => $data['customer_type'],
+            'account_manager' => $data['account_manager'],
+            'lead_status' => $data['lead_status'],
+            'client_stage' => $data['client_stage'],
+            'rank' => $data['rank'],
+            'remark' => $data['remark'],
+            'previous_broker_name' => $data['previous_broker_name'],
+            'kyc_status' => $data['kyc_status'],
+            'is_active' => $data['is_active'],
+            'has_crm_access' => $data['has_crm_access'],
+            'has_leads_access' => $data['has_leads_access'],
+            'is_staff' => $data['is_staff'],
+            'is_superuser' => $data['is_superuser'],
+            'last_login' => $data['last_login'],
+        ]);
+        $oldUserClientData->save();
+
+        if (isset($oldUserClientData)) {
+            foreach ($oldUserClientData->toArray() as $key => $oldValue) {
+                if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at') {
+                    continue;
+                }
+                
+                $newValue = $data[$key] ?? null;
+
+                // Check if the value has changed
+                if ($newValue !== $oldValue) {
+                    $userClientChanges[$key] = [
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+            }
+        }
+
+        if (count($userClientChanges) > 0) {
+            $newUserClientChangelog = new UserClientChangelog;
+
+            $newUserClientChangelog->users_clients_id = $id;
+            $newUserClientChangelog->column_name = 'users_clients';
+            $newUserClientChangelog->changes = $userClientChanges;
+            $newUserClientChangelog->description = 'The user has been successfully updated';
+
+            $newUserClientChangelog->save();
+        }
+        
+        $errorMsgTitle = "You have successfully updated the user details.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('users-clients.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**

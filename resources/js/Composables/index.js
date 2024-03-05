@@ -1,6 +1,7 @@
 import { useDark, useToggle } from '@vueuse/core'
 import { reactive } from 'vue'
 import { router } from "@inertiajs/vue3";
+import { usePage } from '@inertiajs/vue3'
 
 export const isDark = useDark()
 export const toggleDarkMode = useToggle(isDark)
@@ -66,4 +67,12 @@ export const convertToHumanReadable = (str) => {
       frags[i] = frags[i].charAt(0).toUpperCase() + frags[i].slice(1);
     }
     return frags.join(' ');
+}
+
+// Check whether currently logged-in user has the role/permission assigned to them
+export function usePermission() {
+    const is = (name) => usePage().props.auth.user.roles.includes(name);
+    const can = (name) => usePage().props.auth.user.permissions.includes(name);
+
+    return { is, can };
 }

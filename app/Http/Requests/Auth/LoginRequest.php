@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -40,6 +41,16 @@ class LoginRequest extends FormRequest
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
+
+        // Attempt to retrieve the user with the provided email
+        $user = User::where('email', $this->input('email'))->first();
+
+        // If the user is not active, throw a ValidationException
+        if ($user && !$user->is_active) {
+            throw ValidationException::withMessages([
+                'email' => 'Your account is not active. Please contact the admin.',
+            ]);
+        }
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
