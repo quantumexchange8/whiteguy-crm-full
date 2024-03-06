@@ -811,7 +811,6 @@ class LeadController extends Controller
                                                     $changelog['source'] = 'lead_changelog';
                                                     return $changelog;
                                                 });
-        // dd($existingLeadChangelogs);
 
         return response()->json($existingLeadChangelogs);
     }

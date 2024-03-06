@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import CustomToastification from '@/Components/CustomToastification.vue';
+import UserDetailsModal from './Partials/UserDetailsModal.vue'
 import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
 import Vue3Datatable from '@/Components/Vue3Datatable.vue'
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
@@ -84,6 +85,7 @@ onMounted(() => {
 				:createLink="route('users-clients.create')"
 				:detailsLink="'users-clients'"
 				:categoryFilters="'/data/users-clients/categories'"
+				:modalComponent="UserDetailsModal"
 				:exportRoute="'lead-fronts.export'"
 			></Vue3Datatable>
 		</div>

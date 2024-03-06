@@ -15,6 +15,7 @@ import axios from "axios";
 
 const categories = ref([]);
 const filterDateColumns = reactive([]);
+const booleanColumns = reactive([]);
 const filterIsOpen = ref(false);
 const importModalIsOpen = ref(false);
 const datatable = ref(null);
@@ -23,6 +24,7 @@ const searchInput = ref(null);
 const loading = ref(true);
 const rows = ref(null);
 const checkedFilters = reactive({});
+const unprocessedData = ref();
 const selectedRowData = ref(null);
 const isRowModalOpen = ref(false);
 const selectedRows = ref([]);
@@ -101,12 +103,10 @@ const getData = async () => {
             }
         });
 
-        let unprocessedData = await data.data;
-        rows.value = processRows(unprocessedData);
+        unprocessedData.value = await data.data;
+        rows.value = processRows(unprocessedData.value);
         total_rows.value = data.data.length;
         isDuplicate.value = false;
-
-        // cl(data.data);
 
     } catch (error) {
         console.error("Error fetching data:", error);
@@ -118,7 +118,7 @@ const getData = async () => {
 const processRows = (rows) => {
   return rows.map(row => {
     for (let key in row) {
-      if (row[key] === null || row[key] === '') {
+      if (row[key] === null || row[key] === '' || row[key] === '-') {
         row[key] = '-';
       }
     }
@@ -375,6 +375,10 @@ watch(() => categories.value, () => {
         if (categories.value[key].includes("Today")) {
             filterDateColumns.push(key);
         }
+
+        if (categories.value[key].every(val => val === 0 || val === 1)) {
+            booleanColumns.push(key);
+        }
     });
 }, { immediate: true });
 
@@ -629,7 +633,7 @@ watch(() => categories.value, (newVal) => {
                                                         border rounded-lg cursor-pointer bg-brand-light text-brand-black border-gray-500
                                                         peer-checked:border-violet-400 peer-checked:bg-violet-700 peer-checked:text-white">
                                                     <div class="flex items-center justify-center w-full">
-                                                        <div class="text-sm dark:text-gray-300">{{ item }}</div>
+                                                        <div class="text-sm dark:text-gray-300">{{ booleanColumns.includes(key) ? (item ? 'Yes' : 'No') : item }}</div>
                                                     </div>
                                                 </label>
                                             </div>

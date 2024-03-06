@@ -52,16 +52,16 @@ export const handleScroll = () => {
 
 
 // testing
-export const cl = (val) => {
+export function cl(val) {
     console.log(val);
 }
 
-export const back = () => {
+export function back() {
 	router.post('/clear-session-messages');
     window.history.back();
 }
 
-export const convertToHumanReadable = (str) => {
+export function convertToHumanReadable(str) {
     var i, frags = str.split(/_|-/);
     for (i=0; i<frags.length; i++) {
       frags[i] = frags[i].charAt(0).toUpperCase() + frags[i].slice(1);
@@ -75,4 +75,13 @@ export function usePermission() {
     const can = (name) => usePage().props.auth.user.permissions.includes(name);
 
     return { is, can };
+}
+
+// Replace hyphens (-) from object passed to details modal from datatable
+export function replaceHyphensWithEmpty(obj) {
+    for (let key in obj) {
+        if (obj[key] === '-') {
+            obj[key] = '';
+        }
+    }
 }

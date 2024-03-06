@@ -8,7 +8,7 @@ import {
 import { 
     PhoneIcon, MapIcon, FlagIcon, CalendarIcon 
 } from '@heroicons/vue/solid'
-import LeadFrontChangelogsSection from './LeadFrontChangelogsSection.vue'
+import UserChangelogsSection from './UserChangelogsSection.vue'
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 import Button from '@/Components/Button.vue'
 import axios from "axios";
@@ -22,28 +22,29 @@ const props = defineProps({
     },
 })
 
+const categories = ref([
+    'User Info', 'Account Info', 'KYC Status', 'Permissions', 'System'
+])
+
 const leadFrontCategories = ref([
     'Basic Info', 'Financial Details', 'Additional Info', 'Timestamps'
 ])
 
-const leadData = reactive({});
+const leadFrontData = reactive({});
 
 const emit = defineEmits(['closeModal', 'rowEdit']);
 
-onMounted(async () => {
-  try {
-    const leadResponse = await axios.get(route('lead-fronts.getLead', props.selectedRowData.linked_lead));
-    // cl(leadResponse);
-    leadData.value = leadResponse.data[0];
+onMounted(() => {
+    if (props.selectedRowData) {
+        props.selectedRowData.is_active = (props.selectedRowData.is_active) ? 'Yes' : 'No';
+        props.selectedRowData.has_crm_access = (props.selectedRowData.has_crm_access) ? 'Yes' : 'No';
+        props.selectedRowData.has_leads_access = (props.selectedRowData.has_leads_access) ? 'Yes' : 'No';
+        props.selectedRowData.is_staff = (props.selectedRowData.is_staff) ? 'Yes' : 'No';
+        props.selectedRowData.is_superuser = (props.selectedRowData.is_superuser) ? 'Yes' : 'No';
+    }
 
-    props.selectedRowData.sdm = (props.selectedRowData.sdm) ? 'Yes' : 'No';
-    props.selectedRowData.liquid = (props.selectedRowData.liquid) ? 'Yes' : 'No';
-
+    // cl(props.selectedRowData);
     replaceHyphensWithEmpty(props.selectedRowData);
-
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
 });
 
 </script>
@@ -54,20 +55,20 @@ onMounted(async () => {
             <div class="col-span-2 flex flex-col gap-6 mb-8 lg:mb-0">
                 <div class="input-group grid grid-cols-1 lg:grid-cols-12 lg:gap-4">
                     <p class="dark:text-gray-300 lg:col-span-6 font-semibold text-2xl pb-2">
-                        {{ leadData.value ? leadData.value.first_name : '' }} {{ leadData.value ? leadData.value.last_name : '' }}
+                        {{ props.selectedRowData.full_legal_name ? props.selectedRowData.full_legal_name : '' }}
                         <span class="text-xs font-thin pl-4">
-                            ( {{ leadData.value ? leadData.value.id : '' }} )
+                            ( {{ props.selectedRowData.id ? props.selectedRowData.id : '' }} )
                         </span>
                     </p>
                     <div class="flex flex-col max-w-full lg:col-span-6 gap-5 bg-gray-100 dark:bg-gray-900/60 p-3 rounded-lg">
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="grid grid-cols-1 lg:grid-cols-12">
                             <p class="dark:text-gray-400 text-sm pr-2 lg:col-span-4">
                                 <span class="text-xs font-thin">
                                     <PhoneIcon
                                         class="h-4 w-4 text-purple-400 inline-block"
                                     />
                                 </span>
-                                | {{ leadData.value ? leadData.value.phone_number : '' }}
+                                | {{ props.selectedRowData.phone_number ? props.selectedRowData.phone_number : '' }}
                             </p>
                             <span class="text-gray-800 dark:text-gray-500 text-sm leading-tight lg:col-span-1">•</span>
                             <p class="dark:text-gray-400 text-sm px-2 lg:col-span-7">
@@ -76,26 +77,17 @@ onMounted(async () => {
                                         class="h-4 w-4 text-purple-400 inline-block"
                                     />
                                 </span>
-                                | {{ leadData.value ? leadData.value.email : '' }}
+                                | {{ props.selectedRowData.email ? props.selectedRowData.email : '' }}
                             </p>
                         </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                            <p class="dark:text-gray-400 text-sm pr-2 lg:col-span-5">
+                        <div class="flex">
+                            <p class="dark:text-gray-400 text-sm pr-2">
                                 <span class="text-xs font-thin">
                                     <FlagIcon
                                         class="h-4 w-4 text-purple-400 inline-block"
                                     />
                                 </span>
-                                | {{ leadData.value ? leadData.value.country : '' }}
-                            </p>
-                            <span class="text-gray-800 dark:text-gray-500 text-sm leading-tight lg:col-span-1">•</span>
-                            <p class="dark:text-gray-400 text-sm pr-2 lg:col-span-6">
-                                <span class="text-xs font-thin">
-                                    <CalendarIcon
-                                        class="h-4 w-4 text-purple-400 inline-block"
-                                    />
-                                </span>
-                                | {{ leadData.value ? leadData.value.date_of_birth : '' }}
+                                | {{ props.selectedRowData.country_of_citizenship ? props.selectedRowData.country_of_citizenship : '' }}
                             </p>
                         </div>
                         <div class="flex">
@@ -105,18 +97,18 @@ onMounted(async () => {
                                         class="h-4 w-4 text-purple-400 inline-block"
                                     />
                                 </span>
-                                | {{ leadData.value ? leadData.value.address : '' }}
+                                | {{ props.selectedRowData.address ? props.selectedRowData.address : '' }}
                             </p>
                         </div>
                     </div>
                 </div>
                 <div class="input-group">
-                    <p class="dark:text-gray-300 font-semibold text-xl pb-2">Lead Front Details</p>
+                    <p class="dark:text-gray-300 font-semibold text-xl pb-2">User Details</p>
                     <div class="w-full p-2 sm:px-0">
                         <TabGroup>
                             <TabList class="flex space-x-1 rounded-xl bg-blue-600/30 p-1 flex-wrap md:flex-nowrap">
                                 <Tab
-                                    v-for="category in leadFrontCategories"
+                                    v-for="category in categories"
                                     as="template"
                                     :key="category"
                                     v-slot="{ selected }"
@@ -135,7 +127,7 @@ onMounted(async () => {
                                 </Tab>
                             </TabList>
 
-                            <TabPanels class="mt-2" v-if="Object.keys(props.selectedRowData).length > 0">
+                            <TabPanels class="mt-2">
                                 <TabPanel
                                     :class="[
                                         'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
@@ -144,84 +136,95 @@ onMounted(async () => {
                                 >
                                     <div class="grid grid-cols-1 sm:grid-cols-3">
                                         <CustomLabelGroup
-                                            :inputId="'leadFrontName'"
-                                            :labelValue="'Name'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.name : '-'"
+                                            :inputId="'site'"
+                                            :labelValue="'Site:'"
+                                            :dataValue="props.selectedRowData?.site ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'username'"
+                                            :labelValue="'Username:'"
+                                            :dataValue="props.selectedRowData?.username ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'account_id'"
+                                            :labelValue="'Account ID:'"
+                                            :dataValue="props.selectedRowData?.account_id ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'full_legal_name'"
+                                            :labelValue="'Full Legal Name:'"
+                                            :dataValue="props.selectedRowData?.full_legal_name ?? '-'"
+                                        />
+                                    </div>
+                                </TabPanel>
+                                <TabPanel
+                                    :class="[
+                                        'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
+                                        'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
+                                    ]"
+                                >
+                                    <div class="grid grid-cols-1 sm:grid-cols-3">
+                                        <CustomLabelGroup
+                                            :inputId="'orders'"
+                                            :labelValue="'Orders:'"
+                                            :dataValue="'-'"
                                             class="text-gray-700"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'leadFrontVc'"
-                                            :labelValue="'VC'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.vc : '-'"
+                                            :inputId="'application_form'"
+                                            :labelValue="'Application Form:'"
+                                            :dataValue="'-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'leadFrontMimo'"
-                                            :labelValue="'MIMO'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.mimo : '-'"
+                                            :inputId="'wallet_balance'"
+                                            :labelValue="'Wallet Balance:'"
+                                            :dataValue="'-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'leadFrontProduct'"
-                                            :labelValue="'Product'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.product : '-'"
-                                        />
-                                    </div>
-                                </TabPanel>
-                                <TabPanel
-                                    :class="[
-                                        'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
-                                        'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                                    ]"
-                                >
-                                    <div class="grid grid-cols-1 sm:grid-cols-3">
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontQuantity'"
-                                            :labelValue="'Amount of Shares'"
-                                            :dataValue="parseFloat(props.selectedRowData ? props.selectedRowData.quantity : 0).toFixed(2)"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontPrice'"
-                                            :labelValue="'Price per Share'"
-                                            :dataValue="parseFloat(props.selectedRowData ? props.selectedRowData.price : 0).toFixed(2)"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontSdm'"
-                                            :labelValue="'Sdm'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.sdm : '-'"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontLiquid'"
-                                            :labelValue="'Liquid'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.liquid : '-'"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontBankName'"
-                                            :labelValue="'Bank Name'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.bank_name : '-'"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontBankAccount'"
-                                            :labelValue="'Bank Account'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.bank_account : '-'"
-                                        />
-                                    </div>
-                                </TabPanel>
-                                <TabPanel
-                                    :class="[
-                                        'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
-                                        'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                                    ]"
-                                >
-                                    <div class="grid grid-cols-1 sm:grid-cols-3">
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontNote'"
-                                            :labelValue="'Special Note'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.note : '-'"
+                                            :inputId="'account_holder'"
+                                            :labelValue="'Account Holder Name:'"
+                                            :dataValue="props.selectedRowData?.account_holder ?? '-'"
                                             class="text-gray-700"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'leadFrontCommission'"
-                                            :labelValue="'Agent Commission %'"
-                                            :dataValue="parseFloat(props.selectedRowData ? props.selectedRowData.commission : 0).toFixed(2)"
+                                            :inputId="'account_type'"
+                                            :labelValue="'Account type:'"
+                                            :dataValue="props.selectedRowData?.account_type ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'account_manager'"
+                                            :labelValue="'Account manager:'"
+                                            :dataValue="props.selectedRowData?.account_manager ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'rank'"
+                                            :labelValue="'Rank:'"
+                                            :dataValue="props.selectedRowData?.rank ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'customer_type'"
+                                            :labelValue="'Customer type:'"
+                                            :dataValue="props.selectedRowData?.customer_type ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'lead_status'"
+                                            :labelValue="'Lead Status:'"
+                                            :dataValue="props.selectedRowData?.lead_status ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'client_stage'"
+                                            :labelValue="'Client stage:'"
+                                            :dataValue="props.selectedRowData?.client_stage ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'previous_broker_name'"
+                                            :labelValue="'Previous Broker Name:'"
+                                            :dataValue="props.selectedRowData?.previous_broker_name ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'remark'"
+                                            :labelValue="'Remark:'"
+                                            :dataValue="props.selectedRowData?.remark ?? '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -233,35 +236,66 @@ onMounted(async () => {
                                 >
                                     <div class="grid grid-cols-1 sm:grid-cols-3">
                                         <CustomLabelGroup
-                                            :inputId="'leadFrontEditedAt'"
-                                            :labelValue="'Edited at'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.edited_at : '-'"
+                                            :inputId="'kyc_status'"
+                                            :labelValue="'KYC Status:'"
+                                            :dataValue="props.selectedRowData?.kyc_status ?? '-'"
                                             class="text-gray-700"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontCreatedAt'"
-                                            :labelValue="'Created at'"
-                                            :dataValue="props.selectedRowData ? dayjs(props.selectedRowData.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'"
                                         />
                                     </div>
                                 </TabPanel>
-                            </TabPanels>
-                            <TabPanels class="mt-2" v-else>
                                 <TabPanel
                                     :class="[
                                         'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
                                         'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
                                     ]"
                                 >
-                                    <div class="p-2 sm:p-4 sm:h-46 rounded-2xl shadow-lg gap-5 select-none ">
-                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:p-2">
-                                            <div class="bg-gray-200 w-full animate-pulse h-8 rounded-2xl col-span-2" ></div>
-                                            <div class="bg-gray-200 w-full animate-pulse h-8 rounded-2xl" ></div>
-                                            <div class="bg-gray-200 w-full animate-pulse h-8 rounded-2xl" ></div>
-                                            <div class="bg-gray-200 w-full animate-pulse h-8 rounded-2xl col-span-2" ></div>
-                                            <div class="bg-gray-200 w-full animate-pulse h-8 rounded-2xl col-span-2" ></div>
-                                            <div class="bg-gray-200 w-full animate-pulse h-8 rounded-2xl" ></div>
-                                        </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3">
+                                        <CustomLabelGroup
+                                            :inputId="'is_active'"
+                                            :labelValue="'Active:'"
+                                            :dataValue="props.selectedRowData?.is_active ?? '-'"
+                                            class="text-gray-700"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'has_crm_access'"
+                                            :labelValue="'CRM Access:'"
+                                            :dataValue="props.selectedRowData?.has_crm_access ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'has_leads_access'"
+                                            :labelValue="'Lead Management Access:'"
+                                            :dataValue="props.selectedRowData?.has_leads_access ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'is_staff'"
+                                            :labelValue="'Staff status:'"
+                                            :dataValue="props.selectedRowData?.is_staff ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'is_superuser'"
+                                            :labelValue="'Superuser status:'"
+                                            :dataValue="props.selectedRowData?.is_superuser ?? '-'"
+                                        />
+                                    </div>
+                                </TabPanel>
+                                <TabPanel
+                                    :class="[
+                                        'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
+                                        'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
+                                    ]"
+                                >
+                                    <div class="grid grid-cols-1 sm:grid-cols-3">
+                                        <CustomLabelGroup
+                                            :inputId="'last_login'"
+                                            :labelValue="'Last login'"
+                                            :dataValue="props.selectedRowData?.last_login ?? '-'"
+                                            class="text-gray-700"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'date_joined'"
+                                            :labelValue="'Date joined'"
+                                            :dataValue="props.selectedRowData?.created_at ?? '-'"
+                                        />
                                     </div>
                                 </TabPanel>
                             </TabPanels>
@@ -270,7 +304,7 @@ onMounted(async () => {
                 </div>
             </div>
             <div class="col-span-1">
-                <LeadFrontChangelogsSection
+                <UserChangelogsSection
                     :selectedRowData="props.selectedRowData"
                     class="w-full"
                 />

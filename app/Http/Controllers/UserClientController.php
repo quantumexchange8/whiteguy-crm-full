@@ -6,6 +6,7 @@ use App\Models\UserClient;
 use App\Models\LeadChangelog;
 use App\Http\Requests\UserClientRequest;
 use App\Models\UserClientChangelog;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -140,12 +141,33 @@ class UserClientController extends Controller
     public function update(UserClientRequest $request, string $id)
     {
         $data = $request->all();
-        // dd($data);
         
         $userClientChanges = [];
 
         $oldUserClientData = UserClient::find($id);
 
+        if (isset($oldUserClientData)) {
+            foreach ($oldUserClientData->toArray() as $key => $oldValue) {
+                if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at') {
+                    continue;
+                }
+
+                if ($key === 'is_active' || $key === 'has_crm_access' || $key === 'has_leads_access' || $key === 'is_staff' || $key === 'is_superuser') {
+                    $oldValue = boolval($oldValue);
+                }
+                
+                $newValue = $data[$key] ?? null;
+
+                // Check if the value has changed
+                if ($newValue !== $oldValue) {
+                    $userClientChanges[$key] = [
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+            }
+        }
+        
         // Insert into users_clients table
         $oldUserClientData->update([
             'site' => $data['site'],
@@ -177,26 +199,9 @@ class UserClientController extends Controller
             'last_login' => $data['last_login'],
         ]);
         $oldUserClientData->save();
-
-        if (isset($oldUserClientData)) {
-            foreach ($oldUserClientData->toArray() as $key => $oldValue) {
-                if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at') {
-                    continue;
-                }
-                
-                $newValue = $data[$key] ?? null;
-
-                // Check if the value has changed
-                if ($newValue !== $oldValue) {
-                    $userClientChanges[$key] = [
-                        'old' => $oldValue,
-                        'new' => $newValue,
-                    ];
-                }
-            }
-        }
-
+        
         if (count($userClientChanges) > 0) {
+            // dd($userClientChanges);
             $newUserClientChangelog = new UserClientChangelog;
 
             $newUserClientChangelog->users_clients_id = $id;
@@ -227,8 +232,43 @@ class UserClientController extends Controller
         //
     }
 
-    public function getUsersClients()
+    public function getUsersClients(Request $request)
     {   
+        if ($request['checkedFilters']) {
+            $query = DB::table('users_clients')->whereNull('deleted_at');
+
+            foreach ($request['checkedFilters'] as $category => $options) {
+                if (is_array($options) && count($options) > 0) {
+                    $query->whereIn($category, $options);
+                } elseif (is_string($options) && $options !== '') {
+                    switch($options) {
+                        case('Today'):
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                            break;
+                        case('Past 7 days'):
+                            $query->whereBetween($category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()]);
+                            break;
+                        case('This month'):
+                            $query->whereMonth($category, Carbon::today()->month);
+                            break;
+                        case('This year'):
+                            $query->whereYear($category, Carbon::today()->year);
+                            break;
+                        case('No date'):
+                            $query->whereNull($category);
+                            break;
+                        case('Has date'):
+                            $query->whereNotNull($category);
+                            break;
+                        default:
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                    }
+                }
+            }
+            $data = $query->get();
+
+            return response()->json($data);
+        }
         // Fetch announcements
         $data = DB::table('users_clients')->whereNull('deleted_at')->get();
 
@@ -299,5 +339,14 @@ class UserClientController extends Controller
         ];
         
         return response()->json($data);
+    }
+
+    public function getUserChangelogs(string $id)
+    {
+        $existingUserClientChangelogs = UserClientChangelog::where('users_clients_id', $id)
+                                                ->orderBy('created_at', 'desc')
+                                                ->get();
+
+        return response()->json($existingUserClientChangelogs);
     }
 }

@@ -1,20 +1,29 @@
 <script setup>
-import { ref, onMounted } from 'vue'
 import { cl, back } from '@/Composables'
+import { ref, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
-import CustomTextInputField from '@/Components/CustomTextInputField.vue'
-import CollapsibleSection from '@/Components/CollapsibleSection.vue'
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
-import Checkbox2 from '@/Components/Checkbox2.vue'
-import Button from '@/Components/Button.vue'
+import { PlusIcon } from '@/Components/Icons/solid'
+import { TrashIcon } from '@/Components/Icons/outline'
 import Label from '@/Components/Label.vue'
+import Button from '@/Components/Button.vue'
+import Checkbox from '@/Components/Checkbox.vue'
+import CustomTextInputField from '@/Components/CustomTextInputField.vue'
+import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
+import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue'
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
+import Modal from '@/Components/Modal.vue'
 import dayjs from 'dayjs';
+import CollapsibleSection from '@/Components/CollapsibleSection.vue'
+import Checkbox2 from '@/Components/Checkbox2.vue'
 import PasswordInputField from '@/Components/PasswordInputField.vue'
 
 // Get the errors thats passed back from controller if there are any error after backend validations
-defineProps({
-    errors:Object
+const props = defineProps({
+    errors:Object,
+    data: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const siteArray = ref(
@@ -38,60 +47,50 @@ const clientArray  = ref(
 
 const kycArray  = ref(
 	[ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ]
-);
+); 
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
-	site: '',
-	username: '',
-	password: '',
-	password_confirmation: '',
-	account_id: '',
-	first_name: '',
-	last_name: '',
-	full_legal_name: '',
-	email: '',
-	phone_number: '',
-	address: '',
-	country_of_citizenship: '',
-	account_holder: '',
-	account_type: '',
-	customer_type: '',
-	account_manager: '',
-	lead_status: '',
-	client_stage: '',
-	rank: '',
-	remark: '',
-	previous_broker_name: '',
-	kyc_status: '',
-	is_active: false,
-	has_crm_access: false,
-	has_leads_access: false,
-	is_staff: false,
-	is_superuser: false,
-	last_login: '',
-});
-
-onMounted(async () => {
-  try {
-    const accountIdResponse = await axios.get(route('users-clients.generateAccountId'));
-    form.account_id = accountIdResponse.data.account_id;
-
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
+	id: props.data.id,
+	site: props.data.site,
+	username: props.data.username,
+	password: props.data.password,
+	password_confirmation: props.data.password_confirmation,
+	account_id: props.data.account_id,
+	first_name: props.data.first_name,
+	last_name: props.data.last_name,
+	full_legal_name: props.data.full_legal_name,
+	email: props.data.email,
+	phone_number: props.data.phone_number,
+	address: props.data.address,
+	country_of_citizenship: props.data.country_of_citizenship,
+	account_holder: props.data.account_holder,
+	account_type: props.data.account_type,
+	customer_type: props.data.customer_type,
+	account_manager: props.data.account_manager,
+	lead_status: props.data.lead_status,
+	client_stage: props.data.client_stage,
+	rank: props.data.rank,
+	remark: props.data.remark,
+	previous_broker_name: props.data.previous_broker_name,
+	kyc_status: props.data.kyc_status,
+	is_active: Boolean(props.data.is_active),
+	has_crm_access: Boolean(props.data.has_crm_access),
+	has_leads_access: Boolean(props.data.has_leads_access),
+	is_staff: Boolean(props.data.is_staff),
+	is_superuser: Boolean(props.data.is_superuser),
+	last_login: props.data.last_login,
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
 	form.phone_number = form.phone_number ? parseInt(form.phone_number) : '';
-	form.last_login = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
-
-    form.post(route('users-clients.store'), {
-        preserveScroll: true,
-        onSuccess: () => form.reset(),
-    
-    })
+	
+	form.put(route('users-clients.update', props.data.id), {
+		preserveScroll: true,
+		onSuccess: () => form.reset(),
+	
+	})
 };
 
 
@@ -112,7 +111,6 @@ const isNumber = (e, withDot = true) => {
 const isValidNumber = (value) => {
     return value !== '' && !isNaN(parseFloat(value)) && isFinite(value);
 };
-
 </script>
 
 <template>
@@ -146,67 +144,62 @@ const isValidNumber = (value) => {
             <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-8">
                 <div class="col-span-12 lg:col-span-4">
                     <div class="form-input-section dark:bg-dark-eval-1">
-                        <div class="flex justify-between items-center mb-2">
-                            <Label 
-                                :value="'Website'" 
-                                class="mt-4 !text-2xl !font-bold pl-2" 
-                            >
-                            </Label>
-                        </div>
-                        <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
-                        <div class="input-group-wrapper">
-                            <div class="input-group">
-                                <CustomSelectInputField
-                                    :inputArray="siteArray"
-                                    :inputId="'site'"
-                                    :labelValue="'Site'"
-                                    :errorMessage="form?.errors?.site ?? ''"
-                                    v-model="form.site"
-                                />
+                        <CollapsibleSection 
+                            :title="'Website'"
+                            :hideSection="true"
+                        >
+                            <div class="input-group-wrapper">
+                                <div class="input-group">
+                                    <CustomSelectInputField
+                                        :inputArray="siteArray"
+                                        :inputId="'site'"
+                                        :labelValue="'Site'"
+                                        :errorMessage="form?.errors?.site ?? ''"
+                                        :dataValue="props.data.site"
+                                        v-model="form.site"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        </CollapsibleSection>
                     </div>
                 </div>
                 <div class="col-span-12 lg:col-span-8">
                     <div class="form-input-section dark:bg-dark-eval-1">
-                        <div class="flex justify-between items-center mb-2">
-                            <Label 
-                                :value="'Login'" 
-                                class="mt-4 !text-2xl !font-bold pl-2" 
-                            >
-                            </Label>
-                        </div>
-                        <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
-                        <div class="input-group-wrapper">
-                            <div class="input-group grid grid-cols-1 lg:grid-cols-12 gap-6">
-                                <CustomTextInputField
-                                    :labelValue="'Username'"
-                                    :inputId="'username'"
-                                    class="col-span-full lg:col-span-7"
-                                    :errorMessage="form?.errors?.username ?? '' "
-                                    v-model="form.username"
-                                />
-                                <PasswordInputField
-                                    :labelValue="'Password'"
-                                    :inputId="'password'"
-                                    class="col-start-1 col-span-full lg:col-span-4"
-                                    :withTooltip="true"
-                                    :errorMessage="form?.errors?.password ?? '' "
-                                    v-model="form.password"
-                                />
-                                <PasswordInputField
-                                    :labelValue="'Confirm Password'"
-                                    :inputId="'password_confirmation'"
-                                    class="col-span-full lg:col-span-4"
-                                    :withTooltip="true"
-                                    :customTooltipContent="true"
-                                    :errorMessage="form?.errors?.password_confirmation ?? '' "
-                                    v-model="form.password_confirmation"
-                                >
-                                    Enter the same password as before, for verification.
-                                </PasswordInputField>
+                        <CollapsibleSection 
+                            :title="'Login'"
+                            :hideSection="true"
+                        >
+                            <div class="input-group-wrapper">
+                                <div class="input-group grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                    <CustomTextInputField
+                                        :labelValue="'Username'"
+                                        :inputId="'username'"
+                                        class="col-span-full lg:col-span-7"
+                                        :dataValue="props.data.username"
+                                        :errorMessage="form?.errors?.username ?? '' "
+                                        v-model="form.username"
+                                    />
+                                    <CustomTextInputField
+                                        :labelValue="'Password'"
+                                        :inputId="'password'"
+                                        class=" col-start-1 col-span-full lg:col-span-4"
+                                        :withTooltip="true"
+                                        :dataValue="props.data.password"
+                                        :errorMessage="form?.errors?.password ?? '' "
+                                        v-model="form.password"
+                                    >
+                                        <p class="font-bold">The password must contain:</p>
+                                        <ul class="pl-6 list-disc font-semibold">
+                                            <li>at least 8 characters.</li>
+                                            <li>at least one uppercase letter.</li>
+                                            <li>at least one lowercase letter.</li>
+                                            <li>at least one symbol.</li>
+                                            <li>at least one number.</li>
+                                        </ul>
+                                    </CustomTextInputField>
+                                </div>
                             </div>
-                        </div>
+                        </CollapsibleSection>
                     </div>
                 </div>
             </div>
@@ -227,7 +220,7 @@ const isValidNumber = (value) => {
                                 :inputId="'account_id'"
                                 class="col-span-full lg:col-span-3"
                                 :withTooltip="true"
-                                :dataValue="form.account_id"
+                                :dataValue="props.data.account_id"
                                 :errorMessage="form?.errors?.account_id ?? '' "
                                 v-model="form.account_id"
                             >
@@ -237,6 +230,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'First name'"
                                 :inputId="'first_name'"
                                 class="col-start-1 col-span-full lg:col-span-2"
+								:dataValue="props.data.first_name"
                                 :errorMessage="form?.errors?.first_name ?? '' "
                                 v-model="form.first_name"
                             />
@@ -244,6 +238,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Last name'"
                                 :inputId="'last_name'"
                                 class="col-span-full lg:col-span-2"
+								:dataValue="props.data.last_name"
                                 :errorMessage="form?.errors?.last_name ?? '' "
                                 v-model="form.last_name"
                             />
@@ -252,6 +247,7 @@ const isValidNumber = (value) => {
                                 :inputId="'full_legal_name'"
                                 class="col-span-full lg:col-span-2"
                                 :withTooltip="true"
+								:dataValue="props.data.full_legal_name"
                                 :errorMessage="form?.errors?.full_legal_name ?? '' "
                                 v-model="form.full_legal_name"
                             >
@@ -266,6 +262,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Email'"
                                 :inputId="'email'"
                                 class="col-span-full lg:col-span-2"
+								:dataValue="props.data.email"
                                 :errorMessage="form?.errors?.email ?? '' "
                                 v-model="form.email"
                                 :withTooltip="true"
@@ -276,6 +273,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Phone number'"
                                 :inputId="'phone_number'"
                                 class="col-span-full lg:col-span-2"
+								:dataValue="props.data.phone_number"
                                 :errorMessage="form?.errors?.phone_number ?? '' "
                                 v-model="form.phone_number"
                                 @keypress="isNumber($event, false)"
@@ -286,6 +284,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Country of Citizenship'"
                                 class="col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.country_of_citizenship ?? ''"
+                                :dataValue="props.data.country_of_citizenship"
                                 v-model="form.country_of_citizenship"
                             />
                             <CustomTextInputField
@@ -293,6 +292,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Address'"
                                 :inputId="'address'"
                                 class="col-span-full"
+								:dataValue="props.data.address"
                                 :errorMessage="form?.errors?.address ?? '' "
                                 v-model="form.address"
                             />
@@ -312,12 +312,31 @@ const isValidNumber = (value) => {
                 <div class="input-group-wrapper grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div class="col-span-6">
                         <div class="input-group grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            <CustomLabelGroup
+                                :inputId="'orders'"
+                                :labelValue="'Orders'"
+                                class="col-span-full lg:col-span-2"
+                                :dataValue="'-'"
+                            />
+                            <CustomLabelGroup
+                                :inputId="'application_form'"
+                                :labelValue="'Application Form'"
+                                class="col-span-full lg:col-span-2"
+                                :dataValue="'-'"
+                            />
+                            <CustomLabelGroup
+                                :inputId="'wallet_balance'"
+                                :labelValue="'Wallet Balance'"
+                                class="col-span-full lg:col-span-1"
+                                :dataValue="'0.00'"
+                            />
                             <CustomTextInputField
                                 :labelValue="'Account Holder Name'"
                                 :inputId="'account_holder'"
                                 class="col-span-full lg:col-span-3"
                                 :withTooltip="true"
                                 :errorMessage="form?.errors?.account_holder ?? '' "
+                                :dataValue="props.data.account_holder"
                                 v-model="form.account_holder"
                             >
                                 The name of the primary holder of this account.
@@ -328,6 +347,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Account type'"
                                 class="col-start-1 col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.account_type ?? ''"
+                                :dataValue="props.data.account_type"
                                 v-model="form.account_type"
                             />
                             <CustomSelectInputField
@@ -337,6 +357,7 @@ const isValidNumber = (value) => {
                                 class="col-span-full lg:col-span-2"
                                 :withTooltip="true"
                                 :errorMessage="form?.errors?.account_manager ?? ''"
+                                :dataValue="props.data.account_manager"
                                 v-model="form.account_manager"
                             >
                                 Only CRM users can be assigned as account manager.
@@ -347,6 +368,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Rank'"
                                 class="col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.rank ?? ''"
+                                :dataValue="props.data.rank"
                                 v-model="form.rank"
                             />
                         </div>
@@ -357,6 +379,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Customer type'"
                                 :inputId="'customer_type'"
                                 class="col-span-full lg:col-span-2"
+								:dataValue="props.data.customer_type"
                                 :errorMessage="form?.errors?.customer_type ?? '' "
                                 v-model="form.customer_type"
                             />
@@ -364,6 +387,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Lead Status'"
                                 :inputId="'lead_status'"
                                 class="col-span-full lg:col-span-2"
+								:dataValue="props.data.linked_lead"
                                 :errorMessage="form?.errors?.lead_status ?? '' "
                                 v-model="form.lead_status"
                             />
@@ -373,12 +397,14 @@ const isValidNumber = (value) => {
                                 :labelValue="'Client stage'"
                                 class="col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.client_stage ?? ''"
+                                :dataValue="props.data.client_stage"
                                 v-model="form.client_stage"
                             />
                             <CustomTextInputField
                                 :labelValue="'Previous Broker Name'"
                                 :inputId="'previous_broker_name'"
                                 class="col-span-full lg:col-span-2"
+								:dataValue="props.data.previous_broker_name"
                                 :errorMessage="form?.errors?.previous_broker_name ?? '' "
                                 v-model="form.previous_broker_name"
                             />
@@ -387,6 +413,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Remark'"
                                 :inputId="'remark'"
                                 class="col-span-full"
+								:dataValue="props.data.remark"
                                 :errorMessage="form?.errors?.remark ?? '' "
                                 v-model="form.remark"
                             />
@@ -397,25 +424,23 @@ const isValidNumber = (value) => {
             <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-8">
                 <div class="col-span-12 lg:col-span-4">
                     <div class="form-input-section dark:bg-dark-eval-1">
-                        <div class="flex justify-between items-center mb-2">
-                            <Label 
-                                :value="'KYC Status'" 
-                                class="mt-4 !text-2xl !font-bold pl-2" 
-                            >
-                            </Label>
-                        </div>
-                        <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
-                        <div class="input-group-wrapper">
-                            <div class="input-group">
-                                <CustomSelectInputField
-                                    :inputArray="kycArray"
-                                    :inputId="'kyc_status'"
-                                    :labelValue="'Kyc status'"
-                                    :errorMessage="form?.errors?.kyc_status ?? ''"
-                                    v-model="form.kyc_status"
-                                />
+                        <CollapsibleSection 
+                            :title="'KYC Status'"
+                            :hideSection="true"
+                        >
+                            <div class="input-group-wrapper">
+                                <div class="input-group">
+                                    <CustomSelectInputField
+                                        :inputArray="kycArray"
+                                        :inputId="'kyc_status'"
+                                        :labelValue="'Kyc status'"
+                                        :errorMessage="form?.errors?.kyc_status ?? ''"
+                                        :dataValue="props.data.kyc_status"
+                                        v-model="form.kyc_status"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        </CollapsibleSection>
                     </div>
                 </div>
                 <div class="col-span-12 lg:col-span-5">
@@ -430,7 +455,6 @@ const isValidNumber = (value) => {
                                         :inputId="'is_active'"
                                         :labelValue="'Active'"
                                         :errorMessage="form?.errors?.is_active ?? '' "
-                                        :checked="true"
                                         v-model:checked="form.is_active"
 									>
                                         Designates whether this user should be treated as active.<br>Unselect this instead of deleting accounts.
@@ -474,28 +498,25 @@ const isValidNumber = (value) => {
                 </div>
                 <div class="col-span-12 lg:col-span-3">
                     <div class="form-input-section dark:bg-dark-eval-1">
-                        <div class="flex justify-between items-center mb-2">
-                            <Label 
-                                :value="'Important Dates'" 
-                                class="mt-4 !text-2xl !font-bold pl-2" 
-                            >
-                            </Label>
-                        </div>
-                        <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
-                        <div class="input-group-wrapper">
-                            <div class="input-group">
-                                <CustomLabelGroup
-                                    :inputId="'last_login'"
-                                    :labelValue="'Last login'"
-                                    :dataValue="'-'"
-                                />
-                                <CustomLabelGroup
-                                    :inputId="'date_joined'"
-                                    :labelValue="'Date joined'"
-                                    :dataValue="'-'"
-                                />
+                        <CollapsibleSection 
+                            :title="'Important Dates'"
+                            :hideSection="true"
+                        >
+                            <div class="input-group-wrapper">
+                                <div class="input-group">
+                                    <CustomLabelGroup
+                                        :inputId="'last_login'"
+                                        :labelValue="'Last login'"
+                                        :dataValue="dayjs(props.data.last_login).format('YYYY-MM-DD HH:mm:ss')"
+                                    />
+                                    <CustomLabelGroup
+                                        :inputId="'date_joined'"
+                                        :labelValue="'Date joined'"
+                                        :dataValue="dayjs(props.data.created_at).format('YYYY-MM-DD HH:mm:ss')"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        </CollapsibleSection>
                     </div>
                 </div>
             </div>

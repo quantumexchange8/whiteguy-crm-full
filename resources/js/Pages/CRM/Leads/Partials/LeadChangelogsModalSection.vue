@@ -131,7 +131,7 @@ const showAll = () => {
 <template>
     <div class="input-group p-8 rounded-xl">
         <div class="flex justify-between">
-            <p class="dark:text-gray-300 font-semibold text-2xl pb-2">Lead Notes Details</p>
+            <p class="dark:text-gray-300 font-semibold text-xl pb-2">Lead Notes Details</p>
             <Dropdown 
                 :align="'right'" 
                 :width="50" 
