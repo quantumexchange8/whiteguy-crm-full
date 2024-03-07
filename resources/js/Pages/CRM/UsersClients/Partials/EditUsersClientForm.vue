@@ -9,6 +9,7 @@ import Button from '@/Components/Button.vue'
 import Checkbox from '@/Components/Checkbox.vue'
 import CustomTextInputField from '@/Components/CustomTextInputField.vue'
 import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
+import UpdateUserPasswordForm from './UpdateUserPasswordForm.vue'
 import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue'
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 import Modal from '@/Components/Modal.vue'
@@ -25,6 +26,7 @@ const props = defineProps({
         default: () => ({}),
     },
 })
+const filterIsOpen = ref(false);
 
 const siteArray = ref(
 	[ "namba1.com", "namba2.com", "namba3.com" ]
@@ -111,6 +113,14 @@ const isNumber = (e, withDot = true) => {
 const isValidNumber = (value) => {
     return value !== '' && !isNaN(parseFloat(value)) && isFinite(value);
 };
+
+const openFilterModal = () => {
+    filterIsOpen.value = true;
+}
+
+const closeFilterModal = () => {
+    filterIsOpen.value = false;
+}
 </script>
 
 <template>
@@ -179,24 +189,52 @@ const isValidNumber = (value) => {
                                         :errorMessage="form?.errors?.username ?? '' "
                                         v-model="form.username"
                                     />
-                                    <CustomTextInputField
-                                        :labelValue="'Password'"
-                                        :inputId="'password'"
-                                        class=" col-start-1 col-span-full lg:col-span-4"
-                                        :withTooltip="true"
-                                        :dataValue="props.data.password"
-                                        :errorMessage="form?.errors?.password ?? '' "
-                                        v-model="form.password"
+                                    <Button 
+                                        :type="'button'"
+                                        :size="'sm'"
+                                        class="self-center justify-center gap-2 w-full h-9 col-span-full lg:col-span-3" 
+                                        @click="openFilterModal"
                                     >
-                                        <p class="font-bold">The password must contain:</p>
-                                        <ul class="pl-6 list-disc font-semibold">
-                                            <li>at least 8 characters.</li>
-                                            <li>at least one uppercase letter.</li>
-                                            <li>at least one lowercase letter.</li>
-                                            <li>at least one symbol.</li>
-                                            <li>at least one number.</li>
-                                        </ul>
-                                    </CustomTextInputField>
+                                        Update Password
+                                    </Button>
+                                    <Modal 
+                                        :show="filterIsOpen" 
+                                        maxWidth="2xl" 
+                                        :closeable="true" 
+                                        @close="closeFilterModal">
+
+                                        <div class="p-9">
+                                            <UpdateUserPasswordForm
+                                                :id="props.data.id"
+                                                class="col-start-1 col-span-full lg:col-span-6"
+                                            >
+                                            </UpdateUserPasswordForm>
+                                            <!-- <p class="text-gray-200 text-2xl bg-blue-500 p-4 rounded-md font-bold mb-6">Filters</p>
+                                            <div class="flex flex-col justify-center divide-y divide-gray-500">
+                                            </div>
+                                            <div class="flex justify-end px-9">
+                                                <div class="rounded-md shadow-lg flex flex-row gap-2">
+                                                    <Button 
+                                                        :type="'button'"
+                                                        :variant="'secondary'"
+                                                        :size="'sm'"
+                                                        class="justify-center px-6 py-2 border border-purple-500" 
+                                                        @click="reset"
+                                                    >
+                                                        Reset
+                                                    </Button>
+                                                    <Button 
+                                                        :type="'button'"
+                                                        :size="'sm'"
+                                                        class="justify-center px-6 py-2" 
+                                                        @click="getFilteredData(checkedFilters)"
+                                                    >
+                                                        Apply
+                                                    </Button>
+                                                </div>
+                                            </div> -->
+                                        </div>
+                                    </Modal>
                                 </div>
                             </div>
                         </CollapsibleSection>

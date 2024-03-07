@@ -42,7 +42,6 @@ onMounted(async () => {
     usersClientsChangelogsData.value = usersClientsLogsArray;
     originalusersClientsChangelogsData = usersClientsChangelogsData.value;
 
-    cl(usersClientsChangelogsData.value);
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -150,7 +149,7 @@ const showAll = () => {
                 </template>
             </Dropdown>
         </div>
-        <div class="container">
+        <div class="container hidden-scrollable max-h-[500px]">
             <!-- For User Client Changelogs -->
             <div class="w-full flex justify-center" v-if="!usersClientsChangelogsData.value || usersClientsChangelogsData.value.length === 0">
                 <h3 class="font-semibold text-gray-200"> No records found for this lead front currently. </h3>
@@ -211,7 +210,7 @@ const showAll = () => {
                                                     :inputId="'userClientChangelog'+ix"
                                                     :labelValue="'Lead Notes'"
                                                     class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                    v-if="ix === 'New' || ix === 'Delete'"
+                                                    v-if="ix === 'New' || ix === 'Delete' || ix ==='Password'"
                                                 >
                                                     ➤ {{ value.description }}.
                                                 </Label>

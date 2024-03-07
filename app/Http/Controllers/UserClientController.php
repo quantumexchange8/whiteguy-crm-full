@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\UserClient;
-use App\Models\LeadChangelog;
 use App\Http\Requests\UserClientRequest;
+use App\Models\User;
 use App\Models\UserClientChangelog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserClientController extends Controller
 {
@@ -56,7 +58,7 @@ class UserClientController extends Controller
         $userClientChanges = [];
 
         // Insert into users_clients table
-        $newUserClientData = UserClient::create([
+        $newUserClientData = User::create([
             'site' => $data['site'],
             'username' => $data['username'],
             'password' => $data['password'],
@@ -128,7 +130,7 @@ class UserClientController extends Controller
      */
     public function edit(string $id)
     {
-        $data = UserClient::find($id);
+        $data = User::find($id);
 
         return Inertia::render('CRM/UsersClients/Edit', [
             'data' => $data,
@@ -144,7 +146,8 @@ class UserClientController extends Controller
         
         $userClientChanges = [];
 
-        $oldUserClientData = UserClient::find($id);
+        $oldUserClientData = User::find($id);
+        // dd(auth()->user());
 
         if (isset($oldUserClientData)) {
             foreach ($oldUserClientData->toArray() as $key => $oldValue) {
@@ -172,7 +175,6 @@ class UserClientController extends Controller
         $oldUserClientData->update([
             'site' => $data['site'],
             'username' => $data['username'],
-            'password' => $data['password'],
             'account_id' => $data['account_id'],
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
@@ -223,6 +225,53 @@ class UserClientController extends Controller
         return Redirect::route('users-clients.index')
                         ->with('errorMsg', $errorMsg);
     }
+    
+    /**
+     * Update the user's password.
+     */
+    public function updateUserPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'password' => [
+                'required',
+                Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised(),
+                'confirmed'
+            ],
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        $userClientChanges = [];
+
+        // Add the change to the user changes array
+        $userClientChanges['Password'] = [
+            'description' => 'The user password has been updated',
+        ];
+
+        if (count($userClientChanges) > 0) {
+            $newUserClientChangelog = new UserClientChangelog;
+
+            $newUserClientChangelog->users_clients_id = $request->id;
+            $newUserClientChangelog->column_name = 'users_clients';
+            $newUserClientChangelog->changes = $userClientChanges;
+            $newUserClientChangelog->description = 'The user has been successfully created';
+
+            $newUserClientChangelog->save();
+        }
+        
+        $errorMsgTitle = "You have successfully updated the user details.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('users-clients.index')
+                        ->with('errorMsg', $errorMsg);
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -235,7 +284,7 @@ class UserClientController extends Controller
     public function getUsersClients(Request $request)
     {   
         if ($request['checkedFilters']) {
-            $query = DB::table('users_clients')->whereNull('deleted_at');
+            $query = DB::table('users')->whereNull('deleted_at');
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
@@ -270,7 +319,7 @@ class UserClientController extends Controller
             return response()->json($data);
         }
         // Fetch announcements
-        $data = DB::table('users_clients')->whereNull('deleted_at')->get();
+        $data = DB::table('users')->whereNull('deleted_at')->get();
 
         return response()->json($data);
     }
@@ -293,7 +342,7 @@ class UserClientController extends Controller
     
     public function checkExistingAccountId($string)
     {
-        $existingUser = UserClient::where('account_id', $string)->get();
+        $existingUser = User::where('account_id', $string)->get();
 
         if (count($existingUser) > 0) {
             return true;
@@ -304,7 +353,7 @@ class UserClientController extends Controller
 
     public function getCategories(Request $request)
     {
-        $site = DB::table('users_clients')
+        $site = DB::table('users')
                         ->orderBy('site')
                         ->groupBy('site')
                         ->pluck('site');

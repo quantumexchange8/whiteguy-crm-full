@@ -739,35 +739,38 @@ watch(() => categories.value, (newVal) => {
                 <strong><span class="text-purple-300">#{{ rows.value.id }}</span></strong>
             </template>
             <template #site="rows">
-                <strong><span class="text-purple-300">{{ rows.value.site }}</span></strong>
+                <strong><span class="text-purple-300">{{ rows.value.username }} ({{ rows.value.site }})</span></strong>
             </template>
             <template #actions="rows">
-                <div class="flex flex-row flex-nowrap gap-4">
+                <div class="flex flex-row flex-nowrap gap-1">
                     <Button 
                         :type="'button'"
-                        :size="'sm'"
-                        class="justify-center gap-2 h-full" 
+                        :variant="'dark'"
+                        :size="'xs'"
+                        class="justify-center h-full" 
                         @click="rowShowDetails(rows.value)"
                     >
-                        <EyeIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
+                        <EyeIcon class="flex-shrink-0 w-5 h-5 cursor-pointer text-cyan-500" aria-hidden="true" />
                     </Button>
+                    <div class="border border-gray-500/80 h-5 self-center"></div>
                     <Button 
                         :type="'button'"
-                        :variant="'info'"
-                        :size="'sm'"
-                        class="justify-center gap-2 h-full" 
+                        :variant="'dark'"
+                        :size="'xs'"
+                        class="justify-center h-full" 
                         @click="rowShowEdit(rows.value)"
                     >
-                        <PageEditIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
+                        <PageEditIcon class="flex-shrink-0 w-5 h-5 cursor-pointer text-blue-500" aria-hidden="true" />
                     </Button>
+                    <div class="border border-gray-500/80 h-5 self-center"></div>
                     <Button 
                         :type="'button'"
-                        :variant="'danger'"
-                        :size="'sm'"
-                        class="justify-center gap-2 h-full" 
+                        :variant="'dark'"
+                        :size="'xs'"
+                        class="justify-center h-full" 
                         @click="openDeleteModal(rows.value.id)"
                     >
-                        <TrashIcon class="flex-shrink-0 w-6 h-6 cursor-pointer" aria-hidden="true" />
+                        <TrashIcon class="flex-shrink-0 w-5 h-5 cursor-pointer text-red-600" aria-hidden="true" />
                     </Button>
                     <Modal 
                         :show="showDeleteModal" 

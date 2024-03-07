@@ -32,10 +32,10 @@ class UserClientRequest extends FormRequest
                     'string',
                     Rule::unique('users_clients')->ignore($this->input('id')),
                 ],
-                'password' => [
-                    'required', 
-                    Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised(),
-                ],
+                // 'password' => [
+                //     'required', 
+                //     Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised(),
+                // ],
                 'account_id' => 'required|string',
                 'first_name' => 'required|string',
                 'last_name' => 'nullable|string',

@@ -7,7 +7,7 @@ const props = defineProps({
         type: String,
         default: 'primary',
         validator(value) {
-            return ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'black'].includes(value)
+            return ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'black', 'dark'].includes(value)
         },
     },
     type: {
@@ -18,7 +18,7 @@ const props = defineProps({
         type: String,
         default: 'base',
         validator(value) {
-            return ['sm', 'base', 'lg'].includes(value)
+            return ['xs', 'sm', 'base', 'lg'].includes(value)
         },
     },
     squared: {
@@ -70,17 +70,21 @@ const variantClasses = (variant) => ({
     'bg-cyan-500 text-white hover:bg-cyan-600 focus:ring-cyan-500': variant == 'info',
     'bg-black text-gray-300 hover:text-white hover:bg-gray-800 focus:ring-black dark:hover:bg-dark-eval-3':
         variant == 'black',
+    'dark:bg-gray-700 bg-white justify-center gap-2 relative align-middle select-none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none rounded-lg text-xs text-gray-200 hover:bg-gray-900/50 active:bg-gray-900/20':
+        variant == 'dark',
 })
 
 const classes = computed(() => [
     ...baseClasses,
     iconOnly
         ? {
+                'p-1': size == 'xs',
                 'p-1.5': size == 'sm',
                 'p-2': size == 'base',
                 'p-3': size == 'lg',
             }
         : {
+                'px-1 py-1 text-xs': size == 'xs',
                 'px-2.5 py-1.5 text-sm': size == 'sm',
                 'px-4 py-2 text-base': size == 'base',
                 'px-5 py-2 text-xl': size == 'lg',
@@ -97,6 +101,7 @@ const classes = computed(() => [
 
 const iconSizeClasses = [
     {
+        'w-4 h-4': size == 'xs',
         'w-5 h-5': size == 'sm',
         'w-6 h-6': size == 'base',
         'w-7 h-7': size == 'lg',

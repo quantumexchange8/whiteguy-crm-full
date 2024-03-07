@@ -221,7 +221,7 @@ const showAll = () => {
                 <TabPanels class="mt-1">
                     <TabPanel
                         :class="[
-                            'rounded-xl pt-4 pr-2 hidden-scrollable max-h-[900px]',
+                            'rounded-xl pt-4 pr-2 hidden-scrollable max-h-[828px]',
                             'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
                         ]"
                     >
@@ -496,7 +496,7 @@ const showAll = () => {
                     </TabPanel>
                     <TabPanel
                         :class="[
-                            'rounded-xl pt-4 pr-2 hidden-scrollable max-h-[900px]',
+                            'rounded-xl pt-4 pr-2 hidden-scrollable max-h-[828px]',
                             'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
                         ]"
                     >
@@ -588,7 +588,7 @@ const showAll = () => {
                     </TabPanel>
                     <TabPanel
                         :class="[
-                            'rounded-xl pt-4 pr-2 hidden-scrollable max-h-[900px]',
+                            'rounded-xl pt-4 pr-2 hidden-scrollable max-h-[828px]',
                             'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
                         ]"
                     >
