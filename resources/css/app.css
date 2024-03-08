@@ -80,7 +80,7 @@
 .form-input-section {
 	display: grid;
 	grid-template-columns: repeat(1, minmax(0, 1fr));
-	margin-bottom: 48px;
+	margin-bottom: 24px;
 	padding: 40px;
 	border-radius: 12px;
 }

@@ -3,7 +3,8 @@ import { useForm, router } from '@inertiajs/vue3';
 import { ref, onMounted, reactive, watch } from "vue";
 import { convertToHumanReadable, cl } from '@/Composables';
 import { ThreeDotsVertical, CheckCircleFillIcon, TimesCircleIcon } from '@/Components/Icons/solid';
-import { TrashIcon, EyeIcon, PageEditIcon } from '@/Components/Icons/outline';
+import { EyeIcon } from '@heroicons/vue/outline'
+import { TrashIcon, PageEditIcon } from '@/Components/Icons/outline';
 import CustomFileInputField from '@/Components/CustomFileInputField.vue';
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
@@ -745,7 +746,7 @@ watch(() => categories.value, (newVal) => {
                 <div class="flex flex-row flex-nowrap gap-1">
                     <Button 
                         :type="'button'"
-                        :variant="'dark'"
+                        :variant="'transparent'"
                         :size="'xs'"
                         class="justify-center h-full" 
                         @click="rowShowDetails(rows.value)"
@@ -755,7 +756,7 @@ watch(() => categories.value, (newVal) => {
                     <div class="border border-gray-500/80 h-5 self-center"></div>
                     <Button 
                         :type="'button'"
-                        :variant="'dark'"
+                        :variant="'transparent'"
                         :size="'xs'"
                         class="justify-center h-full" 
                         @click="rowShowEdit(rows.value)"
@@ -765,7 +766,7 @@ watch(() => categories.value, (newVal) => {
                     <div class="border border-gray-500/80 h-5 self-center"></div>
                     <Button 
                         :type="'button'"
-                        :variant="'dark'"
+                        :variant="'transparent'"
                         :size="'xs'"
                         class="justify-center h-full" 
                         @click="openDeleteModal(rows.value.id)"

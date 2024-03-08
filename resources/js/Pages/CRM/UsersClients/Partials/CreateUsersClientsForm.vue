@@ -143,7 +143,7 @@ const isValidNumber = (value) => {
                     </div>
                 </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-6">
                 <div class="col-span-12 lg:col-span-4">
                     <div class="form-input-section dark:bg-dark-eval-1">
                         <div class="flex justify-between items-center mb-2">
@@ -178,33 +178,29 @@ const isValidNumber = (value) => {
                         </div>
                         <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
                         <div class="input-group-wrapper">
-                            <div class="input-group grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            <div class="input-group flex flex-col gap-6">
                                 <CustomTextInputField
                                     :labelValue="'Username'"
                                     :inputId="'username'"
-                                    class="col-span-full lg:col-span-7"
+                                    class="w-full lg:max-w-lg"
                                     :errorMessage="form?.errors?.username ?? '' "
                                     v-model="form.username"
                                 />
                                 <PasswordInputField
                                     :labelValue="'Password'"
                                     :inputId="'password'"
-                                    class="col-start-1 col-span-full lg:col-span-4"
                                     :withTooltip="true"
+                                    class="w-full lg:max-w-lg"
                                     :errorMessage="form?.errors?.password ?? '' "
                                     v-model="form.password"
                                 />
                                 <PasswordInputField
                                     :labelValue="'Confirm Password'"
                                     :inputId="'password_confirmation'"
-                                    class="col-span-full lg:col-span-4"
-                                    :withTooltip="true"
-                                    :customTooltipContent="true"
+                                    class="w-full lg:max-w-lg"
                                     :errorMessage="form?.errors?.password_confirmation ?? '' "
                                     v-model="form.password_confirmation"
-                                >
-                                    Enter the same password as before, for verification.
-                                </PasswordInputField>
+                                />
                             </div>
                         </div>
                     </div>
@@ -394,7 +390,7 @@ const isValidNumber = (value) => {
                     </div>
                 </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-6">
                 <div class="col-span-12 lg:col-span-4">
                     <div class="form-input-section dark:bg-dark-eval-1">
                         <div class="flex justify-between items-center mb-2">

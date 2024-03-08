@@ -8,6 +8,8 @@ import { QuestionCircleFillIcon } from '@/Components/Icons/solid';
         <div class="tooltip">
             <slot></slot>
         </div>
-        <QuestionCircleFillIcon class="w-4 h-4"/>
+        <QuestionCircleFillIcon 
+            class="w-4 h-4 mb-1"
+        />
     </div>
 </template>

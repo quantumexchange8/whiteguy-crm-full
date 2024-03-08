@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Spatie\Permission\Models\Role;
 
 class UserClientController extends Controller
 {
@@ -47,13 +48,19 @@ class UserClientController extends Controller
         return Inertia::render('CRM/UsersClients/Create');
     }
 
+    protected $roles = [
+        'crm_user' => 'has_crm_access',
+        'lead_user' => 'has_leads_access',
+        'staff' => 'is_staff',
+        'superuser' => 'is_superuser',
+    ];
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(UserClientRequest $request)
     {
         $data = $request->all();
-        // dd($data);
         
         $userClientChanges = [];
 
@@ -61,7 +68,7 @@ class UserClientController extends Controller
         $newUserClientData = User::create([
             'site' => $data['site'],
             'username' => $data['username'],
-            'password' => $data['password'],
+            'password' => encrypt($data['password']),
             'account_id' => $data['account_id'],
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
@@ -87,6 +94,13 @@ class UserClientController extends Controller
             'is_superuser' => $data['is_superuser'],
             'last_login' => $data['last_login'],
         ]);
+        
+        foreach ($this->roles as $role => $dataKey) {
+            if ($data[$dataKey]) {
+                $newUserClientData->assignRole($role);
+            }
+        }
+
         $newUserClientData->save();
 
         // Add the change to the user changes array
@@ -132,6 +146,8 @@ class UserClientController extends Controller
     {
         $data = User::find($id);
 
+        $data->password = decrypt($data->password);
+
         return Inertia::render('CRM/UsersClients/Edit', [
             'data' => $data,
         ]);
@@ -143,11 +159,12 @@ class UserClientController extends Controller
     public function update(UserClientRequest $request, string $id)
     {
         $data = $request->all();
+
+        dd($data);
         
         $userClientChanges = [];
 
         $oldUserClientData = User::find($id);
-        // dd(auth()->user());
 
         if (isset($oldUserClientData)) {
             foreach ($oldUserClientData->toArray() as $key => $oldValue) {
@@ -200,10 +217,21 @@ class UserClientController extends Controller
             'is_superuser' => $data['is_superuser'],
             'last_login' => $data['last_login'],
         ]);
+        
+        $assignedRoles = [];
+        
+        foreach ($this->roles as $role => $dataKey) {
+            if ($request[$dataKey]) {
+                $assignedRoles[] = $role;
+            }
+        }
+
+        // Sync roles
+        $oldUserClientData->syncRoles($assignedRoles);
+
         $oldUserClientData->save();
         
         if (count($userClientChanges) > 0) {
-            // dd($userClientChanges);
             $newUserClientChangelog = new UserClientChangelog;
 
             $newUserClientChangelog->users_clients_id = $id;
@@ -239,9 +267,12 @@ class UserClientController extends Controller
             ],
         ]);
 
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
+        $user = User::find($request->id);
+        
+        $user->update([
+            'password' => encrypt($validated['password']),
         ]);
+        $user->save();
 
         $userClientChanges = [];
 

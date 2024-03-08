@@ -27,6 +27,7 @@ const props = defineProps({
     },
 })
 const filterIsOpen = ref(false);
+const currentPassword = ref(props.data.password);
 
 const siteArray = ref(
 	[ "namba1.com", "namba2.com", "namba3.com" ]
@@ -56,8 +57,8 @@ const form = useForm({
 	id: props.data.id,
 	site: props.data.site,
 	username: props.data.username,
-	password: props.data.password,
-	password_confirmation: props.data.password_confirmation,
+	// password: props.data.password,
+	// password_confirmation: props.data.password_confirmation,
 	account_id: props.data.account_id,
 	first_name: props.data.first_name,
 	last_name: props.data.last_name,
@@ -87,7 +88,7 @@ const form = useForm({
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
 	form.phone_number = form.phone_number ? parseInt(form.phone_number) : '';
-	
+	console.log(props.data.password);
 	form.put(route('users-clients.update', props.data.id), {
 		preserveScroll: true,
 		onSuccess: () => form.reset(),
@@ -151,7 +152,7 @@ const closeFilterModal = () => {
                     </div>
                 </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-6">
                 <div class="col-span-12 lg:col-span-4">
                     <div class="form-input-section dark:bg-dark-eval-1">
                         <CollapsibleSection 
@@ -189,14 +190,31 @@ const closeFilterModal = () => {
                                         :errorMessage="form?.errors?.username ?? '' "
                                         v-model="form.username"
                                     />
-                                    <Button 
-                                        :type="'button'"
-                                        :size="'sm'"
-                                        class="self-center justify-center gap-2 w-full h-9 col-span-full lg:col-span-3" 
-                                        @click="openFilterModal"
-                                    >
-                                        Update Password
-                                    </Button>
+                                    <div class="col-start-1 col-span-full lg:col-span-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                        <PasswordInputField
+                                            :labelValue="'Current Password'"
+                                            :inputId="'curPassword'"
+                                            class="col-span-full lg:col-span-8"
+                                            :dataValue="props.data.password"
+                                        />
+                                        <div class="col-span-full lg:col-span-4 flex flex-col">
+                                            <Label
+                                                :value="'Update Password'"
+                                                :for="'updatePasswordBtn'"
+                                                class="mb-2"
+                                            >
+                                            </Label>
+                                            <Button 
+                                                :id="'updatePasswordBtn'"
+                                                :type="'button'"
+                                                :size="'sm'"
+                                                class="self-center justify-center gap-2 w-full lg:w-4/5" 
+                                                @click="openFilterModal"
+                                            >
+                                                Reset password
+                                            </Button>
+                                        </div>
+                                    </div>
                                     <Modal 
                                         :show="filterIsOpen" 
                                         maxWidth="2xl" 
@@ -459,7 +477,7 @@ const closeFilterModal = () => {
                     </div>
                 </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-6">
                 <div class="col-span-12 lg:col-span-4">
                     <div class="form-input-section dark:bg-dark-eval-1">
                         <CollapsibleSection 

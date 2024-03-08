@@ -8,6 +8,8 @@ import GuestLayout from '@/Layouts/Guest.vue'
 import Input from '@/Components/Input.vue'
 import Label from '@/Components/Label.vue'
 import ValidationErrors from '@/Components/ValidationErrors.vue'
+import PasswordInputField from '@/Components/PasswordInputField.vue'
+import CustomTextInputField from '@/Components/CustomTextInputField.vue'
 
 defineProps({
     canResetPassword: Boolean,
@@ -38,23 +40,35 @@ const submit = () => {
         <form @submit.prevent="submit">
             <div class="grid gap-6">
                 <div class="space-y-2">
-                    <Label for="email" value="Email" />
+                    <CustomTextInputField
+                        :labelValue="'Email'"
+                        :inputId="'email'"
+                        :errorMessage="form?.errors?.email ?? '' "
+                        v-model="form.email"
+                    />
+                    <!-- <Label for="email" value="Email" />
                     <InputIconWrapper>
                         <template #icon>
                             <MailIcon aria-hidden="true" class="w-5 h-5" />
                         </template>
                         <Input withIcon id="email" type="email" class="block w-full" placeholder="Email" v-model="form.email" required autofocus autocomplete="username" />
-                    </InputIconWrapper>
+                    </InputIconWrapper> -->
                 </div>
 
                 <div class="space-y-2">
-                    <Label for="password" value="Password" />
+                    <PasswordInputField
+                        :labelValue="'Password'"
+                        :inputId="'password'"
+                        :errorMessage="form?.errors?.password ?? '' "
+                        v-model="form.password"
+                    />
+                    <!-- <Label for="password" value="Password" />
                     <InputIconWrapper>
                         <template #icon>
                             <LockClosedIcon aria-hidden="true" class="w-5 h-5" />
                         </template>
                         <Input withIcon id="password" type="password" class="block w-full" placeholder="Password" v-model="form.password" required autocomplete="current-password" />
-                    </InputIconWrapper>
+                    </InputIconWrapper> -->
                 </div>
 
                 <div class="flex items-center justify-between">
