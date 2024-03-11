@@ -19,19 +19,19 @@ const props = defineProps({
 const pageTitle = "Users / Clients";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm", filter: false },
-    { field: "site", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm" },
-    { field: "account_id", title: "ACCOUNT ID", headerClass: "text-gray-300 text-sm"  },
-    { field: "full_legal_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm"  },
-    { field: "lead_status", title: "LEAD STATUS", headerClass: "text-gray-300 text-sm", type: 'number'  },
-    { field: "client_stage", title: "CLIENT STAGE", headerClass: "text-gray-300 text-sm", type: 'number'  },
-    { field: "rank", title: "RANK", headerClass: "text-gray-300 text-sm", type: 'number'  },
-    { field: "account_manager", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm", type: 'number'  },
-    { field: "kyc_status", title: "KYC STATUS", headerClass: "text-gray-300 text-sm"  },
-    { field: "is_active", title: "ACTIVE", headerClass: "text-gray-300 text-sm"  },
-    { field: "is_staff", title: "STAFF", headerClass: "text-gray-300 text-sm"  },
-    { field: "has_crm_access", title: "CRM", headerClass: "text-gray-300 text-sm"  },
-    { field: "has_leads_access", title: "LEADS", headerClass: "text-gray-300 text-sm"  },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+    { field: "site", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "account_id", title: "ACCOUNT ID", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "full_legal_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "lead_status", title: "LEAD STATUS", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "client_stage", title: "CLIENT STAGE", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "rank", title: "RANK", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "account_manager", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "kyc_status", title: "KYC STATUS", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "is_active", title: "ACTIVE", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "is_staff", title: "STAFF", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "has_crm_access", title: "CRM", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "has_leads_access", title: "LEADS", headerClass: "text-gray-300 text-sm w-max"  },
 ]);
 
 // Custom Toastification
@@ -86,7 +86,7 @@ onMounted(() => {
 				:detailsLink="'users-clients'"
 				:categoryFilters="'/data/users-clients/categories'"
 				:modalComponent="UserDetailsModal"
-				:exportRoute="'lead-fronts.export'"
+				:exportRoute="'users-clients.export'"
 			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>

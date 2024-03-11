@@ -19,21 +19,21 @@ const props = defineProps({
 const pageTitle = "Leads";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm", filter: false },
-    { field: "id", title: "ID", headerClass: "dark:text-gray-300 text-sm" },
-    { field: "assignee", title: "ASSIGNEE", headerClass: "dark:text-gray-300 text-sm"  },
-    { field: "last_called", title: "LAST CALLED", headerClass: "dark:text-gray-300 text-sm", type: 'date'  },
-    { field: "give_up_at", title: "GIVE UP?", headerClass: "dark:text-gray-300 text-sm", type: 'date'  },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+    { field: "id", title: "ID", headerClass: "dark:text-gray-300 text-sm w-max" },
+    { field: "assignee", title: "ASSIGNEE", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "last_called", title: "LAST CALLED", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
+    { field: "give_up_at", title: "GIVE UP?", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
     { field: "date_oppd_in", title: "DATE OPP'D IN", headerClass: "dark:text-gray-300 text-sm", type: 'date'  },
-    { field: "first_name", title: "FIRST NAME", headerClass: "dark:text-gray-300 text-sm" },
-    { field: "last_name", title: "LAST NAME", headerClass: "dark:text-gray-300 text-sm"  },
-    { field: "phone_number", title: "PHONE NUMBER", headerClass: "dark:text-gray-300 text-sm", type: 'number'  },
-    { field: "email", title: "EMAIL", headerClass: "dark:text-gray-300 text-sm"  },
-    { field: "country", title: "COUNTRY", headerClass: "dark:text-gray-300 text-sm"  },
-    { field: "vc", title: "VC", headerClass: "dark:text-gray-300 text-sm"  },
-    { field: "data_type", title: "DATA TYPE", headerClass: "dark:text-gray-300 text-sm"  },
-    { field: "data_source", title: "DATA SOURCE", headerClass: "dark:text-gray-300 text-sm"  },
-    { field: "data_code", title: "DATA CODE", headerClass: "dark:text-gray-300 text-sm"  },
+    { field: "first_name", title: "FIRST NAME", headerClass: "dark:text-gray-300 text-sm w-max" },
+    { field: "last_name", title: "LAST NAME", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "phone_number", title: "PHONE NUMBER", headerClass: "dark:text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "email", title: "EMAIL", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "country", title: "COUNTRY", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "vc", title: "VC", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "data_type", title: "DATA TYPE", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "data_source", title: "DATA SOURCE", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "data_code", title: "DATA CODE", headerClass: "dark:text-gray-300 text-sm w-max"  },
 ]);
 
 // Custom Toastification

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UsersExport;
 use App\Models\UserClient;
 use App\Http\Requests\UserClientRequest;
 use App\Models\User;
@@ -159,8 +160,6 @@ class UserClientController extends Controller
     public function update(UserClientRequest $request, string $id)
     {
         $data = $request->all();
-
-        dd($data);
         
         $userClientChanges = [];
 
@@ -168,7 +167,7 @@ class UserClientController extends Controller
 
         if (isset($oldUserClientData)) {
             foreach ($oldUserClientData->toArray() as $key => $oldValue) {
-                if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at') {
+                if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at' || $key === 'password') {
                     continue;
                 }
 
@@ -309,7 +308,35 @@ class UserClientController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $existingUserClient = User::find($id);
+        $existingUserClient->delete();
+
+        $userClientChanges = [];
+        
+        $userClientChanges['Delete'] = [
+            'id' => $id,
+            'description' => 'This user has been deleted',
+        ];
+
+        $newUserClientChangelog = new UserClientChangelog;
+
+        $newUserClientChangelog->users_clients_id = $id;
+        $newUserClientChangelog->column_name = 'users_clients';
+        $newUserClientChangelog->changes = $userClientChanges;
+        $newUserClientChangelog->description = 'The user has been successfully created';
+
+        $newUserClientChangelog->save();
+
+        $errorMsgTitle = "You have successfully deleted the user.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('users-clients.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     public function getUsersClients(Request $request)
@@ -428,5 +455,18 @@ class UserClientController extends Controller
                                                 ->get();
 
         return response()->json($existingUserClientChangelogs);
+    }
+    
+    public function exportToExcel($selectedRowsData)
+    {
+        $userClientArr = explode(',', $selectedRowsData);
+        foreach ($userClientArr as $key => $value) {
+            $userClientArr[$key] = (int)$value;
+        }
+
+        $currentDate = Carbon::now()->format('Ymd_His');
+        $exportTitle = 'user-clients_' . $currentDate . '.xlsx';
+        
+        return (new UsersExport($userClientArr))->download($exportTitle);
     }
 }

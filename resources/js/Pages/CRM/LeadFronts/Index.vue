@@ -19,19 +19,19 @@ const props = defineProps({
 const pageTitle = "Lead Fronts";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm", filter: false },
-    { field: "id", title: "ID", headerClass: "text-gray-300 text-sm" },
-    { field: "name", title: "NAME", headerClass: "text-gray-300 text-sm"  },
-    { field: "product", title: "PRODUCT", headerClass: "text-gray-300 text-sm"  },
-    { field: "quantity", title: "QTY", headerClass: "text-gray-300 text-sm", type: 'number'  },
-    { field: "price", title: "PRICE", headerClass: "text-gray-300 text-sm", type: 'number'  },
-    { field: "total", title: "TOTAL", headerClass: "text-gray-300 text-sm", type: 'number'  },
-    { field: "commission", title: "COMM", headerClass: "text-gray-300 text-sm", type: 'number'  },
-    { field: "assignee", title: "ASSIGNEE", headerClass: "text-gray-300 text-sm"  },
-    { field: "vc", title: "VC", headerClass: "text-gray-300 text-sm"  },
-    { field: "sdm", title: "SDM", headerClass: "text-gray-300 text-sm"  },
-    { field: "liquid", title: "LIQUID", headerClass: "text-gray-300 text-sm"  },
-    { field: "linked_lead", title: "LINKED LEAD", headerClass: "text-gray-300 text-sm"  },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+    { field: "id", title: "ID", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "name", title: "NAME", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "product", title: "PRODUCT", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "quantity", title: "QTY", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "price", title: "PRICE", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "total", title: "TOTAL", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "commission", title: "COMM", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "assignee", title: "ASSIGNEE", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "vc", title: "VC", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "sdm", title: "SDM", headerClass: "text-gray-300 text-s mw-max"  },
+    { field: "liquid", title: "LIQUID", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "linked_lead", title: "LINKED LEAD ID", headerClass: "text-gray-300 text-sm w-max"  },
 ]);
 
 // Custom Toastification

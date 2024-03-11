@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         if (auth()->check()) {
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('username', $request->username)->first();
 
             $user->update([
                 'last_login' => Carbon::now()->toDateTimeString(),

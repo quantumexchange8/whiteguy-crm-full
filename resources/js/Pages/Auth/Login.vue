@@ -17,14 +17,14 @@ defineProps({
 })
 
 const form = useForm({
-    email: '',
+    username: '',
     password: '',
     remember: false
 })
 
 const submit = () => {
     form.post(route('login'), {
-        onFinish: () => form.reset('password'),
+        onSuccess: () => form.reset('password'),
     })
 }
 </script>
@@ -41,18 +41,11 @@ const submit = () => {
             <div class="grid gap-6">
                 <div class="space-y-2">
                     <CustomTextInputField
-                        :labelValue="'Email'"
-                        :inputId="'email'"
-                        :errorMessage="form?.errors?.email ?? '' "
-                        v-model="form.email"
+                        :labelValue="'Username'"
+                        :inputId="'username'"
+                        :errorMessage="form?.errors?.username ?? '' "
+                        v-model="form.username"
                     />
-                    <!-- <Label for="email" value="Email" />
-                    <InputIconWrapper>
-                        <template #icon>
-                            <MailIcon aria-hidden="true" class="w-5 h-5" />
-                        </template>
-                        <Input withIcon id="email" type="email" class="block w-full" placeholder="Email" v-model="form.email" required autofocus autocomplete="username" />
-                    </InputIconWrapper> -->
                 </div>
 
                 <div class="space-y-2">
@@ -62,13 +55,6 @@ const submit = () => {
                         :errorMessage="form?.errors?.password ?? '' "
                         v-model="form.password"
                     />
-                    <!-- <Label for="password" value="Password" />
-                    <InputIconWrapper>
-                        <template #icon>
-                            <LockClosedIcon aria-hidden="true" class="w-5 h-5" />
-                        </template>
-                        <Input withIcon id="password" type="password" class="block w-full" placeholder="Password" v-model="form.password" required autocomplete="current-password" />
-                    </InputIconWrapper> -->
                 </div>
 
                 <div class="flex items-center justify-between">
