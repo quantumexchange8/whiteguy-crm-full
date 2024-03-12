@@ -161,7 +161,7 @@
 
 .bh-datatable .bh-table-responsive {
 	min-height: 447px;
-	border: 1px solid #1f293759;
+	/* border: 1px solid #1f293759; */
 	border-radius: 8px;
 	--tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 	box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
@@ -447,7 +447,10 @@
 	font-size: 13px;
 }
 
-/* -------------------------------------------------------------------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------------------------------------------------------------------------------- */
+
+
+/* ----------------------------------------------------- Tooltip Component  -------------------------------------------------------- */
 .tooltip-icon {
 	height: 24px;
 	width: 24px;
@@ -502,4 +505,52 @@
 	left: 50%;
 	top: 0px;
 	z-index: -1;
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------------- */
+
+
+/* --------------------------------------------------------- Dashboard ------------------------------------------------------------------------------- */
+.underline{
+	position: relative;
+	text-decoration: none;
+}
+  
+.underline::before{
+	content: '';
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 0;
+	height: 2px;
+	background-color: #ffffff85;
+	transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.underline:hover::before{
+	left: 0;
+	right: auto;
+	width: 100%;
+}
+
+.dashboard-card-icons{
+	position: relative;
+	text-decoration: none;
+}
+  
+.dashboard-card-icons::before{
+	content: '';
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 0;
+	height: 2px;
+	background-color: #ffffff85;
+	transition: all 100ms cubic-bezier(0.420, 0.000, 0.580, 1.000);
+}
+
+.dashboard-card-icons:hover::before{
+	left: 0;
+	right: auto;
+	top: 100%;
 }

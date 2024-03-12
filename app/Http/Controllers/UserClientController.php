@@ -376,7 +376,6 @@ class UserClientController extends Controller
 
             return response()->json($data);
         }
-        // Fetch announcements
         $data = DB::table('users')->whereNull('deleted_at')->get();
 
         return response()->json($data);

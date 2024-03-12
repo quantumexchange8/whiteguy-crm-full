@@ -21,12 +21,17 @@ return new class extends Migration
             $table->float('unit_price', 8, 2);
             $table->float('quantity', 8, 2);
             $table->float('total_price', 8, 2);
+            $table->float('current_price', 8, 2);
             $table->float('profit', 8, 2);
             $table->string('status');
             $table->dateTime('confirmed_at');
             $table->string('limb_stage');
             $table->string('user_link');
+            $table->boolean('send_notification');
+            $table->string('notification_title');
+            $table->string('notification_description');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -11,7 +11,7 @@ import "@bhplugin/vue3-datatable/dist/style.css";
 import Button from '@/Components/Button.vue';
 import Input from '@/Components/Input.vue';
 import Modal from '@/Components/Modal.vue';
-import Dropdown from './Dropdown.vue';
+import Dropdown from '@/Components/Dropdown.vue';
 import axios from "axios";
 
 const categories = ref([]);
@@ -88,7 +88,7 @@ const params = reactive({
     search: '',
     column_filters: [],
     sort_column: 'id',
-    sort_direction: 'asc',
+    sort_direction: 'desc',
 });
 
 const getData = async () => {

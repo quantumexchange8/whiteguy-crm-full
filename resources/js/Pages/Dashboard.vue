@@ -9,6 +9,8 @@ import DashboardDatatable from '@/Components/DashboardDatatable.vue'
 import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
 import LeadFrontDetailsModal from '@/Pages/CRM/LeadFronts/Partials/LeadFrontDetailsModal.vue';
 import CustomToastification from '@/Components/CustomToastification.vue';
+import { ShoppingCartIcon, ViewListIcon, ClipboardListIcon, DocumentIcon, DocumentTextIcon, DocumentReportIcon } from '@heroicons/vue/outline';
+import { Link } from '@inertiajs/vue3';
 
 const props = defineProps({
     errors:Object,
@@ -21,8 +23,12 @@ const props = defineProps({
 const pageTitle = "Dashboard";
 const { is } = usePermission();
 const toast = useToast();
+const totalLeadCount = ref(0);
+const totalLeadFrontCount = ref(0);
+const totalOrderCount = ref(0);
+const totalSaleOrderCount = ref(0);
 
-const colArray = ref([
+const leadFrontsColArray = ref([
     { field: "id", title: "ID", headerClass: "text-gray-300 text-sm w-max" },
     { field: "name", title: "NAME", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "product", title: "PRODUCT", headerClass: "text-gray-300 text-sm w-max"  },
@@ -35,6 +41,36 @@ const colArray = ref([
     { field: "sdm", title: "SDM", headerClass: "text-gray-300 text-s mw-max"  },
     { field: "liquid", title: "LIQUID", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "linked_lead", title: "LINKED LEAD", headerClass: "text-gray-300 text-sm w-max"  },
+]);
+const leadsColArray = ref([
+    { field: "id", title: "ID", headerClass: "dark:text-gray-300 text-sm w-max" },
+    { field: "assignee", title: "ASSIGNEE", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "last_called", title: "LAST CALLED", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
+    { field: "give_up_at", title: "GIVE UP?", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
+    { field: "date_oppd_in", title: "DATE OPP'D IN", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
+    { field: "first_name", title: "FIRST NAME", headerClass: "dark:text-gray-300 text-sm w-max" },
+    { field: "last_name", title: "LAST NAME", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "phone_number", title: "PHONE NUMBER", headerClass: "dark:text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "email", title: "EMAIL", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "country", title: "COUNTRY", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "vc", title: "VC", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "data_type", title: "DATA TYPE", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "data_source", title: "DATA SOURCE", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "data_code", title: "DATA CODE", headerClass: "dark:text-gray-300 text-sm w-max"  },
+]);
+const usersColArray = ref([
+    { field: "site", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "account_id", title: "ACCOUNT ID", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "full_legal_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "lead_status", title: "LEAD STATUS", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "client_stage", title: "CLIENT STAGE", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "rank", title: "RANK", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "account_manager", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "kyc_status", title: "KYC STATUS", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "is_active", title: "ACTIVE", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "is_staff", title: "STAFF", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "has_crm_access", title: "CRM", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "has_leads_access", title: "LEADS", headerClass: "text-gray-300 text-sm w-max"  },
 ]);
 
 // Custom Toastification
@@ -55,7 +91,24 @@ const showToast = () => {
 	toast(toastContent);
 }
 
-onMounted(() => {
+onMounted(async () => {
+	try {
+		const totalLeadCountResponse = await axios.get(route('leads.getTotalLeadCount'));
+		totalLeadCount.value = totalLeadCountResponse.data;
+
+		const totalLeadFrontCountResponse = await axios.get(route('lead-fronts.getTotalLeadFrontCount'));
+		totalLeadFrontCount.value = totalLeadFrontCountResponse.data;
+
+		const totalOrderCountResponse = await axios.get(route('orders.getTotalOrderCount'));
+		totalOrderCount.value = totalOrderCountResponse.data;
+
+		// const totalSaleOrderCountResponse = await axios.get(route('sales-orders.getLeadChangelogs', props.selectedRowData.id));
+		// leadChangelogsData.value = leadChangelogsResponse.data;
+
+	} catch (error) {
+		console.error('Error fetching data:', error);
+	}
+
 	if (Object.keys(props.errorMsg).length !== 0) {
 		showToast();
 	}
@@ -65,46 +118,99 @@ onMounted(() => {
 <template>
 	<AuthenticatedLayout title="Dashboard">
 		<template #header>
+			<div class="rounded-xl shadow-md bg-gray-200 dark:bg-dark-eval-1 p-6">
 				<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-						<h2 class="text-xl font-semibold leading-tight">
-								{{ pageTitle }}
-						</h2>
+					<h2 class="text-xl font-semibold leading-tight">
+						{{ pageTitle }}
+					</h2>
 				</div>
 				<!-- <h2 v-if="is('staff') || is('crm_user')">{{ $page.props.auth.user.roles }}</h2> -->
 				<Breadcrumbs 
 					:title="pageTitle"
 				/>
+			</div>
 		</template>
 
 		<div class="flex flex-col gap-6">
+			<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+				<div class="col-span-full lg:col-span-3">
+					<div class="flex flex-row gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
+						<Link 
+							:href="route('orders.index')"
+							class="!text-base font-medium text-gray-700 dark:text-gray-300"
+						>
+							<DocumentReportIcon
+								class="flex-shrink-0 w-20 h-20 text-cyan-500 transform transition duration-300 hover:scale-125"
+							/>
+						</Link>
+						<div class="flex flex-col">
+							<p class="text-5xl text-gray-200 font-bold pb-3">{{ totalOrderCount }}</p>
+							<p class="text-gray-300/60">Total Orders</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-span-full lg:col-span-3">
+					<div class="flex flex-row gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
+						<Link 
+							:href="'#'"
+							class="!text-base font-medium text-gray-700 dark:text-gray-300"
+						>
+							<DocumentTextIcon
+								class="flex-shrink-0 w-20 h-20 text-cyan-500 transform transition duration-300 hover:scale-125"
+							/>
+						</Link>
+						<div class="flex flex-col">
+							<p class="text-5xl text-gray-200 font-bold pb-3">{{ totalSaleOrderCount }}</p>
+							<p class="text-gray-300/60">Total Sales Orders</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-span-full lg:col-span-3">
+					<div class="flex flex-row gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
+						<Link 
+							:href="route('lead-fronts.index')"
+							class="!text-base font-medium text-gray-700 dark:text-gray-300"
+						>
+							<ClipboardListIcon
+								class="flex-shrink-0 w-20 h-20 text-cyan-500 transform transition duration-300 hover:scale-125"
+							/>
+						</Link>
+						<div class="flex flex-col">
+							<p class="text-5xl text-gray-200 font-bold pb-3">{{ totalLeadFrontCount }}</p>
+							<p class="text-gray-300/60">Total Lead Fronts</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-span-full lg:col-span-3">
+					<div class="flex flex-row gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
+						<Link 
+							:href="route('leads.index')"
+							class="!text-base font-medium text-gray-700 dark:text-gray-300"
+						>
+							<ViewListIcon
+								class="flex-shrink-0 w-20 h-20 text-cyan-500 transform transition duration-300 hover:scale-125"
+							/>
+						</Link>
+						<div class="flex flex-col">
+							<p class="text-5xl text-gray-200 font-bold pb-3">{{ totalLeadCount }}</p>
+							<p class="text-gray-300/60">Total Leads</p>
+						</div>
+					</div>
+				</div>
+			</div>
 			<div class="w-full">
-				<!-- <CoreCard 
-					#title 
-					:viewMoreHref="route('lead-fronts.index')"
-				>
-						Lead Fronts
-				</CoreCard> -->
-				
 				<DashboardDatatable 
-					:cols="colArray" 
+					:cols="leadFrontsColArray" 
 					:targetApi="'/data/lead-fronts'"
 					:createLink="route('lead-fronts.create')"
 					:detailsLink="'lead-fronts'"
 					:tableTitle="'Latest Lead Fronts'"
 				/>
 			</div>
-
 			<div class="grid grid-cols-1 lg:grid-cols-12 mb-8 gap-6">
-				<!-- <CoreCard 
-					#title 
-					class="col-span-full lg:col-span-4" 
-					:viewMoreHref="route('crm.payment-submissions')"
-				>
-					Payment Submissions
-				</CoreCard> -->
 				<div class="col-span-full lg:col-span-4">
 					<DashboardDatatable 
-						:cols="colArray" 
+						:cols="leadFrontsColArray" 
 						:targetApi="'/data/lead-fronts'"
 						:createLink="route('lead-fronts.create')"
 						:detailsLink="'lead-fronts'"
@@ -113,19 +219,19 @@ onMounted(() => {
 				</div>
 				<div class="col-span-full lg:col-span-4">
 					<DashboardDatatable 
-						:cols="colArray" 
-						:targetApi="'/data/lead-fronts'"
-						:createLink="route('lead-fronts.create')"
-						:detailsLink="'lead-fronts'"
+						:cols="leadsColArray" 
+						:targetApi="'/data/leads'"
+						:createLink="route('leads.create')"
+						:detailsLink="'leads'"
 						:tableTitle="'Latest Leads'"
 					/>
 				</div>
 				<div class="col-span-full lg:col-span-4">
 					<DashboardDatatable 
-						:cols="colArray" 
-						:targetApi="'/data/lead-fronts'"
-						:createLink="route('lead-fronts.create')"
-						:detailsLink="'lead-fronts'"
+						:cols="usersColArray" 
+						:targetApi="'/data/users-clients'"
+						:createLink="route('users-clients.create')"
+						:detailsLink="'users-clients'"
 						:tableTitle="'User Clients'"
 					/>
 				</div>

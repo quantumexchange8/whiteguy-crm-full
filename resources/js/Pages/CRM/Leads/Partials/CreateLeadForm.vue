@@ -328,7 +328,6 @@ const addLeadNote = () => {
                     </div>
                 </div>
             </div>
-            <hr class="divider">
             <div class="form-input-section dark:bg-dark-eval-1">
                 <div class="px-3">
                     <div class="flex flex-row justify-between items-center mb-2">
@@ -528,7 +527,6 @@ const addLeadNote = () => {
                     </div>
                 </div>
             </div>
-            <hr class="divider">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                     <div class="form-input-section dark:bg-dark-eval-1">

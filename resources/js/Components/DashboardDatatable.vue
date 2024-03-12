@@ -1,19 +1,21 @@
 <script setup>
-import { useForm, router } from '@inertiajs/vue3';
-import { ref, onMounted, reactive, watch } from "vue";
-import { convertToHumanReadable, cl } from '@/Composables';
 import { ThreeDotsVertical, CheckCircleFillIcon, TimesCircleIcon } from '@/Components/Icons/solid';
-import { EyeIcon } from '@heroicons/vue/outline'
-import { TrashIcon, PageEditIcon } from '@/Components/Icons/outline';
 import CustomFileInputField from '@/Components/CustomFileInputField.vue';
+import { TrashIcon, PageEditIcon } from '@/Components/Icons/outline';
+import { convertToHumanReadable, cl } from '@/Composables';
+import { ref, onMounted, reactive, watch } from "vue";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
+import { useForm, router } from '@inertiajs/vue3';
 import "@bhplugin/vue3-datatable/dist/style.css";
+import Dropdown from '@/Components/Dropdown.vue';
+import { EyeIcon } from '@heroicons/vue/outline';
 import Button from '@/Components/Button.vue';
 import Input from '@/Components/Input.vue';
 import Modal from '@/Components/Modal.vue';
 import Label from '@/Components/Label.vue'
-import Dropdown from './Dropdown.vue';
+import { Link } from '@inertiajs/vue3';
 import axios from "axios";
+import dayjs from 'dayjs';
 
 const booleanColumns = reactive([]);
 const filterIsOpen = ref(false);
@@ -29,6 +31,7 @@ const selectedRows = ref([]);
 const showDeleteModal = ref(false);
 const rowDataId = ref(null);
 const rowsLength = ref();
+let originalData = null;
 
 const props = defineProps({
     cols: {
@@ -87,8 +90,8 @@ const getData = async () => {
 
         unprocessedData.value = await data.data;
         rows.value = processRows(unprocessedData.value);
+        originalData = rows.value;
         total_rows.value = rows.value.length;
-        console.log(total_rows.value)
 
     } catch (error) {
         console.error("Error fetching data:", error);
@@ -149,17 +152,115 @@ const deleteLead = () => {
             onSuccess: () => closeDeleteModal(),
         });
 };
+
+// Dropdown Filter by Date
+const filterByToday = () => {
+    const today = dayjs();
+    rows.value = originalData.filter((log) =>
+      dayjs(log.created_at).isSame(today, 'day')
+    );
+  };
+  
+const filterByPast7Days = () => {
+    const sevenDaysAgo = dayjs().subtract(7, 'day');
+    rows.value = originalData.filter((log) =>
+        dayjs(log.created_at).isAfter(sevenDaysAgo)
+    );
+};
+
+const filterByThisMonth = () => {
+    const startOfMonth = dayjs().startOf('month');
+    rows.value = originalData.filter((log) =>
+        dayjs(log.created_at).isAfter(startOfMonth)
+    );
+};
+
+const filterByThisYear = () => {
+    const startOfYear = dayjs().startOf('year');
+    rows.value = originalData.filter((log) =>
+        dayjs(log.created_at).isAfter(startOfYear)
+    );
+};
+
+const showAll = () => {
+    rows.value = originalData;
+};
 </script>
 
 <template>
-    <div class="p-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1 max-h-[340px] overflow-hidden">
-        <Label
-            :value="tableTitle"
-            :for="tableTitle"
-            class="mb-3 font-semibold !text-base"
-        >
-        </Label>
-        <div class="grid grid-cols-1 lg:grid-cols-12 mb-1">
+    <div class="px-5 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1 max-h-[340px] overflow-hidden">
+        <div class="flex flex-row justify-between">
+            <Link 
+                :href="route(detailsLink + '.index')"
+                class="!text-base font-medium text-gray-700 dark:text-gray-300 underline"
+            >
+                {{ tableTitle }}
+            </Link>
+            <Dropdown 
+                    :align="'right'" 
+                    :width="50" 
+                    :contentClasses="'dark:bg-dark-eval-3'"
+                >
+                <template #trigger>
+                    <ThreeDotsVertical class="flex-shrink-0 w-6 h-6 cursor-pointer mx-2" aria-hidden="true" />
+                </template>
+
+                <template #content>
+                    <div class="p- w-full">
+                        <p class="text-md p-2 text-gray-300 text-center">Action</p>
+                        <hr class="border-b rounded-md border-gray-600 mb-2 w-10/12 mx-auto">
+                        <div class="px-6 pb-6 pt-2 flex flex-col gap-2">
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-2 w-full h-full whitespace-nowrap"
+                                @click="showAll()"
+                            >
+                                {{ 'All' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-2 w-full h-full whitespace-nowrap"
+                                @click="filterByToday()"
+                            >
+                                {{ 'Today' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-2 w-full h-full whitespace-nowrap"
+                                @click="filterByPast7Days()"
+                            >
+                                {{ 'Past 7 days' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-2 w-full h-full whitespace-nowrap"
+                                @click="filterByThisMonth()"
+                            >
+                                {{ 'This month' }}
+                            </Button>
+                            <Button 
+                                :type="'button'"
+                                :variant="'info'" 
+                                :size="'sm'" 
+                                class="justify-center px-2 w-full h-full whitespace-nowrap"
+                                @click="filterByThisYear()"
+                            >
+                                {{ 'This year' }}
+                            </Button>
+                        </div>
+                    </div>
+                </template>
+            </Dropdown>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 mt-4">
             <Input 
                 v-model="params.search"
                 ref="searchInput"
@@ -186,10 +287,20 @@ const deleteLead = () => {
             @pageChange="changePage"
         >
             <template #id="rows">
-                <strong><span class="text-purple-300">#{{ rows.value.id }}</span></strong>
+                <Link 
+                    :href="route(detailsLink + '.edit', rows.value.id)"
+                    class="font-medium"
+                >
+                    <strong><span class="text-purple-300">#{{ rows.value.id }}</span></strong>
+                </Link>
             </template>
             <template #site="rows">
-                <strong><span class="text-purple-300">{{ rows.value.username }} ({{ rows.value.site }})</span></strong>
+                <Link 
+                    :href="route(detailsLink + '.edit', rows.value.id)"
+                    class="font-medium"
+                >
+                    <strong><span class="text-purple-300">{{ rows.value.username }} ({{ rows.value.site }})</span></strong>
+                </Link>
             </template>
             <template #sdm="rows">
                 <CheckCircleFillIcon 
@@ -200,6 +311,15 @@ const deleteLead = () => {
                     class="flex-shrink-0 w-5 h-5"
                     v-else-if="!Boolean(rows.value.sdm)"
                 />
+            </template>
+            <template #last_called="rows">
+                <div class="min-w-max">{{ rows.value.last_called }}</div>
+            </template>
+            <template #give_up_at="rows">
+                <div class="min-w-max">{{ rows.value.give_up_at }}</div>
+            </template>
+            <template #date_oppd_in="rows">
+                <div class="min-w-max">{{ rows.value.date_oppd_in }}</div>
             </template>
             <template #liquid="rows">
                 <CheckCircleFillIcon 

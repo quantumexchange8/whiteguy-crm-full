@@ -919,4 +919,9 @@ class LeadController extends Controller
         
         return;
     }
+
+    public function getTotalLeadCount(Request $request)
+    {
+        return response()->json(Lead::count());
+    }
 }

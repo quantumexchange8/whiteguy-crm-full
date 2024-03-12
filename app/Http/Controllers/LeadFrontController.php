@@ -434,4 +434,9 @@ class LeadFrontController extends Controller
 
         return response()->json($leadFrontChanges);
     }
+
+    public function getTotalLeadFrontCount()
+    {
+        return response()->json(LeadFront::count());
+    }
 }

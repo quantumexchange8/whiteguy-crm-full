@@ -83,9 +83,9 @@ import { TemplateIcon } from '@heroicons/vue/outline'
                 :active="route().current('crm.notifications')" 
             />
             <SidebarCollapsibleItem 
-                :href="route('crm.orders')" 
+                :href="route('orders.index')" 
                 title="Orders" 
-                :active="route().current('crm.orders')" 
+                :active="route().current('orders.index')" 
             />
             <SidebarCollapsibleItem 
                 :href="route('crm.payment-methods')" 

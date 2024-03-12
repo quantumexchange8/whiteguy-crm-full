@@ -75,6 +75,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/lead-uploads', [LeadUploadsController::class, 'getLeadUploads']);
     Route::get('/data/notifications', [NotificationController::class, 'getNotifications']);
     Route::get('/data/orders', [OrderController::class, 'getOrders']);
+    Route::get('/data/orders/categories', [OrderController::class, 'getCategories']);
     Route::get('/data/payment-methods', [PaymentMethodController::class, 'getPaymentMethods']);
     Route::get('/data/payment-submissions', [PaymentSubmissionController::class, 'getPaymentSubmissions']);
     Route::get('/data/sale-orders', [SaleOrderController::class, 'getSaleOrders']);
@@ -141,6 +142,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     Route::get('/lead-fronts/leads-list', [LeadFrontController::class, 'getLeadList'])->name('lead-fronts.getLeadList');
     Route::get('/lead-fronts/{id}/lead', [LeadFrontController::class, 'getLead'])->name('lead-fronts.getLead');
     Route::get('/lead-fronts/{id}/lead-front-changelogs', [LeadFrontController::class, 'getLeadFrontChangelogs'])->name('lead-fronts.getLeadFrontChangelogs');
+    Route::get('/lead-fronts/count', [LeadFrontController::class, 'getTotalLeadFrontCount'])->name('lead-fronts.getTotalLeadFrontCount');
     Route::resource('/lead-fronts', LeadFrontController::class);
     
     /*
@@ -161,6 +163,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     Route::get('/leads/{id}/lead-notes', [LeadController::class, 'getLeadNotes'])->name('leads.getLeadNotes');
     Route::get('/leads/{id}/lead-changelogs', [LeadController::class, 'getLeadChangelogs'])->name('leads.getLeadChangelogs');
     Route::get('/leads/{id}/lead-notes-changelogs', [LeadController::class, 'getLeadNotesAndChangelogs'])->name('leads.getLeadNotesAndChangelogs');
+    Route::get('/leads/count', [LeadController::class, 'getTotalLeadCount'])->name('leads.getTotalLeadCount');
     Route::delete('/leads/{id}/lead-front', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
     Route::delete('/leads/{id}/lead-note', [LeadController::class, 'deleteLeadNote'])->name('leads.deleteLeadNote');
     Route::resource('/leads', LeadController::class);
@@ -177,9 +180,8 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Orders Routes
     */
-        Route::get('/orders', function () {
-            return Inertia::render('CRM/Orders/Index');
-        })->name('crm.orders');
+        Route::get('/orders/count', [OrderController::class, 'getTotalOrderCount'])->name('orders.getTotalOrderCount');
+        Route::resource('/orders', OrderController::class);
 
     /*
     |--------------------------------------------------------------------------
