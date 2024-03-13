@@ -24,12 +24,13 @@ return new class extends Migration
             $table->float('current_price', 8, 2);
             $table->float('profit', 8, 2);
             $table->string('status');
-            $table->dateTime('confirmed_at');
+            $table->dateTime('confirmed_at')->nullable();;
+            $table->string('confirmation_name');
             $table->string('limb_stage');
-            $table->string('user_link');
-            $table->boolean('send_notification');
-            $table->string('notification_title');
-            $table->string('notification_description');
+            $table->string('users_id');
+            $table->boolean('send_notification')->nullable();;
+            $table->string('notification_title')->nullable();;
+            $table->string('notification_description')->nullable();;
             $table->timestamps();
             $table->softDeletes();
         });

@@ -24,7 +24,11 @@ const props = defineProps({
     errorMessage: {
         type: String,
         default: ''
-    }
+    },
+    withTooltip: {
+        type: Boolean,
+        default: false
+    },
 })
 
 const proxyChecked = computed({
@@ -53,7 +57,7 @@ const proxyChecked = computed({
                 :for="inputId"
             >
             </Label>
-            <Tooltip>
+            <Tooltip v-if="withTooltip">
                 <slot></slot>
             </Tooltip>
         </div>

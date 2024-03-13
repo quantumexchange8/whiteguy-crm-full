@@ -180,6 +180,8 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Orders Routes
     */
+        Route::get('/orders/export/{selectedRowsData}', [OrderController::class, 'exportToExcel'])->name('orders.export');
+        Route::get('/orders/generate-trade-id', [OrderController::class, 'generateTradeId'])->name('orders.generateTradeId');
         Route::get('/orders/count', [OrderController::class, 'getTotalOrderCount'])->name('orders.getTotalOrderCount');
         Route::resource('/orders', OrderController::class);
 

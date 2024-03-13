@@ -833,6 +833,16 @@ watch(() => categories.value, (newVal) => {
                     v-else-if="!Boolean(rows.value.liquid)"
                 />
             </template>
+            <template #comfirmed_at="rows">
+                <CheckCircleFillIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-if="Boolean(rows.value.comfirmed_at)"
+                />
+                <TimesCircleIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-else-if="!Boolean(rows.value.comfirmed_at)"
+                />
+            </template>
             <template #is_active="rows">
                 <CheckCircleFillIcon 
                     class="flex-shrink-0 w-5 h-5"

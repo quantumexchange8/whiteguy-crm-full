@@ -20,18 +20,20 @@ const pageTitle = "Orders";
 const toast = useToast();
 const colArray = ref([
 	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
-    { field: "site", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm w-max" },
-    { field: "account_id", title: "ACCOUNT ID", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "full_legal_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "lead_status", title: "LEAD STATUS", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
-    { field: "client_stage", title: "CLIENT STAGE", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
-    { field: "rank", title: "RANK", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
-    { field: "account_manager", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
-    { field: "kyc_status", title: "KYC STATUS", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "is_active", title: "ACTIVE", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "is_staff", title: "STAFF", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "has_crm_access", title: "CRM", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "has_leads_access", title: "LEADS", headerClass: "text-gray-300 text-sm w-max"  },
+	{ field: 'id', title: 'ID', headerClass: "dark:text-gray-300 text-sm w-max" },
+    { field: "trade_id", title: "Trade ID", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "date", title: "Date", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
+    { field: "action_type", title: "Action Type", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "stock_type", title: "Stock Type", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "stock", title: "Stock", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "unit_price", title: "Unit Price", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
+    { field: "quantity", title: "Quantity", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
+    { field: "total_price", title: "Total Price", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
+    { field: "profit", title: "Profit / Loss", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
+    { field: "status", title: "Status", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "comfirmed_at", title: "Confirmed", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "limb_stage", title: "Limb Stage", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "users_id", title: "User / Client", headerClass: "text-gray-300 text-sm w-max" },
 ]);
 
 // Custom Toastification

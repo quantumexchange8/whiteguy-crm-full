@@ -14,7 +14,7 @@ const props = defineProps({
 		default: '',
 	},
 	inputArray: {
-		type: Array,
+		type: [Array, Object],
 		default: () => [],
 	},
 	dataValue: {
@@ -25,6 +25,10 @@ const props = defineProps({
         default: ''
     },
     withTooltip: {
+        type: Boolean,
+        default: false
+    },
+    customValue: {
         type: Boolean,
         default: false
     },
@@ -55,7 +59,7 @@ onMounted(() => {
         </span>
         <div class="relative">
             <select 
-                v-if="inputArray.length"
+                v-if="inputArray.length || Object.keys(inputArray).length"
                 :id="inputId"
                 v-model="selectedValue"
                 @change="$emit('update:modelValue', $event.target.value)"
@@ -65,7 +69,11 @@ onMounted(() => {
                         dark:bg-dark-eval-1 dark:text-gray-300 dark:focus:ring-offset-dark-eval-1" 
             >
                 <option disabled>---------------</option>
-                <option v-for="(option, index) in inputArray" :key="index">
+                <!-- Passing an object of objects with key as id and item and value for dynamic/values that are retrieved from another table -->
+                <option v-for="(option, index) in inputArray" :key="index" :value="index" v-if="customValue">
+                    {{ option.value }}
+                </option>
+                <option v-for="(option, ix) in inputArray" :key="ix" :value="option" v-else>
                     {{ option }}
                 </option>
             </select>
