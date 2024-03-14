@@ -43,7 +43,7 @@ class OrderRequest extends FormRequest
                 'confirmed_at' => 'nullable|date_format:Y-m-d H:i:s',
                 'confirmation_name' => 'required|string|max:1000',
                 'limb_stage' => 'required|string',
-                'user_link' => 'required|boolean',
+                'user_link' => 'required|string',
             ];
         } else {
             return [
@@ -61,7 +61,7 @@ class OrderRequest extends FormRequest
                 'confirmed_at' => 'nullable|date_format:Y-m-d H:i:s',
                 'confirmation_name' => 'required|string|max:1000',
                 'limb_stage' => 'required|string',
-                'user_link' => 'required|boolean',
+                'user_link' => 'required|string',
             ];
         }
     }

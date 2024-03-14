@@ -20,29 +20,28 @@ const props = defineProps({
     },
 })
 
-const leadFrontChangelogsData = reactive({});
-let originalLeadFrontChangelogsData = null;
+const orderChangelogsData = reactive({});
+let originalOrderChangelogsData = null;
 
 onMounted(async () => {
   try {
-    const leadFrontChangelogsResponse = await axios.get(route('lead-fronts.getLeadFrontChangelogs', props.selectedRowData.id));
-    leadFrontChangelogsData.value = leadFrontChangelogsResponse.data;
+    const orderChangelogsResponse = await axios.get(route('orders.getOrderChangelogs', props.selectedRowData.id));
+    orderChangelogsData.value = orderChangelogsResponse.data;
 
-    let leadFrontLogsArray = [];
-    for (let key in leadFrontChangelogsData.value) {
-        leadFrontLogsArray.push(leadFrontChangelogsData.value[key]);
+    let orderLogsArray = [];
+    for (let key in orderChangelogsData.value) {
+        orderLogsArray.push(orderChangelogsData.value[key]);
     }
 
-    leadFrontLogsArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    orderLogsArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    Object.keys(leadFrontChangelogsData.value).forEach((col, index) => {
-        leadFrontChangelogsData.value[col].created_at = dayjs(leadFrontChangelogsData.value[col].created_at).format('DD MMMM YYYY, hh:mm A');;
+    Object.keys(orderChangelogsData.value).forEach((col, index) => {
+        orderChangelogsData.value[col].created_at = dayjs(orderChangelogsData.value[col].created_at).format('DD MMMM YYYY, hh:mm A');;
     });
     
-    leadFrontChangelogsData.value = leadFrontLogsArray;
-    originalLeadFrontChangelogsData = leadFrontChangelogsData.value;
+    orderChangelogsData.value = orderLogsArray;
+    originalOrderChangelogsData = orderChangelogsData.value;
 
-    // cl(originalLeadFrontChangelogsData);
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -50,34 +49,34 @@ onMounted(async () => {
 
 const filterByToday = () => {
   const today = dayjs();
-  leadFrontChangelogsData.value = originalLeadFrontChangelogsData.filter((log) =>
+  orderChangelogsData.value = originalOrderChangelogsData.filter((log) =>
     dayjs(log.created_at).isSame(today, 'day')
   );
 };
 
 const filterByPast7Days = () => {
   const sevenDaysAgo = dayjs().subtract(7, 'day');
-  leadFrontChangelogsData.value = originalLeadFrontChangelogsData.filter((log) =>
+  orderChangelogsData.value = originalOrderChangelogsData.filter((log) =>
     dayjs(log.created_at).isAfter(sevenDaysAgo)
   );
 };
 
 const filterByThisMonth = () => {
   const startOfMonth = dayjs().startOf('month');
-  leadFrontChangelogsData.value = originalLeadFrontChangelogsData.filter((log) =>
+  orderChangelogsData.value = originalOrderChangelogsData.filter((log) =>
     dayjs(log.created_at).isAfter(startOfMonth)
   );
 };
 
 const filterByThisYear = () => {
   const startOfYear = dayjs().startOf('year');
-  leadFrontChangelogsData.value = originalLeadFrontChangelogsData.filter((log) =>
+  orderChangelogsData.value = originalOrderChangelogsData.filter((log) =>
     dayjs(log.created_at).isAfter(startOfYear)
   );
 };
 
 const showAll = () => {
-  leadFrontChangelogsData.value = originalLeadFrontChangelogsData;
+  orderChangelogsData.value = originalOrderChangelogsData;
 };
 
 </script>
@@ -85,7 +84,7 @@ const showAll = () => {
 <template>
     <div class="input-group p-8 rounded-xl">
         <div class="flex justify-between">
-            <p class="dark:text-gray-300 font-semibold text-xl pb-2">Lead Front Changelog</p>
+            <p class="dark:text-gray-300 font-semibold text-xl pb-2">User Client Changelog</p>
             <Dropdown 
                 :align="'right'" 
                 :width="50" 
@@ -151,11 +150,10 @@ const showAll = () => {
             </Dropdown>
         </div>
         <div class="container hidden-scrollable max-h-[500px] pt-2">
-            <!-- For Lead Front Changelogs -->
-            <div class="w-full flex justify-center" v-if="!leadFrontChangelogsData.value || leadFrontChangelogsData.value.length === 0">
-                <h3 class="font-semibold text-gray-200"> No records found for this lead front currently. </h3>
+            <div class="w-full flex justify-center" v-if="!orderChangelogsData.value || orderChangelogsData.value.length === 0">
+                <h3 class="font-semibold text-gray-200"> No records found for this order currently. </h3>
             </div>
-            <div v-for="(log, index) in leadFrontChangelogsData.value" :key="index">
+            <div v-for="(log, index) in orderChangelogsData.value" :key="index">
                 <div class="flex flex-col md:grid grid-cols-12">
                     <div class="flex md:contents">
                         <div class="col-start-1 col-end-2 mr-10 md:mx-auto relative">
@@ -171,14 +169,14 @@ const showAll = () => {
                             <span class="text-xs text-gray-400">
                                 {{ log.created_at }}
                             </span>
-                            <div v-if="log.lead_front_changes && Object.keys(log.lead_front_changes).length > 0">
+                            <div v-if="log.changes && Object.keys(log.changes).length > 0">
                                 <Disclosure v-slot="{ open }">
                                     <DisclosureButton 
                                         class="bg-gray-700 dark:bg-gray-800/50 rounded-xl text-gray-300 p-2 mt-2 flex items-center w-full mb-1 text-sm font-bold"
                                     >
-                                        Lead Front Changelogs 
+                                        Order Changelogs 
                                         <span class="text-xs font-thin pl-4">
-                                            ( {{ log.lead_changelog_id }} )
+                                            ( {{ log.id }} )
                                         </span>
                                         <ChevronUpIcon
                                             :class="[
@@ -199,25 +197,22 @@ const showAll = () => {
                                         <DisclosurePanel 
                                             class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3 max-h-52 overflow-auto"
                                         >
-                                            <div v-for="(value, ix) in log.lead_front_changes" :key="ix">
+                                            <div v-for="(value, ix) in log.changes" :key="ix">
                                                 <Label
-                                                    :inputId="'leadChangelogColumn'+ix"
-                                                    :labelValue="'Lead Notes'"
+                                                    :inputId="'orderChangelogColumn'+ix"
                                                     class="font-semibold !text-gray-200/75 text-xs col-span-1 pb-1"
                                                 >
-                                                    ◉ [ Lead Front ID: {{ value.id }} ]: [{{ (ix === 'New') ? 'New Lead Front' : convertToHumanReadable(ix) }}] 
+                                                    ◉ [ Order ID: {{ log.id }} ]: [{{ (ix === 'New') ? 'New Order' : convertToHumanReadable(ix) }}] 
                                                 </Label>
                                                 <Label
-                                                    :inputId="'leadChangelog'+ix"
-                                                    :labelValue="'Lead Notes'"
+                                                    :inputId="'orderChangelog'+ix"
                                                     class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
                                                     v-if="ix === 'New' || ix === 'Delete'"
                                                 >
                                                     ➤ {{ value.description }}.
                                                 </Label>
                                                 <Label
-                                                    :inputId="'leadChangelog'+ix"
-                                                    :labelValue="'Lead Notes'"
+                                                    :inputId="'orderChangelog'+ix"
                                                     class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
                                                     v-else
                                                 >

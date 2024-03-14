@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\OrdersExport;
-use App\Http\Requests\OrderRequest;
-use App\Models\Order;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
+use App\Models\Order;
+use Illuminate\Http\Request;
+use App\Exports\OrdersExport;
+use App\Models\OrderChangelog;
+use Illuminate\Support\Facades\DB;
+use App\Http\Requests\OrderRequest;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 
 class OrderController extends Controller
 {
@@ -65,10 +67,10 @@ class OrderController extends Controller
         
         $data = $request->all();
 
-        // $userClientChanges = [];
+        $orderChanges = [];
 
         // Insert into orders table
-        $newUserClientData = Order::create([
+        $existingOrder = Order::create([
             'trade_id' => $data['trade_id'],
             'date' => $data['date'],
             'action_type' => $data['action_type'],
@@ -89,23 +91,23 @@ class OrderController extends Controller
             'notification_description' => $data['notification_description'],
         ]);
 
-        $newUserClientData->save();
+        $existingOrder->save();
 
         // Add the change to the user changes array
-        // $userClientChanges['New'] = [
-        //     'description' => 'A new user has been created',
-        // ];
+        $orderChanges['New'] = [
+            'description' => 'A new order has been created',
+        ];
 
-        // if (count($userClientChanges) > 0) {
-        //     $newUserClientChangelog = new UserClientChangelog;
+        if (count($orderChanges) > 0) {
+            $newOrderChangelog = new OrderChangelog;
 
-        //     $newUserClientChangelog->users_clients_id = $newUserClientData->id;
-        //     $newUserClientChangelog->column_name = 'users_clients';
-        //     $newUserClientChangelog->changes = $userClientChanges;
-        //     $newUserClientChangelog->description = 'The user has been successfully created';
+            $newOrderChangelog->orders_id = $existingOrder->id;
+            $newOrderChangelog->column_name = 'orders';
+            $newOrderChangelog->changes = $orderChanges;
+            $newOrderChangelog->description = 'The order has been successfully created';
 
-        //     $newUserClientChangelog->save();
-        // }
+            $newOrderChangelog->save();
+        }
         
         $errorMsgTitle = "You have successfully created a new order.";
         $errorMsgType = "success";
@@ -142,9 +144,116 @@ class OrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(OrderRequest $request, string $id)
     {
-        dd($request);
+        if ($request->send_notification) {
+            $request->validate([
+                'send_notification' => 'required|boolean',
+                'notification_title' => 'required|string|max:200',
+                'notification_description' => 'required|string|max:1000',
+            ]);
+        } else {
+            $request->validate([
+                'send_notification' => 'nullable|boolean',
+                'notification_title' => 'nullable|string|max:200',
+                'notification_description' => 'nullable|string|max:1000',
+            ]);
+        }
+        
+        $data = $request->all();
+
+        $orderChanges = [];
+        $existingOrder = Order::find($id);
+
+        if (isset($existingOrder)) {
+            foreach ($existingOrder->toArray() as $key => $oldValue) {
+                if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at') {
+                    continue;
+                }
+
+                // if ($key === 'send_notification') {
+                //     $oldValue = boolval($oldValue);
+                // }
+
+                switch($key) {
+                    case('unit_price'):
+                    case('quantity'):
+                    case('total_price'):
+                    case('current_price'):
+                    case('profit'):
+                        $oldValue = number_format($oldValue, 2);
+                        $newValue = number_format($data[$key], 2) ?? null;
+                        break;
+                    case('send_notification'):
+                        $oldValue = boolval($oldValue);
+                        $newValue = $data[$key] ?? null;
+                        break;
+                    case('users_id'):
+                        $newValue = $data['user_link'] ?? null;
+                        break;
+                    default:
+                        $newValue = $data[$key] ?? null;
+                }
+                
+                // $newValue = $data[$key] ?? null;
+
+                // Check if the value has changed
+                if ($newValue !== $oldValue) {
+                    $orderChanges[$key] = [
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+            }
+        }
+
+        // dd($orderChanges);
+
+        // Insert into orders table
+        $existingOrder->update([
+            'trade_id' => $data['trade_id'],
+            'date' => $data['date'],
+            'action_type' => $data['action_type'],
+            'stock_type' => $data['stock_type'],
+            'stock' => $data['stock'],
+            'unit_price' => $data['unit_price'],
+            'quantity' => $data['quantity'],
+            'total_price' => $data['unit_price'] * $data['quantity'],
+            'current_price' => $data['current_price'],
+            'profit' => $data['profit'],
+            'status' => $data['status'],
+            'confirmed_at' => $data['confirmed_at'],
+            'confirmation_name' => $data['confirmation_name'],
+            'limb_stage' => $data['limb_stage'],
+            'users_id' => $data['user_link'],
+            'send_notification' => $data['send_notification'],
+            'notification_title' => $data['notification_title'],
+            'notification_description' => $data['notification_description'],
+        ]);
+
+        $existingOrder->save();
+
+        if (count($orderChanges) > 0) {
+            $newOrderChangelog = new OrderChangelog;
+
+            $newOrderChangelog->orders_id = $id;
+            $newOrderChangelog->column_name = 'orders';
+            $newOrderChangelog->changes = $orderChanges;
+            $newOrderChangelog->description = 'The order has been successfully updated';
+
+            $newOrderChangelog->save();
+        }
+        
+        $errorMsgTitle = "You have successfully updated the order.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('orders.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -157,8 +266,9 @@ class OrderController extends Controller
 
     public function getOrders(Request $request)
     {   
-        $data = DB::table('orders')->whereNull('deleted_at')->get();
-
+        // $data = DB::table('orders')->whereNull('deleted_at')->get();
+        $data = Order::with('user:id,full_legal_name,phone_number,email,country_of_citizenship,address')->whereNull('deleted_at')->get();
+    
         return response()->json($data);
     }
 
@@ -241,5 +351,19 @@ class OrderController extends Controller
         }
         
         return false;
+    }
+
+    public function getOrderChangelogs(string $id)
+    {
+        // $existingOrderChangelogs = OrderChangelog::where('orders_id', $id)
+        //                                         ->orderBy('created_at', 'desc')
+        //                                         ->get();
+        $existingOrderChangelogs = Order::find($id)
+                                        ->orderChangelogs()
+                                        ->where('orders_id', $id)
+                                        ->orderBy('created_at', 'desc')
+                                        ->get();
+
+        return response()->json($existingOrderChangelogs);
     }
 }

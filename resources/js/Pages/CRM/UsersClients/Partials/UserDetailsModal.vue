@@ -26,12 +26,6 @@ const categories = ref([
     'User Info', 'Account Info', 'KYC Status', 'Permissions', 'System'
 ])
 
-const leadFrontCategories = ref([
-    'Basic Info', 'Financial Details', 'Additional Info', 'Timestamps'
-])
-
-const leadFrontData = reactive({});
-
 const emit = defineEmits(['closeModal', 'rowEdit']);
 
 onMounted(() => {

@@ -149,10 +149,10 @@ const showAll = () => {
                 </template>
             </Dropdown>
         </div>
-        <div class="container hidden-scrollable max-h-[500px]">
+        <div class="container hidden-scrollable max-h-[500px] pt-2">
             <!-- For User Client Changelogs -->
             <div class="w-full flex justify-center" v-if="!usersClientsChangelogsData.value || usersClientsChangelogsData.value.length === 0">
-                <h3 class="font-semibold text-gray-200"> No records found for this lead front currently. </h3>
+                <h3 class="font-semibold text-gray-200"> No records found for this user currently. </h3>
             </div>
             <div v-for="(log, index) in usersClientsChangelogsData.value" :key="index">
                 <div class="flex flex-col md:grid grid-cols-12">

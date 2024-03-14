@@ -211,7 +211,6 @@ class LeadFrontController extends Controller
                 }
             }
 
-            // Update existing lead front or insert a new lead front
             $total = $request->lead_front_quantity * $request->lead_front_price;
 
             $oldLeadFrontData->update([

@@ -81,9 +81,6 @@ onMounted(async () => {
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
-	form.phone_number = form.phone_number ? parseInt(form.phone_number) : '';
-	form.last_login = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
-
     form.post(route('orders.store'), {
         preserveScroll: true,
         onSuccess: () => form.reset(),

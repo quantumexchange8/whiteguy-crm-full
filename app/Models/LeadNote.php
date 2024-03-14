@@ -21,7 +21,7 @@ class LeadNote extends Model
     ];
     
     /**
-     * Get the post that owns the comment.
+     * Get the lead that owns the lead note.
      */
     public function lead(): BelongsTo
     {

@@ -111,7 +111,12 @@ onMounted(async () => {
                     </div>
                 </div>
                 <div class="input-group">
-                    <p class="dark:text-gray-300 font-semibold text-xl pb-2">Lead Front Details</p>
+                    <p class="dark:text-gray-300 font-semibold text-xl pb-2">
+                        Lead Front Details
+                        <span class="text-xs font-thin pl-4">
+                            ( {{ props.selectedRowData?.id ?? '' }} )
+                        </span>
+                    </p>
                     <div class="w-full p-2 sm:px-0">
                         <TabGroup>
                             <TabList class="flex space-x-1 rounded-xl bg-blue-600/30 p-1 flex-wrap md:flex-nowrap">
