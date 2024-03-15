@@ -189,12 +189,12 @@ const showAll = () => {
                                         />
                                     </DisclosureButton>
                                     <TransitionRoot
-                                        enter="transition-all ease-in duration-500"
-                                        enter-from="transform opacity-0 scaleY-95"
-                                        enter-to="transform opacity-100 scaleY-100"
-                                        leave="transition-all ease-out duration-200"
-                                        leave-from="transform opacity-100 scaleY-100"
-                                        leave-to="transform opacity-0 scaleY-95"
+                                        enter="transition-all ease-in-out duration-300 overflow-hidden"
+                                        enterFrom="transform scale-95 opacity-0 max-h-0"
+                                        enterTo="transform scale-100 opacity-100 max-h-96"
+                                        leave="transition-all ease-out duration-150 overflow-hidden"
+                                        leaveFrom="transform scale-100 opacity-100 max-h-96"
+                                        leaveTo="transform scale-95 opacity-0 max-h-0"
                                     >
                                         <DisclosurePanel 
                                             class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3 max-h-52 overflow-auto"

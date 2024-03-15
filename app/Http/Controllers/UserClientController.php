@@ -468,4 +468,14 @@ class UserClientController extends Controller
         
         return (new UsersExport($userClientArr))->download($exportTitle);
     }
+
+    public function getUserOrders(string $id)
+    {
+        $orders = User::find($id)
+                        ->orders()
+                        ->whereNull('deleted_at')
+                        ->get();
+
+        return response()->json($orders);
+    }
 }

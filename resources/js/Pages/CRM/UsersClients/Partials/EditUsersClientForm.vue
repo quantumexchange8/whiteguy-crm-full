@@ -1,22 +1,23 @@
 <script setup>
-import { cl, back } from '@/Composables'
-import { ref, onMounted } from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import { PlusIcon } from '@/Components/Icons/solid'
-import { TrashIcon } from '@/Components/Icons/outline'
-import Label from '@/Components/Label.vue'
-import Button from '@/Components/Button.vue'
-import Checkbox from '@/Components/Checkbox.vue'
-import CustomTextInputField from '@/Components/CustomTextInputField.vue'
-import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
-import UpdateUserPasswordForm from './UpdateUserPasswordForm.vue'
-import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue'
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
-import Modal from '@/Components/Modal.vue'
 import dayjs from 'dayjs';
-import CollapsibleSection from '@/Components/CollapsibleSection.vue'
-import Checkbox2 from '@/Components/Checkbox2.vue'
-import PasswordInputField from '@/Components/PasswordInputField.vue'
+import { ref, onMounted } from 'vue';
+import { cl, back } from '@/Composables';
+import { useForm } from '@inertiajs/vue3';
+import Modal from '@/Components/Modal.vue';
+import Label from '@/Components/Label.vue';
+import Button from '@/Components/Button.vue';
+import Checkbox from '@/Components/Checkbox.vue';
+import Checkbox2 from '@/Components/Checkbox2.vue';
+import { PlusIcon } from '@/Components/Icons/solid';
+import UserOrdersModal from './UserOrdersModal.vue';
+import { TrashIcon } from '@/Components/Icons/outline';
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue';
+import UpdateUserPasswordForm from './UpdateUserPasswordForm.vue';
+import CollapsibleSection from '@/Components/CollapsibleSection.vue';
+import PasswordInputField from '@/Components/PasswordInputField.vue';
+import CustomTextInputField from '@/Components/CustomTextInputField.vue';
+import CustomSelectInputField from '@/Components/CustomSelectInputField.vue';
+import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -27,7 +28,8 @@ const props = defineProps({
     },
 })
 const filterIsOpen = ref(false);
-const currentPassword = ref(props.data.password);
+const userId = ref();
+const isUserOrdersModalOpen = ref(false);
 
 const siteArray = ref(
 	[ "namba1.com", "namba2.com", "namba3.com" ]
@@ -47,7 +49,6 @@ const rankArray  = ref(
 const clientArray  = ref(
 	[ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ]
 );
-
 const kycArray  = ref(
 	[ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ]
 ); 
@@ -57,8 +58,6 @@ const form = useForm({
 	id: props.data.id,
 	site: props.data.site,
 	username: props.data.username,
-	// password: props.data.password,
-	// password_confirmation: props.data.password_confirmation,
 	account_id: props.data.account_id,
 	first_name: props.data.first_name,
 	last_name: props.data.last_name,
@@ -114,7 +113,6 @@ const isNumber = (e, withDot = true) => {
 const isValidNumber = (value) => {
     return value !== '' && !isNaN(parseFloat(value)) && isFinite(value);
 };
-
 const openFilterModal = () => {
     filterIsOpen.value = true;
 }
@@ -122,6 +120,16 @@ const openFilterModal = () => {
 const closeFilterModal = () => {
     filterIsOpen.value = false;
 }
+
+const openUserOrdersModal = () => {
+    userId.value = props.data.id;
+    isUserOrdersModalOpen.value = true;
+};
+
+const closeUserOrdersModal = () => {
+    isUserOrdersModalOpen.value = false;
+    userId.value = null;
+};
 </script>
 
 <template>
@@ -368,12 +376,29 @@ const closeFilterModal = () => {
                 <div class="input-group-wrapper grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div class="col-span-6">
                         <div class="input-group grid grid-cols-1 lg:grid-cols-4 gap-6">
-                            <CustomLabelGroup
-                                :inputId="'orders'"
-                                :labelValue="'Orders'"
-                                class="col-span-full lg:col-span-2"
-                                :dataValue="'-'"
-                            />
+                            <div class="input-wrapper col-span-full lg:col-span-2">
+                                <Label
+                                    :value="'Orders'"
+                                    :for="'orders'"
+                                    class="mb-2"
+                                >
+                                </Label>
+                                <div class="my-4 ml-6">
+                                    <Button 
+                                        :type="'button'"
+                                        :size="'sm'"
+                                        class="self-center justify-center gap-2 w-full lg:w-3/5 text-sm" 
+                                        @click="openUserOrdersModal"
+                                    >
+                                        View Orders
+                                    </Button>
+                                    <UserOrdersModal 
+                                        :isOpen="isUserOrdersModalOpen" 
+                                        :userId="props.data.id" 
+                                        @close="closeUserOrdersModal" 
+                                    />
+                                </div>
+                            </div>
                             <CustomLabelGroup
                                 :inputId="'application_form'"
                                 :labelValue="'Application Form'"

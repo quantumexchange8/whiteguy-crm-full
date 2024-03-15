@@ -253,6 +253,7 @@ const reset = () => {
 const closeRowModal = () => {
     isRowModalOpen.value = false;
     selectedRowData.value = null;
+    processRows(rows.value);
 };
 
 // Shows popup modal of the individual lead's details
@@ -888,8 +889,8 @@ watch(() => categories.value, (newVal) => {
             :show="isRowModalOpen" 
             maxWidth="custom-full"
             :closeable="true" 
-            @close="closeRowModal">
-
+            @close="closeRowModal"
+        >
             <component 
                 :is="modalComponent" 
                 :selectedRowData="selectedRowData"

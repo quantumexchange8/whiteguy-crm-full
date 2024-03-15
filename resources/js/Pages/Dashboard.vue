@@ -134,7 +134,7 @@ onMounted(async () => {
 		<div class="flex flex-col gap-6">
 			<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 				<div class="col-span-full lg:col-span-3">
-					<div class="flex flex-row gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
+					<div class="flex flex-row justify-center gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
 						<Link 
 							:href="route('orders.index')"
 							class="!text-base font-medium text-gray-700 dark:text-gray-300"
@@ -150,7 +150,7 @@ onMounted(async () => {
 					</div>
 				</div>
 				<div class="col-span-full lg:col-span-3">
-					<div class="flex flex-row gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
+					<div class="flex flex-row justify-center gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
 						<Link 
 							:href="'#'"
 							class="!text-base font-medium text-gray-700 dark:text-gray-300"
@@ -166,7 +166,7 @@ onMounted(async () => {
 					</div>
 				</div>
 				<div class="col-span-full lg:col-span-3">
-					<div class="flex flex-row gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
+					<div class="flex flex-row justify-center gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
 						<Link 
 							:href="route('lead-fronts.index')"
 							class="!text-base font-medium text-gray-700 dark:text-gray-300"
@@ -182,7 +182,7 @@ onMounted(async () => {
 					</div>
 				</div>
 				<div class="col-span-full lg:col-span-3">
-					<div class="flex flex-row gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
+					<div class="flex flex-row justify-center gap-6 px-10 py-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
 						<Link 
 							:href="route('leads.index')"
 							class="!text-base font-medium text-gray-700 dark:text-gray-300"
