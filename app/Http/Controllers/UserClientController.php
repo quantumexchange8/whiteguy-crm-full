@@ -323,7 +323,7 @@ class UserClientController extends Controller
         $newUserClientChangelog->users_clients_id = $id;
         $newUserClientChangelog->column_name = 'users_clients';
         $newUserClientChangelog->changes = $userClientChanges;
-        $newUserClientChangelog->description = 'The user has been successfully created';
+        $newUserClientChangelog->description = 'The user has been successfully deleted';
 
         $newUserClientChangelog->save();
 

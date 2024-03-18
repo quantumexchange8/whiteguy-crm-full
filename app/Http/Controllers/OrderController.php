@@ -261,12 +261,74 @@ class OrderController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $existingOrder = Order::find($id);
+        $existingOrder->delete();
+
+        $orderChanges = [];
+        
+        $orderChanges['Delete'] = [
+            'id' => $id,
+            'description' => 'This order has been deleted',
+        ];
+
+        $newOrderChangelog = new OrderChangelog;
+
+        $newOrderChangelog->orders_id = $id;
+        $newOrderChangelog->column_name = 'orders';
+        $newOrderChangelog->changes = $orderChanges;
+        $newOrderChangelog->description = 'The user has been successfully deleted';
+
+        $newOrderChangelog->save();
+
+        $errorMsgTitle = "You have successfully deleted the user.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('orders.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     public function getOrders(Request $request)
     {   
-        // $data = DB::table('orders')->whereNull('deleted_at')->get();
+        if ($request['checkedFilters']) {
+            $query = DB::table('orders')->whereNull('deleted_at');
+
+            foreach ($request['checkedFilters'] as $category => $options) {
+                if (is_array($options) && count($options) > 0) {
+                    $query->whereIn($category, $options);
+                } elseif (is_string($options) && $options !== '') {
+                    switch($options) {
+                        case('Today'):
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                            break;
+                        case('Past 7 days'):
+                            $query->whereBetween($category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()]);
+                            break;
+                        case('This month'):
+                            $query->whereMonth($category, Carbon::today()->month);
+                            break;
+                        case('This year'):
+                            $query->whereYear($category, Carbon::today()->year);
+                            break;
+                        case('No date'):
+                            $query->whereNull($category);
+                            break;
+                        case('Has date'):
+                            $query->whereNotNull($category);
+                            break;
+                        default:
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                    }
+                }
+            }
+            $data = $query->get();
+
+            return response()->json($data);
+        }
         $data = Order::with('user:id,full_legal_name,phone_number,email,country_of_citizenship,address')->whereNull('deleted_at')->get();
     
         return response()->json($data);
