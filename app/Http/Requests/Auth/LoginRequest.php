@@ -45,7 +45,7 @@ class LoginRequest extends FormRequest
         // Attempt to retrieve the user with the provided email
         $user = User::where('username', $this->input('username'))->first();
 
-        if (!$user || decrypt($user->password) !== $this->input('password')) {
+        if (!$user || $user->password !== $this->input('password')) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

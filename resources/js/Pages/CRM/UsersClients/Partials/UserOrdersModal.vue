@@ -50,7 +50,6 @@ onMounted(async () => {
     
     userOrdersData.value = userOrdersArray;
     originalUserOrdersData = userOrdersData.value;
-
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -182,7 +181,7 @@ let arr = ['1', '2', '3', "4", "5"]
                                 v-if="userOrdersData.value.length > 0"
                             >
                                 <div class="flex items-center w-full text-2xl font-bold">
-                                    $ {{ parseFloat(value.total_price).toFixed(2) }}
+                                    $ {{ parseFloat(value.unit_price * value.quantity).toFixed(2) }}
 
                                     <span class="text-sm text-gray-800 bg-yellow-600 px-4 rounded-md ml-auto">
                                         {{ value.limb_stage }}

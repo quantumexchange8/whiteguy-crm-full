@@ -34,7 +34,7 @@ onMounted(async () => {
     usersClientsLogsArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     Object.keys(usersClientsChangelogsData.value).forEach((col, index) => {
-        usersClientsChangelogsData.value[col].created_at = dayjs(usersClientsChangelogsData.value[col].created_at).format('DD MMMM YYYY, hh:mm A');;
+        usersClientsChangelogsData.value[col].created_at = dayjs(usersClientsChangelogsData.value[col].created_at).format('DD MMMM YYYY, hh:mm A');
     });
     
     usersClientsChangelogsData.value = usersClientsLogsArray;

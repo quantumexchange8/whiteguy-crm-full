@@ -36,6 +36,9 @@ const selectedRowsLength = ref(0);
 const filteredRowsLength = ref(0);
 const isImportable = ref(true);
 const isDuplicate = ref(false);
+const clientArray  = ref(
+	[ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ]
+);
 
 const props = defineProps({
     cols: {
@@ -73,13 +76,13 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    loading.value = true;
+    // loading.value = true;
     
-    setTimeout(() => {
+    // setTimeout(() => {
         getData();
         getCategoryFilters();
-        loading.value = false;
-    }, 500);
+        // loading.value = false;
+    // }, 500);
 });
 
 const params = reactive({
@@ -242,11 +245,7 @@ const reset = () => {
     Object.keys(checkedFilters).forEach(key => {
         checkedFilters[key] = [];
     });
-    // checkedFilters.contact_outcome = [];
-    // checkedFilters.stage = [];
-    // checkedFilters.assignee = [];
-    // checkedFilters.last_called = '';
-    // checkedFilters.give_up_at = '';
+    
     closeFilterModal();
 };
 
@@ -740,8 +739,8 @@ watch(() => categories.value, (newVal) => {
             <template #id="rows">
                 <strong><span class="text-purple-300">#{{ rows.value.id }}</span></strong>
             </template>
-            <template #site="rows">
-                <strong><span class="text-purple-300">{{ rows.value.username }} ({{ rows.value.site }})</span></strong>
+            <template #username="rows">
+                <strong><span class="text-purple-300">{{ rows.value.username }} ({{ rows.value.site.name }})</span></strong>
             </template>
             <template #actions="rows">
                 <div class="flex flex-row flex-nowrap gap-1">
@@ -883,6 +882,9 @@ watch(() => categories.value, (newVal) => {
                     class="flex-shrink-0 w-5 h-5"
                     v-else-if="!Boolean(rows.value.has_leads_access)"
                 />
+            </template>
+            <template #client_stage="rows">
+                {{ rows.value.client_stage || '-' }}
             </template>
         </vue3-datatable>
         <Modal 

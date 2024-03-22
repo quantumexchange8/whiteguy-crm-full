@@ -10,7 +10,7 @@ import UserChangelogsSection from './UserChangelogsSection.vue';
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue';
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
 import { PhoneIcon, MapIcon, FlagIcon, CalendarIcon } from '@heroicons/vue/solid';
-import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty } from '@/Composables';
+import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty, formatToUserTimezone } from '@/Composables';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -58,7 +58,7 @@ const closeUserOrdersModal = () => {
             <div class="col-span-2 flex flex-col gap-6 mb-8 lg:mb-0">
                 <div class="input-group grid grid-cols-1 lg:grid-cols-12 lg:gap-4">
                     <p class="dark:text-gray-300 lg:col-span-6 font-semibold text-2xl pb-2">
-                        {{ props.selectedRowData?.full_legal_name || '' }}
+                        {{ props.selectedRowData?.full_name || '' }}
                         <span class="text-xs font-thin pl-4">
                             ( {{ props.selectedRowData?.id || '' }} )
                         </span>
@@ -90,7 +90,7 @@ const closeUserOrdersModal = () => {
                                         class="h-4 w-4 text-purple-400 inline-block"
                                     />
                                 </span>
-                                | {{ props.selectedRowData?.country_of_citizenship || '' }}
+                                | {{ props.selectedRowData?.country || '' }}
                             </p>
                         </div>
                         <div class="flex">
@@ -141,7 +141,7 @@ const closeUserOrdersModal = () => {
                                         <CustomLabelGroup
                                             :inputId="'site'"
                                             :labelValue="'Site:'"
-                                            :dataValue="props.selectedRowData?.site || '-'"
+                                            :dataValue="props.selectedRowData?.site?.name || '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'username'"
@@ -154,9 +154,9 @@ const closeUserOrdersModal = () => {
                                             :dataValue="props.selectedRowData?.account_id || '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'full_legal_name'"
+                                            :inputId="'full_name'"
                                             :labelValue="'Full Legal Name:'"
-                                            :dataValue="props.selectedRowData?.full_legal_name || '-'"
+                                            :dataValue="props.selectedRowData?.full_name || '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -214,7 +214,7 @@ const closeUserOrdersModal = () => {
                                         <CustomLabelGroup
                                             :inputId="'account_manager'"
                                             :labelValue="'Account manager:'"
-                                            :dataValue="props.selectedRowData?.account_manager || '-'"
+                                            :dataValue="props.selectedRowData?.account_manager_id || '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'rank'"
@@ -308,13 +308,13 @@ const closeUserOrdersModal = () => {
                                         <CustomLabelGroup
                                             :inputId="'last_login'"
                                             :labelValue="'Last login'"
-                                            :dataValue="props.selectedRowData?.last_login || '-'"
+                                            :dataValue="(props.selectedRowData && props.selectedRowData.last_login !== '') ? formatToUserTimezone(props.selectedRowData.last_login, props.selectedRowData.timezone, true) : '-'"
                                             class="text-gray-700"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'date_joined'"
                                             :labelValue="'Date joined'"
-                                            :dataValue="props.selectedRowData?.created_at || '-'"
+                                            :dataValue="props.selectedRowData ? formatToUserTimezone(props.selectedRowData.date_joined, props.selectedRowData.timezone, true) : '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -324,10 +324,11 @@ const closeUserOrdersModal = () => {
                 </div>
             </div>
             <div class="col-span-1">
-                <UserChangelogsSection
+                <!-- Old db changelogs are located in public.auditlog_logentry -->
+                <!-- <UserChangelogsSection
                     :selectedRowData="props.selectedRowData"
                     class="w-full"
-                />
+                /> -->
             </div>
         </div>
         <div class="flex justify-end p-9">

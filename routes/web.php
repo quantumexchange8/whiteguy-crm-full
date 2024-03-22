@@ -214,15 +214,15 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Sale Orders Routes
     */
-        Route::get('/sale-orders', function () {
-            return Inertia::render('CRM/SaleOrders/Index');
-        })->name('crm.sale-orders');
+        Route::resource('/sale-orders', SaleOrderController::class);
 
     /*
     |--------------------------------------------------------------------------
     | Users / Clients Routes
     */
+        Route::get('/users-clients/account-managers', [UserClientController::class, 'getAccountManagers'])->name('users-clients.getAccountManagers');
         Route::get('/users-clients/{id}/orders', [UserClientController::class, 'getUserOrders'])->name('users-clients.getUserOrders');
+        Route::get('/users-clients/sites', [UserClientController::class, 'getAllSites'])->name('users-clients.getAllSites');
         Route::get('/users-clients/export/{selectedRowsData}', [UserClientController::class, 'exportToExcel'])->name('users-clients.export');
         Route::get('/users-clients/generate-account-id', [UserClientController::class, 'generateAccountId'])->name('users-clients.generateAccountId');
         Route::get('/users-clients/{id}/users-clients-changelogs', [UserClientController::class, 'getUserChangelogs'])->name('users-clients.getUserChangelogs');

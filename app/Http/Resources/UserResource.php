@@ -42,8 +42,8 @@ class UserResource extends JsonResource
             'is_staff' => $this->is_staff,
             'is_superuser' => $this->is_superuser,
             'last_login' => $this->last_login,
-            'roles' => $this->getRoleNames(),
-            'permissions' => $this->getPermissionNames(),
+            // 'roles' => $this->getRoleNames(),
+            // 'permissions' => $this->getPermissionNames(),
         ];
     }
 }

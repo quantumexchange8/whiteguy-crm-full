@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Order extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
-    protected $table = "orders";
+    protected $table = "core_order";
 
     protected $fillable = [
         'trade_id',
@@ -22,17 +22,14 @@ class Order extends Model
         'stock',
         'unit_price',
         'quantity',
-        'total_price',
-        'current_price',
+        'current_unit_price',
         'profit',
         'status',
-        'confirmed_at',
-        'confirmation_name',
-        'limb_stage',
         'users_id',
-        'send_notification',
-        'notification_title',
-        'notification_description',
+        'is_deleted',
+        'limb_stage',
+        'confirmation_name',
+        'confirmed_at',
     ];
 
     /**
@@ -40,7 +37,7 @@ class Order extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'users_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
     
     /**

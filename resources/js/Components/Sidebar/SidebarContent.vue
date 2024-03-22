@@ -103,9 +103,9 @@ import { TemplateIcon } from '@heroicons/vue/outline'
                 :active="route().current('crm.private-messages')" 
             />
             <SidebarCollapsibleItem 
-                :href="route('crm.sale-orders')" 
+                :href="route('sale-orders.index')" 
                 title="Sale Orders" 
-                :active="route().current('crm.sale-orders')" 
+                :active="route().current('sale-orders.index')" 
             />
             <SidebarCollapsibleItem 
                 :href="route('users-clients.index')" 

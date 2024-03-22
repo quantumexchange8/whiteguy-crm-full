@@ -1,91 +1,126 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { cl, back } from '@/Composables'
-import { useForm } from '@inertiajs/vue3'
-import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
-import CustomTextInputField from '@/Components/CustomTextInputField.vue'
-import CollapsibleSection from '@/Components/CollapsibleSection.vue'
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
-import Checkbox2 from '@/Components/Checkbox2.vue'
-import Button from '@/Components/Button.vue'
-import Label from '@/Components/Label.vue'
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+import { ref, onMounted, reactive } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import { 
+    cl, back, populateArrayFromResponse, convertToIndexedValueObject, 
+    setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone 
+} from '@/Composables'
+import Label from '@/Components/Label.vue'
+import Button from '@/Components/Button.vue'
+import Checkbox2 from '@/Components/Checkbox2.vue'
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 import PasswordInputField from '@/Components/PasswordInputField.vue'
+import CollapsibleSection from '@/Components/CollapsibleSection.vue'
+import CustomTextInputField from '@/Components/CustomTextInputField.vue'
+import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 defineProps({
     errors:Object
 })
 
-const siteArray = ref(
-	[ "namba1.com", "namba2.com", "namba3.com" ]
-);
-const countriesArray = ref(
-	[ "Malaysia", "USA", "China", "Japan" ]
-);
-const accountTypeArray = ref(
+const siteArray = reactive({});
+const countriesArray = reactive({});
+const accountTypeArray = ref(convertToIndexedValueObject(
 	[ "Individual", "Joint", "Trust", "Corporate" ]
-);
-const accountManagerArray  = ref(
-	[ "122", "123", "124" ]
-);
-const rankArray  = ref(
+));
+const accountManagerArray  = reactive({});
+const rankArray  = ref(convertToIndexedValueObject(
 	[ "Normal", "VIP" ]
-);
-const clientArray  = ref(
+));
+const clientArray  = ref(convertToIndexedValueObject(
 	[ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ]
-);
+));
 
-const kycArray  = ref(
+const kycArray  = ref(convertToIndexedValueObject(
 	[ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ]
-);
+));
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
-	site: '',
-	username: '',
-	password: '',
-	password_confirmation: '',
-	account_id: '',
-	first_name: '',
-	last_name: '',
-	full_legal_name: '',
-	email: '',
-	phone_number: '',
-	address: '',
-	country_of_citizenship: '',
-	account_holder: '',
-	account_type: '',
-	customer_type: '',
-	account_manager: '',
-	lead_status: '',
-	client_stage: '',
-	rank: '',
-	remark: '',
-	previous_broker_name: '',
-	kyc_status: '',
-	is_active: false,
-	has_crm_access: false,
-	has_leads_access: false,
-	is_staff: false,
+	password: ' ',
+	password_confirmation: ' ',
+	last_login: ' ',
 	is_superuser: false,
-	last_login: '',
+	first_name: ' ',
+	last_name: ' ',
+	is_staff: false,
+	is_active: false,
+	date_joined: ' ',
+	username: ' ',
+	full_name: ' ',
+	email: ' ',
+	phone_number: ' ',
+	profile_picture: ' ',
+	is_email_verified: false,
+	timezone: dayjs.tz.guess(),
+	country: ' ',
+	address: ' ',
+	account_type: ' ',
+	account_holder: ' ',
+	customer_type: ' ',
+	rank: ' ',
+	remark: ' ',
+	wallet_balance: 0.00,
+	account_manager_id: ' ',
+	site_id: ' ',
+	has_crm_access: false,
+	lead_status: ' ',
+	client_stage: ' ',
+	has_leads_access: false,
+	identification_document_1: ' ',
+	identification_document_2: ' ',
+	identification_document_3: ' ',
+	kyc_status: ' ',
+	proof_of_address_document_1: ' ',
+	proof_of_address_document_2: ' ',
+	account_id: ' ',
+	previous_broker_name: ' ',
 });
 
 onMounted(async () => {
-  try {
-    const accountIdResponse = await axios.get(route('users-clients.generateAccountId'));
-    form.account_id = accountIdResponse.data.account_id;
+    try {
+        const accountIdResponse = await axios.get(route('users-clients.generateAccountId'));
+        form.account_id = accountIdResponse.data.account_id;
+        
+        const siteResponse = await axios.get(route('users-clients.getAllSites'));
+        populateArrayFromResponse(siteResponse.data, siteArray, 'id', 'domain');
 
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
+        const countriesResponse = await axios.get('https://countriesnow.space/api/v0.1/countries/iso');
+        populateArrayFromResponse(countriesResponse.data.data, countriesArray, 'Iso2', 'name');
+
+        const accountManagerResponse = await axios.get(route('users-clients.getAccountManagers'));
+
+        accountManagerResponse.data.forEach(item => {
+            accountManagerArray[item['id']] = {
+                value: item['username'] + " (" + item.site['name'] + ")",
+            };
+        });
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
-	form.phone_number = form.phone_number ? parseInt(form.phone_number) : '';
-	form.last_login = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
+	form.account_type = parseInt(form.account_type) ?? '';
+	form.rank = parseInt(form.rank) ?? '';
+	form.account_manager_id = parseInt(form.account_manager_id) ?? '';
+	form.site_id = parseInt(form.site_id) ?? '';
+	form.wallet_balance = parseFloat(form.wallet_balance) ?? '';
+	form.client_stage = parseInt(form.client_stage) ?? '';
+	form.kyc_status = parseInt(form.kyc_status) ?? '';
+    form.date_joined = setDateTimeWithOffset(true);
+    
+    // if (form.is_staff) {
+    //     form.last_login = dayjs(new Date()).tz('Asia/Kuala_Lumpur').format('YYYY-MM-DD HH:mm:ss.SSSSSSZZ').replace(/(\d{2})(\d{2})$/, '$1');
+    // }
 
     form.post(route('users-clients.store'), {
         preserveScroll: true,
@@ -158,10 +193,11 @@ const isValidNumber = (value) => {
                             <div class="input-group">
                                 <CustomSelectInputField
                                     :inputArray="siteArray"
-                                    :inputId="'site'"
+                                    :inputId="'site_id'"
                                     :labelValue="'Site'"
-                                    :errorMessage="form?.errors?.site ?? ''"
-                                    v-model="form.site"
+                                    :customValue="true"
+                                    :errorMessage="form?.errors?.site_id ?? ''"
+                                    v-model="form.site_id"
                                 />
                             </div>
                         </div>
@@ -245,11 +281,11 @@ const isValidNumber = (value) => {
                             />
                             <CustomTextInputField
                                 :labelValue="'Full Legal Name'"
-                                :inputId="'full_legal_name'"
+                                :inputId="'full_name'"
                                 class="col-span-full lg:col-span-2"
                                 :withTooltip="true"
-                                :errorMessage="form?.errors?.full_legal_name ?? '' "
-                                v-model="form.full_legal_name"
+                                :errorMessage="form?.errors?.full_name ?? '' "
+                                v-model="form.full_name"
                             >
                                 Please enter full legal name for the owner of this account.<br>
                                 For business, enter your full business name.
@@ -274,15 +310,15 @@ const isValidNumber = (value) => {
                                 class="col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.phone_number ?? '' "
                                 v-model="form.phone_number"
-                                @keypress="isNumber($event, false)"
                             />
                             <CustomSelectInputField
                                 :inputArray="countriesArray"
-                                :inputId="'country_of_citizenship'"
+                                :inputId="'country'"
                                 :labelValue="'Country of Citizenship'"
+                                :customValue="true"
+                                :errorMessage="form?.errors?.country ?? ''"
                                 class="col-span-full lg:col-span-2"
-                                :errorMessage="form?.errors?.country_of_citizenship ?? ''"
-                                v-model="form.country_of_citizenship"
+                                v-model="form.country"
                             />
                             <CustomTextInputField
                                 :inputType="'textarea'"
@@ -322,18 +358,20 @@ const isValidNumber = (value) => {
                                 :inputArray="accountTypeArray"
                                 :inputId="'account_type'"
                                 :labelValue="'Account type'"
+                                :customValue="true"
                                 class="col-start-1 col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.account_type ?? ''"
                                 v-model="form.account_type"
                             />
                             <CustomSelectInputField
                                 :inputArray="accountManagerArray"
-                                :inputId="'account_manager'"
+                                :inputId="'account_manager_id'"
                                 :labelValue="'Account manager'"
-                                class="col-span-full lg:col-span-2"
                                 :withTooltip="true"
-                                :errorMessage="form?.errors?.account_manager ?? ''"
-                                v-model="form.account_manager"
+                                :customValue="true"
+                                :errorMessage="form?.errors?.account_manager_id ?? ''"
+                                class="col-span-full lg:col-span-2"
+                                v-model="form.account_manager_id"
                             >
                                 Only CRM users can be assigned as account manager.
                             </CustomSelectInputField>
@@ -343,6 +381,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Rank'"
                                 class="col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.rank ?? ''"
+                                :customValue="true"
                                 v-model="form.rank"
                             />
                         </div>
@@ -369,6 +408,7 @@ const isValidNumber = (value) => {
                                 :labelValue="'Client stage'"
                                 class="col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.client_stage ?? ''"
+                                :customValue="true"
                                 v-model="form.client_stage"
                             />
                             <CustomTextInputField
@@ -408,6 +448,7 @@ const isValidNumber = (value) => {
                                     :inputId="'kyc_status'"
                                     :labelValue="'Kyc status'"
                                     :errorMessage="form?.errors?.kyc_status ?? ''"
+                                    :customValue="true"
                                     v-model="form.kyc_status"
                                 />
                             </div>

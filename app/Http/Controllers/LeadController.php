@@ -670,7 +670,7 @@ class LeadController extends Controller
     public function getLeads(Request $request)
     {
         if ($request['checkedFilters']) {
-            $query = DB::table('leads')->whereNull('deleted_at');
+            $query = Lead::whereNull('deleted_at');
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
@@ -716,7 +716,7 @@ class LeadController extends Controller
         }
 
         // Default fetch all on load
-        $data = DB::table('leads')->whereNull('deleted_at')->get();
+        $data = Lead::whereNull('deleted_at')->get();
 
         return response()->json($data);
     }
@@ -761,8 +761,7 @@ class LeadController extends Controller
         $give_up_at = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
 
         // Fetch all filter categories
-        $assignee = DB::table('leads')
-                        ->orderBy('assignee')
+        $assignee = Lead::orderBy('assignee')
                         ->groupBy('assignee')
                         ->pluck('assignee');
 

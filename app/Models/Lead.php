@@ -12,18 +12,19 @@ class Lead extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = "leads";
+    protected $table = "core_lead";
 
     protected $fillable = [
+        'date', 
         'first_name', 
         'last_name', 
         'country', 
+        'date_of_birth',
+        'occupation',
         'address',
         'date_oppd_in', 
         'campaign_product',
         'sdm',
-        'date_of_birth',
-        'occupation',
         'agents_book',
         'account_manager',
         'vc', 

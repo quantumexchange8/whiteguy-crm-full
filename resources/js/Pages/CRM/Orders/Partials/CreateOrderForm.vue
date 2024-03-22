@@ -10,6 +10,10 @@ import Checkbox2 from '@/Components/Checkbox2.vue';
 import Button from '@/Components/Button.vue';
 import Label from '@/Components/Label.vue';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import PasswordInputField from '@/Components/PasswordInputField.vue';
 import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue';
 
@@ -81,11 +85,16 @@ onMounted(async () => {
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
-    form.post(route('orders.store'), {
-        preserveScroll: true,
-        onSuccess: () => form.reset(),
+    cl(form.confirmed_at);
+    let melbTo08Date = dayjs(form.confirmed_at).utcOffset('+08:00')
+                        .format('YYYY-MM-DD HH:mm:ss.SSSSSSZZ')
+                        .replace(/(\d{2})(\d{2})$/, '$1');
+    cl(melbTo08Date);
+    // form.post(route('orders.store'), {
+    //     preserveScroll: true,
+    //     onSuccess: () => form.reset(),
     
-    })
+    // })
 };
 
 

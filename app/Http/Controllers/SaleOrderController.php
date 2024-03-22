@@ -4,15 +4,31 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class SaleOrderController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // Get the flashed messages from the session
+        $errors = $request->session()->get('errors');
+        $errorMsg = $request->session()->get('errorMsg');
+
+        // Clear the flashed messages from the session
+        $request->session()->forget('errors');
+        $request->session()->forget('errorMsg');
+        $request->session()->save();
+
+        if (isset($errorMsg)) {
+            return Inertia::render('CRM/SaleOrders/Index', [
+                'errors' => $errors,
+                'errorMsg' => $errorMsg
+            ]);
+        }
+        return Inertia::render('CRM/SaleOrders/Index');
     }
 
     /**
@@ -65,11 +81,7 @@ class SaleOrderController extends Controller
 
     public function getSaleOrders(Request $request)
     {   
-        // Fetch total count
-        $dataTotalCount = DB::table('sale_orders')->count();
-
-        // Fetch announcements
-        $data = DB::table('sale_orders')->orderBy('id')->cursorPaginate($dataTotalCount);
+        $data = DB::table('sale_orders')->orderBy('id')->get();
 
         return response()->json($data);
     }

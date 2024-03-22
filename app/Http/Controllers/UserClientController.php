@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\UsersExport;
-use App\Models\UserClient;
-use App\Http\Requests\UserClientRequest;
 use App\Models\User;
-use App\Models\UserClientChangelog;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
+use App\Models\Site;
+use App\Models\UserClient;
+use App\Exports\UsersExport;
+use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\DB;
+use App\Models\UserClientChangelog;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use App\Http\Requests\UserClientRequest;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rules\Password;
 
 class UserClientController extends Controller
 {
@@ -62,63 +64,76 @@ class UserClientController extends Controller
     public function store(UserClientRequest $request)
     {
         $data = $request->all();
-        
-        $userClientChanges = [];
+        // $data['date_joined'] = preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']);
+        // $userClientChanges = [];
 
+        // dd(preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']));
         // Insert into users_clients table
         $newUserClientData = User::create([
-            'site' => $data['site'],
-            'username' => $data['username'],
-            'password' => encrypt($data['password']),
-            'account_id' => $data['account_id'],
+            'password' => $data['password'],
+            'last_login' => $data['last_login'],
+            'is_superuser' => $data['is_superuser'],
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
-            'full_legal_name' => $data['full_legal_name'],
+            'is_staff' => $data['is_staff'],
+            'is_active' => $data['is_active'],
+            'date_joined' => $data['date_joined'],
+            'username' => $data['username'],
+            'full_name' => $data['full_name'],
             'email' => $data['email'],
             'phone_number' => $data['phone_number'],
-            'address' => $data['address'],
-            'country_of_citizenship' => $data['country_of_citizenship'],
-            'account_holder' => $data['account_holder'],
+            'profile_picture' => $data['profile_picture'] ?? '',
+            'is_email_verified' => $data['is_email_verified'],
+            'timezone' => $data['timezone'],
+            'country' => $data['country'],
+            'address' => $data['address'] ?? '',
             'account_type' => $data['account_type'],
+            'account_holder' => $data['account_holder'],
             'customer_type' => $data['customer_type'],
-            'account_manager' => $data['account_manager'],
+            'rank' => $data['rank'],
+            'remark' => $data['remark'] ?? '',
+            'wallet_balance' => $data['wallet_balance'],
+            'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']),
+            'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']),
+            'account_manager_id' => $data['account_manager_id'],
+            'site_id' => $data['site_id'],
+            'has_crm_access' => $data['has_crm_access'],
             'lead_status' => $data['lead_status'],
             'client_stage' => $data['client_stage'],
-            'rank' => $data['rank'],
-            'remark' => $data['remark'],
-            'previous_broker_name' => $data['previous_broker_name'],
-            'kyc_status' => $data['kyc_status'],
-            'is_active' => $data['is_active'],
-            'has_crm_access' => $data['has_crm_access'],
             'has_leads_access' => $data['has_leads_access'],
-            'is_staff' => $data['is_staff'],
-            'is_superuser' => $data['is_superuser'],
-            'last_login' => $data['last_login'],
+            'identification_document_1' => $data['identification_document_1'] ?? '',
+            'identification_document_2' => $data['identification_document_2'] ?? '',
+            'identification_document_3' => $data['identification_document_3'] ?? '',
+            'kyc_status' => $data['kyc_status'],
+            'proof_of_address_document_1' => $data['proof_of_address_document_1'] ?? '',
+            'proof_of_address_document_2' => $data['proof_of_address_document_2'] ?? '',
+            'account_id' => $data['previous_broker_name'],
+            'previous_broker_name' => $data['account_id'],
         ]);
         
-        foreach ($this->roles as $role => $dataKey) {
-            if ($data[$dataKey]) {
-                $newUserClientData->assignRole($role);
-            }
-        }
+        // foreach ($this->roles as $role => $dataKey) {
+        //     if ($data[$dataKey]) {
+        //         $newUserClientData->assignRole($role);
+        //     }
+        // }
 
         $newUserClientData->save();
 
         // Add the change to the user changes array
-        $userClientChanges['New'] = [
-            'description' => 'A new user has been created',
-        ];
+        // $userClientChanges['New'] = [
+        //     'description' => 'A new user has been created',
+        // ];
 
-        if (count($userClientChanges) > 0) {
-            $newUserClientChangelog = new UserClientChangelog;
+        // if (count($userClientChanges) > 0) {
+        //     $newUserClientChangelog = new UserClientChangelog;
 
-            $newUserClientChangelog->users_clients_id = $newUserClientData->id;
-            $newUserClientChangelog->column_name = 'users_clients';
-            $newUserClientChangelog->changes = $userClientChanges;
-            $newUserClientChangelog->description = 'The user has been successfully created';
+        //     $newUserClientChangelog->users_clients_id = $newUserClientData->id;
+        //     $newUserClientChangelog->column_name = 'users_clients';
+        //     $newUserClientChangelog->changes = $userClientChanges;
+        //     $newUserClientChangelog->description = 'The user has been successfully created';
 
-            $newUserClientChangelog->save();
-        }
+        //     $newUserClientChangelog->save();
+        // }
         
         $errorMsgTitle = "You have successfully created a new user.";
         $errorMsgType = "success";
@@ -342,7 +357,7 @@ class UserClientController extends Controller
     public function getUsersClients(Request $request)
     {   
         if ($request['checkedFilters']) {
-            $query = DB::table('users')->whereNull('deleted_at');
+            $query = new User;
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
@@ -372,11 +387,47 @@ class UserClientController extends Controller
                     }
                 }
             }
-            $data = $query->get();
+            $data = $query->with('site')->get();
 
             return response()->json($data);
         }
-        $data = DB::table('users')->whereNull('deleted_at')->get();
+
+        $data = User::with('site')
+                        ->orderByDesc('id')
+                        ->get();
+        
+        $ranks =[ "Normal", "VIP" ];
+        $client_stages = [ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ];
+        $kyc_statuses = [ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ];
+        $acc_types = [ "Individual", "Joint", "Trust", "Corporate" ];
+
+        foreach ($data as $user) {
+            // Handle client_stage attribute
+            if (!is_null($user->client_stage) && $user->client_stage !== '') {
+                $user->client_stage = $client_stages[$user->client_stage - 1];
+            }
+        
+            // Handle rank attribute
+            if (!is_null($user->rank) && $user->rank !== '') {
+                $user->rank = $ranks[$user->rank - 1];
+            }
+            
+            // Handle kyc_status attribute
+            if (!is_null($user->kyc_status) && $user->kyc_status !== '') {
+                $user->kyc_status = $kyc_statuses[$user->kyc_status - 1];
+            }
+            
+            // Handle account_type attribute
+            if (!is_null($user->account_type) && $user->account_type !== '') {
+                $user->account_type = $acc_types[$user->account_type - 1];
+            }
+
+            // Handle account_manager_id attribute
+            if (!is_null($user->account_manager_id) && $user->account_manager_id !== '') {
+                $accManager = User::find($user->account_manager_id);
+                $user->account_manager_id = $accManager->username . " (" . $accManager->site->name . ")";
+            }
+        }
 
         return response()->json($data);
     }
@@ -410,15 +461,16 @@ class UserClientController extends Controller
 
     public function getCategories(Request $request)
     {
-        $site = DB::table('users')
-                        ->orderBy('site')
-                        ->groupBy('site')
-                        ->pluck('site');
+        $site = DB::table('django_site')
+                        ->select('id','domain')
+                        ->orderBy('id')
+                        ->groupBy('id')
+                        ->get();
 
-        $is_active = [ 0, 1 ];
-        $account_type = [ 0, 1 ];
-        $client_stage = [ 0, 1 ];
-        $rank = [ 0, 1 ];
+        $is_active = [ false, true ];
+        $account_type = [ false, true ];
+        $client_stage = [ false, true ];
+        $rank = [ false, true ];
         $kyc_status = [ 
             "Not started", 
             "Pending documents", 
@@ -426,10 +478,10 @@ class UserClientController extends Controller
             "Rejected", 
             "Approved" 
         ];
-        $has_crm_access = [ 0, 1 ];
-        $has_leads_access = [ 0, 1 ];
-        $is_staff = [ 0, 1 ];
-        $is_superuser = [ 0, 1 ];
+        $has_crm_access = [ false, true ];
+        $has_leads_access = [ false, true ];
+        $is_staff = [ false, true ];
+        $is_superuser = [ false, true ];
 
         $data = [
             'site' => $site,
@@ -473,9 +525,34 @@ class UserClientController extends Controller
     {
         $orders = User::find($id)
                         ->orders()
-                        ->whereNull('deleted_at')
                         ->get();
 
+        $limb_stages = [ "ALLO", "Allo + docs", "TT", "CLEARED", "Cancelled", "Cancelled - bank block", "Cancelled - HTR", 
+                        "Cancelled - order drop", "Cancelled refuse trade", "Kicked", "Carry over", "Free switch" ];
+
+        foreach ($orders as $userOrders) {
+            // Handle limb_stage attribute
+            if (!is_null($userOrders->limb_stage) && $userOrders->limb_stage !== '') {
+                $userOrders->limb_stage = $limb_stages[$userOrders->limb_stage - 1];
+            }
+        }
+
         return response()->json($orders);
+    }
+
+    public function getAllSites()
+    {
+        $sites = Site::all();
+
+        return response()->json($sites);
+    }
+
+    public function getAccountManagers()
+    {
+        $accountManagers = User::where('has_crm_access', true)
+                                    ->with('site')
+                                    ->get();
+
+        return response()->json($accountManagers);
     }
 }

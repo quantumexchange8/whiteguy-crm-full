@@ -2,6 +2,11 @@ import { useDark, useToggle } from '@vueuse/core'
 import { reactive } from 'vue'
 import { router } from "@inertiajs/vue3";
 import { usePage } from '@inertiajs/vue3'
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const isDark = useDark()
 export const toggleDarkMode = useToggle(isDark)
@@ -84,4 +89,69 @@ export function replaceHyphensWithEmpty(obj) {
             obj[key] = '';
         }
     }
+}
+
+// Processes the response received from axios get request, into an object with the key as the desired value along with its item of 'value'
+export function populateArrayFromResponse(responseData, targetArray, idKey, valueKey) {
+    responseData.forEach(item => {
+        targetArray[item[idKey]] = {
+            value: item[valueKey],
+        };
+    });
+}
+
+// Convert the predefined array to an object with set of indexes
+export function convertToIndexedValueObject(array) {
+    return array.reduce((acc, value, index) => {
+        acc[index + 1] = { value };
+        return acc;
+    }, {});
+}
+
+/**
+ * Set the current date/datetime with the UTC offset of +08 for standardization.
+ * @param {boolean} withTime - Indicates whether to include time in the output.
+ * @returns {string} - The formatted date/datetime string.
+ */
+export function setDateTimeWithOffset(withTime = false) {
+    const currentDate = dayjs().utcOffset('+08:00');
+
+    if (withTime) {
+        return currentDate.format('YYYY-MM-DD HH:mm:ss.SSSSSSZZ');
+    }
+
+    return currentDate.format('YYYY-MM-DD');
+}
+
+/**
+ * Set the form date/datetime input with the UTC offset of +08 for standardization.
+ * @param {string | Date} date - The input date string or Date object.
+ * @param {boolean} withTime - Indicates whether to include time in the output.
+ * @returns {string} - The formatted date/datetime string.
+ */
+export function setFormattedDateTimeWithOffset(date, withTime = false) {
+    const dateTime = dayjs(date).utcOffset('+08:00');
+
+    if (withTime) {
+        return dateTime.format('YYYY-MM-DD HH:mm:ss.SSSSSSZZ');
+    }
+
+    return dateTime.format('YYYY-MM-DD');
+}
+
+/**
+ * Convert date/datetime retrieved from the database into a new date/datetime based on the user's timezone.
+ * @param {string | Date} date - The input date string or Date object.
+ * @param {string} timezone - The user's timezone.
+ * @param {boolean} withTime - Indicates whether to include time in the output.
+ * @returns {string} - The formatted date/datetime string.
+ */
+export function formatToUserTimezone(date, timezone, withTime = false) {
+    const convertedDate = dayjs(date).tz(timezone);
+
+    if (withTime) {
+        return convertedDate.format('DD/MM/YYYY HH:mm:ss');
+    }
+
+    return convertedDate.format('DD/MM/YYYY');
 }

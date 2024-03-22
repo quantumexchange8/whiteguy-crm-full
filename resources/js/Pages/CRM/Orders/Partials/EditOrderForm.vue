@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
-import { cl, back } from '@/Composables';
+import { cl, back, populateArrayFromResponse } from '@/Composables';
 import { useForm } from '@inertiajs/vue3';
 import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
 import CustomTextInputField from '@/Components/CustomTextInputField.vue';

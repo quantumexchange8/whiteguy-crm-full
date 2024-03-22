@@ -1,12 +1,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useToast } from "vue-toastification";
-import CustomToastification from '@/Components/CustomToastification.vue';
-import UserDetailsModal from './Partials/UserDetailsModal.vue'
-import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
-import Vue3Datatable from '@/Components/Vue3Datatable.vue'
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
-import "vue-toastification/dist/index.css";
+import Vue3Datatable from '@/Components/Vue3Datatable.vue'
+import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
+import UserDetailsModal from './Partials/UserDetailsModal.vue'
+import CustomToastification from '@/Components/CustomToastification.vue';
 
 const props = defineProps({
     errors:Object,
@@ -20,13 +19,13 @@ const pageTitle = "Users / Clients";
 const toast = useToast();
 const colArray = ref([
 	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
-    { field: "site", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "username", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm w-max" },
     { field: "account_id", title: "ACCOUNT ID", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "full_legal_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "full_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "lead_status", title: "LEAD STATUS", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
     { field: "client_stage", title: "CLIENT STAGE", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
     { field: "rank", title: "RANK", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
-    { field: "account_manager", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "account_manager_id", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm w-max" },
     { field: "kyc_status", title: "KYC STATUS", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "is_active", title: "ACTIVE", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "is_staff", title: "STAFF", headerClass: "text-gray-300 text-sm w-max"  },
