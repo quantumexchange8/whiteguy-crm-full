@@ -64,10 +64,8 @@ class UserClientController extends Controller
     public function store(UserClientRequest $request)
     {
         $data = $request->all();
-        // $data['date_joined'] = preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']);
         // $userClientChanges = [];
 
-        // dd(preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']));
         // Insert into users_clients table
         $newUserClientData = User::create([
             'password' => $data['password'],
@@ -86,12 +84,12 @@ class UserClientController extends Controller
             'is_email_verified' => $data['is_email_verified'],
             'timezone' => $data['timezone'],
             'country' => $data['country'],
-            'address' => $data['address'] ?? '',
+            'address' => $data['address'],
             'account_type' => $data['account_type'],
             'account_holder' => $data['account_holder'],
             'customer_type' => $data['customer_type'],
             'rank' => $data['rank'],
-            'remark' => $data['remark'] ?? '',
+            'remark' => $data['remark'],
             'wallet_balance' => $data['wallet_balance'],
             'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']),
             'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']),
@@ -160,9 +158,8 @@ class UserClientController extends Controller
      */
     public function edit(string $id)
     {
-        $data = User::find($id);
-
-        $data->password = decrypt($data->password);
+        $data = User::with(['site', 'orders'])
+                        ->find($id);
 
         return Inertia::render('CRM/UsersClients/Edit', [
             'data' => $data,
@@ -175,86 +172,101 @@ class UserClientController extends Controller
     public function update(UserClientRequest $request, string $id)
     {
         $data = $request->all();
+        // dd($data);
         
-        $userClientChanges = [];
+        // $data['date_joined'] = preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']);
+        // $userClientChanges = [];
 
         $oldUserClientData = User::find($id);
 
-        if (isset($oldUserClientData)) {
-            foreach ($oldUserClientData->toArray() as $key => $oldValue) {
-                if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at' || $key === 'password') {
-                    continue;
-                }
+        // if (isset($oldUserClientData)) {
+        //     foreach ($oldUserClientData->toArray() as $key => $oldValue) {
+        //         if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at' || $key === 'password') {
+        //             continue;
+        //         }
 
-                if ($key === 'is_active' || $key === 'has_crm_access' || $key === 'has_leads_access' || $key === 'is_staff' || $key === 'is_superuser') {
-                    $oldValue = boolval($oldValue);
-                }
+        //         if ($key === 'is_active' || $key === 'has_crm_access' || $key === 'has_leads_access' || $key === 'is_staff' || $key === 'is_superuser') {
+        //             $oldValue = boolval($oldValue);
+        //         }
                 
-                $newValue = $data[$key] ?? null;
+        //         $newValue = $data[$key] ?? null;
 
-                // Check if the value has changed
-                if ($newValue !== $oldValue) {
-                    $userClientChanges[$key] = [
-                        'old' => $oldValue,
-                        'new' => $newValue,
-                    ];
-                }
-            }
-        }
+        //         // Check if the value has changed
+        //         if ($newValue !== $oldValue) {
+        //             $userClientChanges[$key] = [
+        //                 'old' => $oldValue,
+        //                 'new' => $newValue,
+        //             ];
+        //         }
+        //     }
+        // }
+        // dd($data);
         
         // Insert into users_clients table
         $oldUserClientData->update([
-            'site' => $data['site'],
-            'username' => $data['username'],
-            'account_id' => $data['account_id'],
+            'password' => $data['password'],
+            'last_login' => $data['last_login'],
+            'is_superuser' => $data['is_superuser'],
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
-            'full_legal_name' => $data['full_legal_name'],
+            'is_staff' => $data['is_staff'],
+            'is_active' => $data['is_active'],
+            'date_joined' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date_joined']),
+            'username' => $data['username'],
+            'full_name' => $data['full_name'],
             'email' => $data['email'],
             'phone_number' => $data['phone_number'],
+            'profile_picture' => $data['profile_picture'] ?? '',
+            'is_email_verified' => $data['is_email_verified'],
+            'timezone' => $data['timezone'],
+            'country' => $data['country'],
             'address' => $data['address'],
-            'country_of_citizenship' => $data['country_of_citizenship'],
-            'account_holder' => $data['account_holder'],
             'account_type' => $data['account_type'],
+            'account_holder' => $data['account_holder'],
             'customer_type' => $data['customer_type'],
-            'account_manager' => $data['account_manager'],
-            'lead_status' => $data['lead_status'],
-            'client_stage' => $data['client_stage'],
             'rank' => $data['rank'],
             'remark' => $data['remark'],
-            'previous_broker_name' => $data['previous_broker_name'],
-            'kyc_status' => $data['kyc_status'],
-            'is_active' => $data['is_active'],
+            'wallet_balance' => $data['wallet_balance'],
+            'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+            'account_manager_id' => $data['account_manager_id'],
+            'site_id' => $data['site_id'],
             'has_crm_access' => $data['has_crm_access'],
+            'lead_status' => $data['lead_status'],
+            'client_stage' => $data['client_stage'],
             'has_leads_access' => $data['has_leads_access'],
-            'is_staff' => $data['is_staff'],
-            'is_superuser' => $data['is_superuser'],
-            'last_login' => $data['last_login'],
+            'identification_document_1' => $data['identification_document_1'] ?? '',
+            'identification_document_2' => $data['identification_document_2'] ?? '',
+            'identification_document_3' => $data['identification_document_3'] ?? '',
+            'kyc_status' => $data['kyc_status'],
+            'proof_of_address_document_1' => $data['proof_of_address_document_1'] ?? '',
+            'proof_of_address_document_2' => $data['proof_of_address_document_2'] ?? '',
+            'account_id' => $data['account_id'],
+            'previous_broker_name' => $data['previous_broker_name'],
         ]);
         
-        $assignedRoles = [];
+        // $assignedRoles = [];
         
-        foreach ($this->roles as $role => $dataKey) {
-            if ($request[$dataKey]) {
-                $assignedRoles[] = $role;
-            }
-        }
+        // foreach ($this->roles as $role => $dataKey) {
+        //     if ($request[$dataKey]) {
+        //         $assignedRoles[] = $role;
+        //     }
+        // }
 
         // Sync roles
-        $oldUserClientData->syncRoles($assignedRoles);
+        // $oldUserClientData->syncRoles($assignedRoles);
 
         $oldUserClientData->save();
         
-        if (count($userClientChanges) > 0) {
-            $newUserClientChangelog = new UserClientChangelog;
+        // if (count($userClientChanges) > 0) {
+        //     $newUserClientChangelog = new UserClientChangelog;
 
-            $newUserClientChangelog->users_clients_id = $id;
-            $newUserClientChangelog->column_name = 'users_clients';
-            $newUserClientChangelog->changes = $userClientChanges;
-            $newUserClientChangelog->description = 'The user has been successfully updated';
+        //     $newUserClientChangelog->users_clients_id = $id;
+        //     $newUserClientChangelog->column_name = 'users_clients';
+        //     $newUserClientChangelog->changes = $userClientChanges;
+        //     $newUserClientChangelog->description = 'The user has been successfully updated';
 
-            $newUserClientChangelog->save();
-        }
+        //     $newUserClientChangelog->save();
+        // }
         
         $errorMsgTitle = "You have successfully updated the user details.";
         $errorMsgType = "success";
@@ -284,27 +296,27 @@ class UserClientController extends Controller
         $user = User::find($request->id);
         
         $user->update([
-            'password' => encrypt($validated['password']),
+            'password' => $validated['password'],
         ]);
         $user->save();
 
-        $userClientChanges = [];
+        // $userClientChanges = [];
 
-        // Add the change to the user changes array
-        $userClientChanges['Password'] = [
-            'description' => 'The user password has been updated',
-        ];
+        // // Add the change to the user changes array
+        // $userClientChanges['Password'] = [
+        //     'description' => 'The user password has been updated',
+        // ];
 
-        if (count($userClientChanges) > 0) {
-            $newUserClientChangelog = new UserClientChangelog;
+        // if (count($userClientChanges) > 0) {
+        //     $newUserClientChangelog = new UserClientChangelog;
 
-            $newUserClientChangelog->users_clients_id = $request->id;
-            $newUserClientChangelog->column_name = 'users_clients';
-            $newUserClientChangelog->changes = $userClientChanges;
-            $newUserClientChangelog->description = 'The user has been successfully created';
+        //     $newUserClientChangelog->users_clients_id = $request->id;
+        //     $newUserClientChangelog->column_name = 'users_clients';
+        //     $newUserClientChangelog->changes = $userClientChanges;
+        //     $newUserClientChangelog->description = 'The user has been successfully created';
 
-            $newUserClientChangelog->save();
-        }
+        //     $newUserClientChangelog->save();
+        // }
         
         $errorMsgTitle = "You have successfully updated the user details.";
         $errorMsgType = "success";

@@ -670,7 +670,7 @@ class LeadController extends Controller
     public function getLeads(Request $request)
     {
         if ($request['checkedFilters']) {
-            $query = Lead::whereNull('deleted_at');
+            $query = new Lead;
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
@@ -700,7 +700,7 @@ class LeadController extends Controller
                     }
                 }
             }
-            $data = $query->get();
+            $data = $query->with(['creator', 'assignee'])->get();
             
             // if(isset($request['checkedFilters']['contact_outcome']) && count($request['checkedFilters']['contact_outcome']) > 0) {
             //     $data = DB::table('leads')
@@ -716,7 +716,12 @@ class LeadController extends Controller
         }
 
         // Default fetch all on load
-        $data = Lead::whereNull('deleted_at')->get();
+        $data = Lead::with(['creator:id,username', 'creator.site', 'assignee:id,username'])
+                        ->limit(900)
+                        ->orderByDesc('id')
+                        ->get();
+
+        
 
         return response()->json($data);
     }
@@ -731,39 +736,23 @@ class LeadController extends Controller
 
     public function getCategories(Request $request)
     {
-        $contact_outcome = [ 
-            "Disconnected Line", 
-            "Voicemail", 
-            "No Answer", 
-            "W/N", 
-            "Line not connecting", 
-            "H/U", 
-            "HU/DC", 
-            "N/I", 
-            "Deceased", 
-            "Left company", 
-            "Gate Keeper", 
-            "HU/NI", 
-            "Voip Blocker", 
-            "Front", 
-            "Call Back", 
-            "DEAL!", 
-            "Misc", 
-            "Voicemail (Ring)", 
-            "Not speak English", 
-            "Dup Batch" 
-        ];
+        $contact_outcome = DB::table('core_leadcontactoutcome')
+                                ->select('title')
+                                ->orderBy('id')
+                                ->get();
 
-        $stage = [ "Contact Made", "HTR", "Failed Close", "Front (Front Form)", "New Account (Sale Order Form)" ];
+        $stage = DB::table('core_leadstage')
+                        ->select('title')
+                        ->orderBy('id')
+                        ->get();
 
         $last_called = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
 
         $give_up_at = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
 
-        // Fetch all filter categories
-        $assignee = Lead::orderBy('assignee')
-                        ->groupBy('assignee')
-                        ->pluck('assignee');
+        $assignee = Lead::orderBy('assignee_id')
+                        ->groupBy('assignee_id')
+                        ->pluck('assignee_id');
 
         $data = [
             'contact_outcome' => $contact_outcome,

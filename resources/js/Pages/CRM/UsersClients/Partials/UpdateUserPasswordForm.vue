@@ -28,12 +28,6 @@ const formSubmit = () => {
     form.put(route('users-clients.updateUserPassword'), {
         preserveScroll: true,
         onSuccess: () => form.reset(),
-        onError: () => {
-            if (form.errors.password) {
-                form.reset('password', 'password_confirmation')
-                passwordInput.value.focus()
-            }
-        },
     })
 }
 </script>

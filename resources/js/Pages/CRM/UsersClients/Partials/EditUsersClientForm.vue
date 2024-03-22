@@ -1,7 +1,12 @@
 <script setup>
 import dayjs from 'dayjs';
-import { ref, onMounted } from 'vue';
-import { cl, back } from '@/Composables';
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+import { ref, onMounted, reactive } from 'vue';
+import { 
+    cl, back, populateArrayFromResponse, convertToIndexedValueObject, 
+    setDateTimeWithOffset, formatToUserTimezone 
+} from '@/Composables'
 import { useForm } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import Label from '@/Components/Label.vue';
@@ -9,15 +14,18 @@ import Button from '@/Components/Button.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import Checkbox2 from '@/Components/Checkbox2.vue';
 import { PlusIcon } from '@/Components/Icons/solid';
-import UserOrdersModal from './UserOrdersModal.vue';
 import { TrashIcon } from '@/Components/Icons/outline';
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue';
-import UpdateUserPasswordForm from './UpdateUserPasswordForm.vue';
 import CollapsibleSection from '@/Components/CollapsibleSection.vue';
 import PasswordInputField from '@/Components/PasswordInputField.vue';
 import CustomTextInputField from '@/Components/CustomTextInputField.vue';
 import CustomSelectInputField from '@/Components/CustomSelectInputField.vue';
 import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue';
+import UserOrdersModal from './UserOrdersModal.vue';
+import UpdateUserPasswordForm from './UpdateUserPasswordForm.vue';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -31,63 +39,99 @@ const filterIsOpen = ref(false);
 const userId = ref();
 const isUserOrdersModalOpen = ref(false);
 
-const siteArray = ref(
-	[ "namba1.com", "namba2.com", "namba3.com" ]
-);
-const countriesArray = ref(
-	[ "Malaysia", "USA", "China", "Japan" ]
-);
-const accountTypeArray = ref(
+const siteArray = reactive({});
+const countriesArray = reactive({});
+const accountTypeArray = ref(convertToIndexedValueObject(
 	[ "Individual", "Joint", "Trust", "Corporate" ]
-);
-const accountManagerArray  = ref(
-	[ "122", "123", "124" ]
-);
-const rankArray  = ref(
+));
+const accountManagerArray  = reactive({});
+const rankArray  = ref(convertToIndexedValueObject(
 	[ "Normal", "VIP" ]
-);
-const clientArray  = ref(
+));
+const clientArray  = ref(convertToIndexedValueObject(
 	[ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ]
-);
-const kycArray  = ref(
+));
+
+const kycArray  = ref(convertToIndexedValueObject(
 	[ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ]
-); 
+));
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
 	id: props.data.id,
-	site: props.data.site,
-	username: props.data.username,
-	account_id: props.data.account_id,
+	password: props.data.password,
+	is_staff: Boolean(props.data.is_staff),
+	is_active: Boolean(props.data.is_active),
+	password_confirmation: props.data.password_confirmation,
+	last_login: props.data.last_login,
+	is_superuser: Boolean(props.data.is_superuser),
 	first_name: props.data.first_name,
 	last_name: props.data.last_name,
-	full_legal_name: props.data.full_legal_name,
+	date_joined: `${props.data.date_joined}00`,
+	username: props.data.username,
+	full_name: props.data.full_name,
 	email: props.data.email,
 	phone_number: props.data.phone_number,
+	profile_picture: props.data.profile_picture,
+	is_email_verified: Boolean(props.data.is_email_verified),
+	timezone: props.data.timezone,
+	country: props.data.country,
 	address: props.data.address,
-	country_of_citizenship: props.data.country_of_citizenship,
-	account_holder: props.data.account_holder,
 	account_type: props.data.account_type,
+	account_holder: props.data.account_holder,
 	customer_type: props.data.customer_type,
-	account_manager: props.data.account_manager,
-	lead_status: props.data.lead_status,
-	client_stage: props.data.client_stage,
 	rank: props.data.rank,
 	remark: props.data.remark,
-	previous_broker_name: props.data.previous_broker_name,
-	kyc_status: props.data.kyc_status,
-	is_active: Boolean(props.data.is_active),
+	wallet_balance: props.data.wallet_balance,
+    edited_at: props.data.edited_at,
+    edited_at: props.data.edited_at,
+	account_manager_id: props.data.account_manager_id,
+	site_id: props.data.site_id,
 	has_crm_access: Boolean(props.data.has_crm_access),
+	lead_status: props.data.lead_status,
+	client_stage: props.data.client_stage,
 	has_leads_access: Boolean(props.data.has_leads_access),
-	is_staff: Boolean(props.data.is_staff),
-	is_superuser: Boolean(props.data.is_superuser),
-	last_login: props.data.last_login,
+	identification_document_1: props.data.identification_document_1,
+	identification_document_2: props.data.identification_document_2,
+	identification_document_3: props.data.identification_document_3,
+	kyc_status: props.data.kyc_status,
+	proof_of_address_document_1: props.data.proof_of_address_document_1,
+	proof_of_address_document_2: props.data.proof_of_address_document_2,
+	account_id: props.data.account_id,
+	previous_broker_name: props.data.previous_broker_name,
+});
+
+onMounted(async () => {
+    try {
+        const siteResponse = await axios.get(route('users-clients.getAllSites'));
+        populateArrayFromResponse(siteResponse.data, siteArray, 'id', 'domain');
+
+        const countriesResponse = await axios.get('https://countriesnow.space/api/v0.1/countries/iso');
+        populateArrayFromResponse(countriesResponse.data.data, countriesArray, 'Iso2', 'name');
+
+        const accountManagerResponse = await axios.get(route('users-clients.getAccountManagers'));
+
+        accountManagerResponse.data.forEach(item => {
+            accountManagerArray[item['id']] = {
+                value: item['username'] + " (" + item.site['name'] + ")",
+            };
+        });
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
-	form.phone_number = form.phone_number ? parseInt(form.phone_number) : '';
-	console.log(props.data.password);
+	form.account_type = parseInt(form.account_type) ?? '';
+	form.rank = parseInt(form.rank) ?? '';
+	form.wallet_balance = parseFloat(props.data.wallet_balance) ?? '',
+	form.account_manager_id = parseInt(form.account_manager_id) ?? '';
+	form.site_id = parseInt(form.site_id) ?? '';
+	form.client_stage = parseInt(form.client_stage) ?? '';
+	form.kyc_status = parseInt(form.kyc_status) ?? '';
+	form.edited_at = setDateTimeWithOffset(true);
+
 	form.put(route('users-clients.update', props.data.id), {
 		preserveScroll: true,
 		onSuccess: () => form.reset(),
@@ -171,11 +215,12 @@ const closeUserOrdersModal = () => {
                                 <div class="input-group">
                                     <CustomSelectInputField
                                         :inputArray="siteArray"
-                                        :inputId="'site'"
+                                        :inputId="'site_id'"
                                         :labelValue="'Site'"
-                                        :errorMessage="form?.errors?.site ?? ''"
-                                        :dataValue="props.data.site"
-                                        v-model="form.site"
+                                        :customValue="true"
+                                        :errorMessage="form?.errors?.site_id ?? ''"
+                                        :dataValue="props.data.site_id"
+                                        v-model="form.site_id"
                                     />
                                 </div>
                             </div>
@@ -308,12 +353,12 @@ const closeUserOrdersModal = () => {
                             />
                             <CustomTextInputField
                                 :labelValue="'Full Legal Name'"
-                                :inputId="'full_legal_name'"
+                                :inputId="'full_name'"
                                 class="col-span-full lg:col-span-2"
                                 :withTooltip="true"
-								:dataValue="props.data.full_legal_name"
-                                :errorMessage="form?.errors?.full_legal_name ?? '' "
-                                v-model="form.full_legal_name"
+								:dataValue="props.data.full_name"
+                                :errorMessage="form?.errors?.full_name ?? '' "
+                                v-model="form.full_name"
                             >
                                 Please enter full legal name for the owner of this account.<br>
                                 For business, enter your full business name.
@@ -344,12 +389,13 @@ const closeUserOrdersModal = () => {
                             />
                             <CustomSelectInputField
                                 :inputArray="countriesArray"
-                                :inputId="'country_of_citizenship'"
+                                :inputId="'country'"
                                 :labelValue="'Country of Citizenship'"
                                 class="col-span-full lg:col-span-2"
-                                :errorMessage="form?.errors?.country_of_citizenship ?? ''"
-                                :dataValue="props.data.country_of_citizenship"
-                                v-model="form.country_of_citizenship"
+                                :customValue="true"
+                                :errorMessage="form?.errors?.country ?? ''"
+                                :dataValue="props.data.country"
+                                v-model="form.country"
                             />
                             <CustomTextInputField
                                 :inputType="'textarea'"
@@ -409,7 +455,7 @@ const closeUserOrdersModal = () => {
                                 :inputId="'wallet_balance'"
                                 :labelValue="'Wallet Balance'"
                                 class="col-span-full lg:col-span-1"
-                                :dataValue="'0.00'"
+                                :dataValue="form.wallet_balance"
                             />
                             <CustomTextInputField
                                 :labelValue="'Account Holder Name'"
@@ -426,6 +472,7 @@ const closeUserOrdersModal = () => {
                                 :inputArray="accountTypeArray"
                                 :inputId="'account_type'"
                                 :labelValue="'Account type'"
+                                :customValue="true"
                                 class="col-start-1 col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.account_type ?? ''"
                                 :dataValue="props.data.account_type"
@@ -433,13 +480,14 @@ const closeUserOrdersModal = () => {
                             />
                             <CustomSelectInputField
                                 :inputArray="accountManagerArray"
-                                :inputId="'account_manager'"
+                                :inputId="'account_manager_id'"
                                 :labelValue="'Account manager'"
                                 class="col-span-full lg:col-span-2"
                                 :withTooltip="true"
-                                :errorMessage="form?.errors?.account_manager ?? ''"
-                                :dataValue="props.data.account_manager"
-                                v-model="form.account_manager"
+                                :customValue="true"
+                                :errorMessage="form?.errors?.account_manager_id ?? ''"
+                                :dataValue="props.data.account_manager_id"
+                                v-model="form.account_manager_id"
                             >
                                 Only CRM users can be assigned as account manager.
                             </CustomSelectInputField>
@@ -450,6 +498,7 @@ const closeUserOrdersModal = () => {
                                 class="col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.rank ?? ''"
                                 :dataValue="props.data.rank"
+                                :customValue="true"
                                 v-model="form.rank"
                             />
                         </div>
@@ -478,6 +527,7 @@ const closeUserOrdersModal = () => {
                                 :labelValue="'Client stage'"
                                 class="col-span-full lg:col-span-2"
                                 :errorMessage="form?.errors?.client_stage ?? ''"
+                                :customValue="true"
                                 :dataValue="props.data.client_stage"
                                 v-model="form.client_stage"
                             />
@@ -516,6 +566,7 @@ const closeUserOrdersModal = () => {
                                         :inputId="'kyc_status'"
                                         :labelValue="'Kyc status'"
                                         :errorMessage="form?.errors?.kyc_status ?? ''"
+                                        :customValue="true"
                                         :dataValue="props.data.kyc_status"
                                         v-model="form.kyc_status"
                                     />
@@ -588,12 +639,12 @@ const closeUserOrdersModal = () => {
                                     <CustomLabelGroup
                                         :inputId="'last_login'"
                                         :labelValue="'Last login'"
-                                        :dataValue="dayjs(props.data.last_login).format('YYYY-MM-DD HH:mm:ss')"
+                                        :dataValue="props.data.last_login ? formatToUserTimezone(props.data.last_login) : '-'"
                                     />
                                     <CustomLabelGroup
                                         :inputId="'date_joined'"
                                         :labelValue="'Date joined'"
-                                        :dataValue="dayjs(props.data.created_at).format('YYYY-MM-DD HH:mm:ss')"
+                                        :dataValue="formatToUserTimezone(props.data.created_at)"
                                     />
                                 </div>
                             </div>

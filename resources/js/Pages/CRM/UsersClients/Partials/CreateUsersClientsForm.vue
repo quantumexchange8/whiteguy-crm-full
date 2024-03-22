@@ -6,7 +6,7 @@ import { ref, onMounted, reactive } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { 
     cl, back, populateArrayFromResponse, convertToIndexedValueObject, 
-    setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone 
+    setDateTimeWithOffset 
 } from '@/Composables'
 import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
@@ -44,44 +44,44 @@ const kycArray  = ref(convertToIndexedValueObject(
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
-	password: ' ',
-	password_confirmation: ' ',
-	last_login: ' ',
+	password: '',
+	password_confirmation: '',
+	last_login: '',
 	is_superuser: false,
-	first_name: ' ',
-	last_name: ' ',
+	first_name: '',
+	last_name: '',
 	is_staff: false,
-	is_active: false,
-	date_joined: ' ',
-	username: ' ',
-	full_name: ' ',
-	email: ' ',
-	phone_number: ' ',
-	profile_picture: ' ',
+	is_active: true,
+	date_joined: '',
+	username: '',
+	full_name: '',
+	email: '',
+	phone_number: '',
+	profile_picture: '',
 	is_email_verified: false,
 	timezone: dayjs.tz.guess(),
-	country: ' ',
-	address: ' ',
-	account_type: ' ',
-	account_holder: ' ',
-	customer_type: ' ',
-	rank: ' ',
-	remark: ' ',
-	wallet_balance: 0.00,
-	account_manager_id: ' ',
-	site_id: ' ',
+	country: '',
+	address: '',
+	account_type: '',
+	account_holder: '',
+	customer_type: '',
+	rank: '',
+	remark: '',
+	wallet_balance: parseFloat(0.00),
+	account_manager_id: '',
+	site_id: '',
 	has_crm_access: false,
-	lead_status: ' ',
-	client_stage: ' ',
+	lead_status: '',
+	client_stage: '',
 	has_leads_access: false,
-	identification_document_1: ' ',
-	identification_document_2: ' ',
-	identification_document_3: ' ',
-	kyc_status: ' ',
-	proof_of_address_document_1: ' ',
-	proof_of_address_document_2: ' ',
-	account_id: ' ',
-	previous_broker_name: ' ',
+	identification_document_1: '',
+	identification_document_2: '',
+	identification_document_3: '',
+	kyc_status: '',
+	proof_of_address_document_1: '',
+	proof_of_address_document_2: '',
+	account_id: '',
+	previous_broker_name: '',
 });
 
 onMounted(async () => {
@@ -113,13 +113,12 @@ const formSubmit = () => {
 	form.rank = parseInt(form.rank) ?? '';
 	form.account_manager_id = parseInt(form.account_manager_id) ?? '';
 	form.site_id = parseInt(form.site_id) ?? '';
-	form.wallet_balance = parseFloat(form.wallet_balance) ?? '';
 	form.client_stage = parseInt(form.client_stage) ?? '';
 	form.kyc_status = parseInt(form.kyc_status) ?? '';
     form.date_joined = setDateTimeWithOffset(true);
     
     // if (form.is_staff) {
-    //     form.last_login = dayjs(new Date()).tz('Asia/Kuala_Lumpur').format('YYYY-MM-DD HH:mm:ss.SSSSSSZZ').replace(/(\d{2})(\d{2})$/, '$1');
+    //     form.last_login = setDateTimeWithOffset(true);
     // }
 
     form.post(route('users-clients.store'), {

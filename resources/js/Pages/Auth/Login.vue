@@ -1,5 +1,9 @@
 <script setup>
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { Link, useForm } from '@inertiajs/vue3'
+import { setDateTimeWithOffset } from '@/Composables'
 import { MailIcon, LockClosedIcon, LoginIcon } from '@heroicons/vue/outline'
 import InputIconWrapper from '@/Components/InputIconWrapper.vue'
 import Button from '@/Components/Button.vue'
@@ -11,6 +15,9 @@ import ValidationErrors from '@/Components/ValidationErrors.vue'
 import PasswordInputField from '@/Components/PasswordInputField.vue'
 import CustomTextInputField from '@/Components/CustomTextInputField.vue'
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 defineProps({
     canResetPassword: Boolean,
     status: String,
@@ -19,10 +26,13 @@ defineProps({
 const form = useForm({
     username: '',
     password: '',
+	last_login: '',
     remember: false
 })
 
 const submit = () => {
+    form.last_login = setDateTimeWithOffset(true);
+
     form.post(route('login'), {
         onSuccess: () => form.reset('password'),
     })

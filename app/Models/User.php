@@ -94,6 +94,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get leads created by the user.
+     */
+    public function createdLeads(): HasMany
+    {
+        return $this->hasMany(Lead::class, 'created_by_id');
+    }
+
+    /**
+     * Get leads assigned to the user.
+     */
+    public function assignedLeads(): HasMany
+    {
+        return $this->hasMany(Lead::class, 'assignee_id');
+    }
+
+    /**
      * Get user's orders.
      */
     public function orders(): HasMany

@@ -46,6 +46,7 @@ const proxyChecked = computed({
 	<div class="input-wrapper">
         <div class="flex flex-row gap-3">
             <input
+                :id="inputId"
                 type="checkbox"
                 :value="value"
                 v-model="proxyChecked"

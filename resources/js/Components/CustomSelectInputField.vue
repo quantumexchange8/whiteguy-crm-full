@@ -18,7 +18,7 @@ const props = defineProps({
 		default: () => [],
 	},
 	dataValue: {
-		type: String,
+		type: [String, Number],
 	},
     errorMessage: {
         type: String,
