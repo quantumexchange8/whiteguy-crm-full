@@ -9,15 +9,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LeadNote extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
-    protected $table = "lead_notes";
+    protected $table = "core_leadnote";
+
+    public $timestamps = false;
 
     protected $fillable = [
-        'linked_lead',
         'note', 
+        'attachment',
+        'edited_at',
+        'created_at',
+        'created_by_id', // from created_by
+        'lead_id', // from linked_lead
+        'color',
         'user_editable', 
-        'created_by',
     ];
     
     /**
@@ -25,6 +31,6 @@ class LeadNote extends Model
      */
     public function lead(): BelongsTo
     {
-        return $this->belongsTo(Lead::class, 'id');
+        return $this->belongsTo(Lead::class, 'lead_id');
     }
 }

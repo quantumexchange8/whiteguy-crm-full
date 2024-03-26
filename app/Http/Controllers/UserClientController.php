@@ -567,4 +567,11 @@ class UserClientController extends Controller
 
         return response()->json($accountManagers);
     }
+
+    public function getUserList()
+    {
+        $userList = User::with('site:id,name')->get();
+
+        return response()->json($userList);
+    }
 }

@@ -1,22 +1,23 @@
 <script setup>
-import { ThreeDotsVertical, CheckCircleFillIcon, TimesCircleIcon } from '@/Components/Icons/solid';
-import CustomFileInputField from '@/Components/CustomFileInputField.vue';
-import { TrashIcon, PageEditIcon } from '@/Components/Icons/outline';
-import { convertToHumanReadable, cl } from '@/Composables';
-import { ref, onMounted, reactive, watch } from "vue";
-import Vue3Datatable from "@bhplugin/vue3-datatable";
-import { useForm, router } from '@inertiajs/vue3';
-import "@bhplugin/vue3-datatable/dist/style.css";
-import Dropdown from '@/Components/Dropdown.vue';
-import { EyeIcon } from '@heroicons/vue/outline';
-import Button from '@/Components/Button.vue';
-import Input from '@/Components/Input.vue';
-import Modal from '@/Components/Modal.vue';
-import Label from '@/Components/Label.vue'
-import { Link } from '@inertiajs/vue3';
 import axios from "axios";
 import dayjs from 'dayjs';
+import { Link } from '@inertiajs/vue3';
+import { useForm, router, usePage } from '@inertiajs/vue3';
+import { ref, onMounted, reactive, watch, computed } from "vue";
+import Vue3Datatable from "@bhplugin/vue3-datatable";
+import "@bhplugin/vue3-datatable/dist/style.css";
+import { EyeIcon } from '@heroicons/vue/outline';
+import { convertToHumanReadable, cl, formatToUserTimezone } from '@/Composables';
+import Label from '@/Components/Label.vue'
+import Input from '@/Components/Input.vue';
+import Modal from '@/Components/Modal.vue';
+import Button from '@/Components/Button.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import { TrashIcon, PageEditIcon } from '@/Components/Icons/outline';
+import CustomFileInputField from '@/Components/CustomFileInputField.vue';
+import { ThreeDotsVertical, CheckCircleFillIcon, TimesCircleIcon } from '@/Components/Icons/solid';
 
+const page = usePage();
 const booleanColumns = reactive([]);
 const filterIsOpen = ref(false);
 const datatable = ref(null);
@@ -32,6 +33,8 @@ const showDeleteModal = ref(false);
 const rowDataId = ref(null);
 const rowsLength = ref();
 let originalData = null;
+
+const user = computed(() => page.props.auth.user)
 
 const props = defineProps({
     cols: {
@@ -294,13 +297,24 @@ const showAll = () => {
                     <strong><span class="text-purple-300">#{{ rows.value.id }}</span></strong>
                 </Link>
             </template>
-            <template #site="rows">
-                <Link 
-                    :href="route(detailsLink + '.edit', rows.value.id)"
-                    class="font-medium"
-                >
-                    <strong><span class="text-purple-300">{{ rows.value.username }} ({{ rows.value.site }})</span></strong>
-                </Link>
+            <template #username="rows">
+                <div class="min-w-max">
+                    <Link 
+                        :href="route(detailsLink + '.edit', rows.value.id)"
+                        class="font-medium"
+                    >
+                        <strong><span class="text-purple-300">{{ rows.value.username }} ({{ rows.value.site.name }})</span></strong>
+                    </Link>
+                </div>
+            </template>
+            <template #total="rows">
+                <div class="min-w-max">{{ parseFloat(rows.value.price * rows.value.quantity).toFixed(2) }}</div>
+            </template>
+            <template #assignee="rows">
+                <div class="min-w-max">{{ rows.value.lead.assignee.username }} ({{ rows.value.lead.assignee.site.name }})</div>
+            </template>
+            <template #user_id="rows">
+                <div class="min-w-max">{{ rows.value.user.full_name }} ({{ rows.value.user.site.name }})</div>
             </template>
             <template #sdm="rows">
                 <CheckCircleFillIcon 
@@ -312,14 +326,25 @@ const showAll = () => {
                     v-else-if="!Boolean(rows.value.sdm)"
                 />
             </template>
-            <template #last_called="rows">
-                <div class="min-w-max">{{ rows.value.last_called }}</div>
+            <template #date="rows">
+                <div class="min-w-max">{{ (rows.value.date && rows.value.date !== '-') ? formatToUserTimezone(rows.value.date, user.timezone) : '-' }}</div>
+            </template>
+            <template #contacted_at="rows">
+                <div class="min-w-max">{{ (rows.value.contacted_at && rows.value.contacted_at !== '-') ? formatToUserTimezone(rows.value.contacted_at, user.timezone, true) : '-' }}</div>
             </template>
             <template #give_up_at="rows">
-                <div class="min-w-max">{{ rows.value.give_up_at }}</div>
+                <div class="min-w-max">{{ (rows.value.give_up_at && rows.value.give_up_at !== '-') ? formatToUserTimezone(rows.value.give_up_at, user.timezone, true) : '-' }}</div>
             </template>
-            <template #date_oppd_in="rows">
-                <div class="min-w-max">{{ rows.value.date_oppd_in }}</div>
+            <template #email="rows">
+                <div class="min-w-max">{{ rows.value.email }}</div>
+            </template>
+            <template #status="rows">
+                <div class="min-w-max" v-if="rows.value.status === 1">
+                    <span class="bg-yellow-600 rounded-md p-1 text-gray-900 text-xs font-bold">Pending</span>
+                </div>
+                <div class="min-w-max" v-else-if="rows.value.status === 2">
+                    <span class="bg-green-600/80 rounded-md p-1 text-gray-900 text-xs font-bold">Approved</span>
+                </div>
             </template>
             <template #liquid="rows">
                 <CheckCircleFillIcon 
@@ -370,6 +395,12 @@ const showAll = () => {
                     class="flex-shrink-0 w-5 h-5"
                     v-else-if="!Boolean(rows.value.has_leads_access)"
                 />
+            </template>
+            <template #lead_id="rows">
+                <div class="min-w-max">{{ rows.value.lead.first_name }} {{ rows.value.lead.last_name }}</div>
+            </template>
+            <template #payment_method_id="rows">
+                <div class="min-w-max">{{ rows.value.payment_method.title }}</div>
             </template>
         </vue3-datatable>
     </div>

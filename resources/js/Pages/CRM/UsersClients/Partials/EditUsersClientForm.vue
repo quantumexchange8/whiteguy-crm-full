@@ -2,12 +2,12 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
 import { 
     cl, back, populateArrayFromResponse, convertToIndexedValueObject, 
     setDateTimeWithOffset, formatToUserTimezone 
 } from '@/Composables'
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import Label from '@/Components/Label.vue';
 import Button from '@/Components/Button.vue';
@@ -35,10 +35,10 @@ const props = defineProps({
         default: () => ({}),
     },
 })
+const page = usePage();
 const filterIsOpen = ref(false);
 const userId = ref();
 const isUserOrdersModalOpen = ref(false);
-
 const siteArray = reactive({});
 const countriesArray = reactive({});
 const accountTypeArray = ref(convertToIndexedValueObject(
@@ -56,6 +56,8 @@ const kycArray  = ref(convertToIndexedValueObject(
 	[ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ]
 ));
 
+const user = computed(() => page.props.auth.user)
+
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
 	id: props.data.id,
@@ -63,7 +65,7 @@ const form = useForm({
 	is_staff: Boolean(props.data.is_staff),
 	is_active: Boolean(props.data.is_active),
 	password_confirmation: props.data.password_confirmation,
-	last_login: props.data.last_login,
+	last_login: `${props.data.last_login}00`,
 	is_superuser: Boolean(props.data.is_superuser),
 	first_name: props.data.first_name,
 	last_name: props.data.last_name,
@@ -84,7 +86,7 @@ const form = useForm({
 	remark: props.data.remark,
 	wallet_balance: props.data.wallet_balance,
     edited_at: props.data.edited_at,
-    edited_at: props.data.edited_at,
+    created_at: `${props.data.created_at}00`,
 	account_manager_id: props.data.account_manager_id,
 	site_id: props.data.site_id,
 	has_crm_access: Boolean(props.data.has_crm_access),
@@ -639,12 +641,12 @@ const closeUserOrdersModal = () => {
                                     <CustomLabelGroup
                                         :inputId="'last_login'"
                                         :labelValue="'Last login'"
-                                        :dataValue="props.data.last_login ? formatToUserTimezone(props.data.last_login) : '-'"
+                                        :dataValue="props.data.last_login ? formatToUserTimezone(props.data.last_login, user.timezone, true) : '-'"
                                     />
                                     <CustomLabelGroup
                                         :inputId="'date_joined'"
                                         :labelValue="'Date joined'"
-                                        :dataValue="formatToUserTimezone(props.data.created_at)"
+                                        :dataValue="formatToUserTimezone(props.data.created_at, user.timezone, true)"
                                     />
                                 </div>
                             </div>

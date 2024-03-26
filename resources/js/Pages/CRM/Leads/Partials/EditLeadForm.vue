@@ -1,18 +1,18 @@
 <script setup>
-import { cl, back } from '@/Composables'
-import { ref, onMounted } from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import { PlusIcon } from '@/Components/Icons/solid'
-import { TrashIcon } from '@/Components/Icons/outline'
+import dayjs from 'dayjs';
+import { ref, onMounted, reactive, computed } from 'vue'
+import { useForm, usePage } from '@inertiajs/vue3'
+import { cl, back, populateArrayFromResponse, setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone } from '@/Composables'
+import Modal from '@/Components/Modal.vue'
 import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
 import Checkbox from '@/Components/Checkbox.vue'
+import { PlusIcon } from '@/Components/Icons/solid'
+import { TrashIcon } from '@/Components/Icons/outline'
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 import CustomTextInputField from '@/Components/CustomTextInputField.vue'
 import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
 import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue'
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
-import Modal from '@/Components/Modal.vue'
-import dayjs from 'dayjs';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -31,6 +31,11 @@ const props = defineProps({
     },
 })
 
+const page = usePage();
+const stageArray = reactive({});
+const contactOutcomeArray = reactive({});
+const appointmentLabelArray = reactive({});
+const userListArray  = reactive({});
 const showPersonalInformationSection= ref(true);
 const showLeadDetailsSection = ref(true);
 const showLeadFrontForm = ref((props.leadFrontData) ? true : false);
@@ -41,7 +46,30 @@ const selectedLeadNote = ref(null);
 const leadFrontEditedAt = ref('-');
 const leadFrontCreatedAt = ref('-');
 
-onMounted(() => {
+const user = computed(() => page.props.auth.user)
+
+onMounted(async () => {
+    try {
+        const leadStageResponse = await axios.get(route('leads.getAllLeadStages'));
+        populateArrayFromResponse(leadStageResponse.data, stageArray, 'id', 'title');
+
+        const leadContactOutcomeResponse = await axios.get(route('leads.getAllLeadContactOutcomes'));
+        populateArrayFromResponse(leadContactOutcomeResponse.data, contactOutcomeArray, 'id', 'title');
+
+        const leadAppointmentLabelResponse = await axios.get(route('leads.getAllLeadAppointmentLabels'));
+        populateArrayFromResponse(leadAppointmentLabelResponse.data, appointmentLabelArray, 'id', 'title');
+
+        const userListResponse = await axios.get(route('users-clients.getUserList'));
+
+        userListResponse.data.forEach(item => {
+            userListArray[item['id']] = {
+                value: item['username'] + " (" + item.site['name'] + ")",
+            };
+        });
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+
     if (props.leadFrontData) {
         leadFrontCreatedAt.value = props.leadFrontData.created_at;
     } else {
@@ -49,40 +77,17 @@ onMounted(() => {
     }
 });
 
-const appointmentLabelArray = ref(
-	[ "Call Back", "Close", "Front Follow Up", "Close Follow Up", "Service Call" ]
-);
-const contactOutcomeArray  = ref(
-	[ "Disconnected Line", "Voicemail", "No Answer", "W/N", "Line not connecting", "H/U", "HU/DC", "N/I", "Deceased", "Left company", "Gate Keeper", "HU/NI", "Voip Blocker", "Front", "Call Back", "DEAL!", "Misc", "Voicemail (Ring)", "Not speak English", "Dup Batch" ]
-);
-const assigneeArray  = ref(
-	[ "125", "124", "123", "122", "121", "120" ]
-);
-const stageArray  = ref(
-	[ "Contact Made", "HTR", "Failed Close", "Front (Front Form)", "New Account (Sale Order Form)" ]
-);
-const createdByArray  = ref(
-	[ "125", "124", "123", "122", "121", "120" ]
-);
-
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
 	id: props.data.id,
+	date: props.data.date,
 	first_name: props.data.first_name,
 	last_name: props.data.last_name,
 	country: props.data.country,
-	address: props.data.address,
-	date_oppd_in: props.data.date_oppd_in,
-	campaign_product: props.data.campaign_product,
-	sdm: props.data.sdm,
 	date_of_birth: props.data.date_of_birth,
 	occupation: props.data.occupation,
-	agents_book: props.data.agents_book,
-	account_manager: props.data.account_manager,
 	vc: props.data.vc,
-	data_type: props.data.data_type,
-	data_source: props.data.data_source,
-	data_code: props.data.data_code,
+	sdm: props.data.sdm,
 	email: props.data.email,
 	email_alt_1: props.data.email_alt_1,
 	email_alt_2: props.data.email_alt_2,
@@ -91,19 +96,31 @@ const form = useForm({
 	phone_number_alt_1: props.data.phone_number_alt_1,
 	phone_number_alt_2: props.data.phone_number_alt_2,
 	phone_number_alt_3: props.data.phone_number_alt_3,
+	attachment: props.data.attachment,
 	private_remark: props.data.private_remark,
 	remark: props.data.remark,
+	data_source: props.data.data_source,
 	appointment_start_at: props.data.appointment_start_at,
 	appointment_end_at: props.data.appointment_end_at,
-	last_called: props.data.last_called,
+	contacted_at: props.data.contacted_at,
 	assignee_read_at: props.data.assignee_read_at,
+	edited_at: props.data.edited_at,
+	created_at: `${props.data.created_at}00`,
+	appointment_label_id: props.data.appointment_label_id,
+	assignee_id: props.data.assignee_id,
+	contact_outcome_id: props.data.contact_outcome_id,
+	created_by_id: props.data.created_by_id,
+	stage_id: props.data.stage_id,
 	give_up_at: props.data.give_up_at,
-	appointment_label: props.data.appointment_label,
-	contact_outcome: props.data.contact_outcome,
-	stage: props.data.stage,
-	assignee: props.data.assignee,
-	created_by: props.data.created_by,
-	delete_at: props.data.delete_at,
+	account_manager: props.data.account_manager,
+	address: props.data.address,
+	agents_book: props.data.agents_book,
+	campaign_product: props.data.campaign_product,
+	data_code: props.data.data_code,
+	data_type: props.data.data_type,
+	deleted_at: props.data.deleted_at,
+	deleted_note: props.data.deleted_note,
+	sort_id: props.data.sort_id,
     create_lead_front: (props.leadFrontData) ? true : false,
     lead_front_id: (props.leadFrontData) ? props.leadFrontData.id : '',
 	lead_front_name: (props.leadFrontData) ? props.leadFrontData.name : '',
@@ -111,29 +128,39 @@ const form = useForm({
 	lead_front_product: (props.leadFrontData) ? props.leadFrontData.product : '',
 	lead_front_quantity: (props.leadFrontData) ? props.leadFrontData.quantity : '',
 	lead_front_price: (props.leadFrontData) ? props.leadFrontData.price : '',
-	lead_front_sdm: (props.leadFrontData) ? Boolean(props.leadFrontData.sdm) : false,
-	lead_front_liquid: (props.leadFrontData) ? Boolean(props.leadFrontData.liquid) : false,
-	lead_front_bank_name: (props.leadFrontData) ? props.leadFrontData.bank_name : '',
-	lead_front_bank_account: (props.leadFrontData) ? props.leadFrontData.bank_account : '',
+	lead_front_sdm: (props.leadFrontData) ? props.leadFrontData.sdm : false,
+	lead_front_liquid: (props.leadFrontData) ? props.leadFrontData.liquid : false,
+	lead_front_bank: (props.leadFrontData) ? props.leadFrontData.bank : '',
+	// lead_front_bank_name: (props.leadFrontData) ? props.leadFrontData.bank_name : '',
+	// lead_front_bank_account: (props.leadFrontData) ? props.leadFrontData.bank_account : '',
 	lead_front_note: (props.leadFrontData) ? props.leadFrontData.note : '',
 	lead_front_commission: (props.leadFrontData) ? props.leadFrontData.commission : '',
 	lead_front_vc: (props.leadFrontData) ? props.leadFrontData.vc : '',
-	lead_front_edited_at: (props.leadFrontData) ? props.leadFrontData.edited_at : '-',
-	lead_front_created_at: (props.leadFrontData) ? props.leadFrontData.created_at : '-',
+	lead_front_edited_at: (props.leadFrontData) ? formatToUserTimezone(props.leadFrontData.edited_at, user.timezone, true) : '-',
+	lead_front_created_at: (props.leadFrontData) ? formatToUserTimezone(props.leadFrontData.created_at, user.timezone, true) : '-',
+	lead_front_email: '',
+	lead_front_phone_number: '',
     lead_notes: (props.leadNotesData) ? props.leadNotesData : [],
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
-	form.phone_number = form.phone_number ? parseInt(form.phone_number) : '';
-	form.phone_number_alt_1 = form.phone_number_alt_1 ? parseInt(form.phone_number_alt_1) : '';
-	form.phone_number_alt_2 = form.phone_number_alt_2 ? parseInt(form.phone_number_alt_2) : '';
-	form.phone_number_alt_3 = form.phone_number_alt_3 ? parseInt(form.phone_number_alt_3) : '';
-	form.lead_front_bank_account = form.lead_front_bank_account ? parseInt(form.lead_front_bank_account) : '';
-	form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : 0;
-	form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : 0;
-	form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : 0;
-	form.lead_front_edited_at = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
+    form.edited_at = setDateTimeWithOffset(true);
+    form.appointment_start_at = form.appointment_start_at ? setFormattedDateTimeWithOffset(form.appointment_start_at,true) : form.appointment_start_at;
+    form.appointment_end_at = form.appointment_end_at ? setFormattedDateTimeWithOffset(form.appointment_end_at, true) : form.appointment_end_at;
+    form.contacted_at = form.contacted_at ? setFormattedDateTimeWithOffset(form.contacted_at, true) : form.contacted_at;
+    form.assignee_read_at = form.assignee_read_at ? setFormattedDateTimeWithOffset(form.assignee_read_at, true) : form.assignee_read_at;
+    form.give_up_at = form.give_up_at ? setFormattedDateTimeWithOffset(form.give_up_at, true) : form.give_up_at;
+    form.deleted_at = form.deleted_at ? setFormattedDateTimeWithOffset(form.deleted_at, true) : form.deleted_at;
+
+	if (form.create_lead_front) {
+        form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : 0;
+        form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : 0;
+        form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : 0;
+        form.lead_front_edited_at = setDateTimeWithOffset(true);
+        form.lead_front_email = form.email;
+        form.lead_front_phone_number = form.phone_number;
+    }
 
 	form.put(route('leads.update', props.data.id), {
         preserveScroll: true,
@@ -185,13 +212,16 @@ const clearLeadFrontFormFields = () => {
     form.lead_front_price = 0;
     form.lead_front_sdm = false;
     form.lead_front_liquid = false;
-    form.lead_front_bank_name = '';
-    form.lead_front_bank_account = '';
+    form.lead_front_bank = '';
     form.lead_front_note = '';
     form.lead_front_commission = 0;
     form.lead_front_vc = '';
     form.lead_front_edited_at = '-';
     form.lead_front_created_at = '-';
+	form.lead_front_edited_at = '';
+	form.lead_front_created_at = '';
+	form.lead_front_email = '';
+	form.lead_front_phone_number = '';
     form.reset()
 
     closeModal()
@@ -212,11 +242,12 @@ const deleteLeadFront = () => {
                     lead_front_price: 0,
                     lead_front_sdm: false,
                     lead_front_liquid: false,
-                    lead_front_bank_name: '',
-                    lead_front_bank_account: '',
+                    lead_front_bank: '',
                     lead_front_note: '',
                     lead_front_commission: 0,
                     lead_front_vc: '',
+                    lead_front_email: '',
+                    lead_front_phone_number: '',
                     lead_front_edited_at: '-',
                     lead_front_created_at: '-',
                 });
@@ -233,11 +264,14 @@ const deleteLeadFront = () => {
         form.lead_front_price = 0.00;
         form.lead_front_sdm = false;
         form.lead_front_liquid = false;
-        form.lead_front_bank_name = '';
-        form.lead_front_bank_account = '';
+        form.lead_front_bank = '';
         form.lead_front_note = '';
         form.lead_front_commission = 0.00;
         form.lead_front_vc = '';
+        form.lead_front_edited_at = '';
+        form.lead_front_created_at = '';
+        form.lead_front_email = '';
+        form.lead_front_phone_number = '';
         
         closeModal();
     }
@@ -259,7 +293,7 @@ const addLeadNote = () => {
     form.lead_notes.push({
         'note': '',
         'user_editable': false,
-        'created_by': '',
+        'created_by_id': '',
     });
 }
 
@@ -374,40 +408,32 @@ const closeLeadNoteModal = () => {
                     <div class="col-span-2 flex flex-col gap-8">
                         <div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <CustomTextInputField
-                                :inputType="'number'"
                                 :inputId="'phoneNumber'"
                                 :labelValue="'Phone Number'"
                                 :errorMessage="(form.errors) ? form.errors.phone_number : '' "
                                 :dataValue="props.data.phone_number"
                                 v-model="form.phone_number"
-                                @keypress="isNumber($event, false)"
                             />
                             <CustomTextInputField
-                                :inputType="'number'"
                                 :inputId="'addPhoneNumber1'"
                                 :labelValue="'Additional Phone Number 1'"
                                 :errorMessage="(form.errors) ? form.errors.phone_number_alt_1 : '' "
                                 :dataValue="props.data.phone_number_alt_1"
                                 v-model="form.phone_number_alt_1"
-                                @keypress="isNumber($event, false)"
                             />
                             <CustomTextInputField
-                                :inputType="'number'"
                                 :inputId="'addPhoneNumber2'"
                                 :labelValue="'Additional Phone Number 2'"
                                 :errorMessage="(form.errors) ? form.errors.phone_number_alt_2 : '' "
                                 :dataValue="props.data.phone_number_alt_2"
                                 v-model="form.phone_number_alt_2"
-                                @keypress="isNumber($event, false)"
                             />
                             <CustomTextInputField
-                                :inputType="'number'"
                                 :inputId="'addPhoneNumber3'"
                                 :labelValue="'Additional Phone Number 3'"
                                 :errorMessage="(form.errors) ? form.errors.phone_number_alt_3 : '' "
                                 :dataValue="props.data.phone_number_alt_3"
                                 v-model="form.phone_number_alt_3"
-                                @keypress="isNumber($event, false)"
                             />
                         </div>
                         <div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -475,9 +501,9 @@ const closeLeadNoteModal = () => {
                             :labelValue="'Date Opp&rsquo;d In'"
                             :inputId="'dateOppdIn'"
                             :dateTimeOpt="true"
-                            :errorMessage="(form.errors) ? form.errors.date_oppd_in : '' "
-                            :dataValue="props.data.date_oppd_in"
-                            v-model="form.date_oppd_in"
+                            :errorMessage="(form.errors) ? form.errors.date : '' "
+                            :dataValue="props.data.date"
+                            v-model="form.date"
                         />
                         <CustomTextInputField
                             :inputId="'campaignProduct'"
@@ -557,9 +583,10 @@ const closeLeadNoteModal = () => {
                                 :inputArray="appointmentLabelArray"
                                 :inputId="'appointmentLabel'"
                                 :labelValue="'Appointment Label'"
-                                :errorMessage="(form.errors) ? form.errors.appointment_label : '' "
-                                :dataValue="props.data.appointment_label"
-                                v-model="form.appointment_label"
+                                :customValue="true"
+                                :errorMessage="(form.errors) ? form.errors.appointment_label_id : '' "
+                                :dataValue="props.data.appointment_label_id"
+                                v-model="form.appointment_label_id"
                             />
                             <CustomDateTimeInputField
                                 :labelValue="'Appointment Start'"
@@ -583,17 +610,18 @@ const closeLeadNoteModal = () => {
                                 :labelValue="'Last Called'"
                                 :inputId="'lastCalled'"
                                 :dateTimeOpt="true"
-                                :errorMessage="(form.errors) ? form.errors.last_called : '' "
-                                :dataValue="props.data.last_called"
-                                v-model="form.last_called"
+                                :errorMessage="(form.errors) ? form.errors.contacted_at : '' "
+                                :dataValue="props.data.contacted_at"
+                                v-model="form.contacted_at"
                             />
                             <CustomSelectInputField
                                 :inputArray="contactOutcomeArray"
                                 :inputId="'contactOutcome'"
                                 :labelValue="'Contact Outcome'"
-                                :errorMessage="(form.errors) ? form.errors.contact_outcome : '' "
-                                :dataValue="props.data.contact_outcome"
-                                v-model="form.contact_outcome"
+                                :customValue="true"
+                                :errorMessage="(form.errors) ? form.errors.contact_outcome_id : '' "
+                                :dataValue="props.data.contact_outcome_id"
+                                v-model="form.contact_outcome_id"
                             />
                             <CustomDateTimeInputField
                                 :labelValue="'Give Up?'"
@@ -606,12 +634,13 @@ const closeLeadNoteModal = () => {
                         </div>
                         <div class="input-group grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <CustomSelectInputField
-                                :inputArray="assigneeArray"
-                                :inputId="'assignee'"
+                                :inputArray="userListArray"
+                                :inputId="'assignee_id'"
                                 :labelValue="'Assignee'"
-                                :errorMessage="(form.errors) ? form.errors.assignee : '' "
-                                :dataValue="props.data.assignee"
-                                v-model="form.assignee"
+                                :customValue="true"
+                                :errorMessage="(form.errors) ? form.errors.assignee_id : '' "
+                                :dataValue="props.data.assignee_id"
+                                v-model="form.assignee_id"
                             />
                             <CustomDateTimeInputField
                                 :labelValue="'Assignee Read At'"
@@ -623,11 +652,12 @@ const closeLeadNoteModal = () => {
                             />
                             <CustomSelectInputField
                                 :inputArray="stageArray"
-                                :inputId="'stage'"
+                                :inputId="'stage_id'"
                                 :labelValue="'Stage'"
-                                :errorMessage="(form.errors) ? form.errors.stage : '' "
-                                :dataValue="props.data.stage"
-                                v-model="form.stage"
+                                :customValue="true"
+                                :errorMessage="(form.errors) ? form.errors.stage_id : '' "
+                                :dataValue="props.data.stage_id"
+                                v-model="form.stage_id"
                             />
                         </div>
                         <div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -650,20 +680,21 @@ const closeLeadNoteModal = () => {
                         </div>
                         <div class="input-group grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <CustomSelectInputField
-                                :inputArray="createdByArray"
+                                :inputArray="userListArray"
                                 :inputId="'createdBy'"
                                 :labelValue="'Created By'"
-                                :errorMessage="(form.errors) ? form.errors.created_by : '' "
-                                :dataValue="props.data.created_by"
-                                v-model="form.created_by"
+                                :customValue="true"
+                                :errorMessage="(form.errors) ? form.errors.created_by_id : '' "
+                                :dataValue="props.data.created_by_id"
+                                v-model="form.created_by_id"
                             />
                             <CustomDateTimeInputField
                                 :labelValue="'Delete At'"
                                 :inputId="'deletedAt'"
                                 :dateTimeOpt="true"
-                                :errorMessage="(form.errors) ? form.errors.delete_at : '' "
-                                :dataValue="props.data.delete_at"
-                                v-model="form.delete_at"
+                                :errorMessage="(form.errors) ? form.errors.deleted_at : '' "
+                                :dataValue="props.data.deleted_at"
+                                v-model="form.deleted_at"
                             />
                         </div>
                     </div>
@@ -820,6 +851,15 @@ const closeLeadNoteModal = () => {
                                             :errorMessage="(form.errors) ? form.errors.lead_front_liquid : ''"
                                         />
                                         <CustomTextInputField
+                                            :inputType="'textarea'"
+                                            :inputId="'leadFrontBan'"
+                                            :labelValue="'Bank'"
+                                            :dataValue="props.leadFrontData ? props.leadFrontData.bank : ''"
+                                            class="col-span-full"
+                                            :errorMessage="(form.errors) ? form.errors.lead_front_bank : '' "
+                                            v-model="form.lead_front_bank"
+                                        />
+                                        <!-- <CustomTextInputField
                                             :inputType="'text'"
                                             :inputId="'leadFrontBankName'"
                                             :labelValue="'Bank Name'"
@@ -837,7 +877,7 @@ const closeLeadNoteModal = () => {
                                             class="col-span-2"
                                             v-model="form.lead_front_bank_account"
                                             @keypress="isNumber($event, false)"
-                                        />
+                                        /> -->
                                     </div>
                                 </div>
                             </div>
@@ -932,12 +972,13 @@ const closeLeadNoteModal = () => {
                                                 class="col-span-1"
                                             />
                                             <CustomSelectInputField
-                                                :inputArray="contactOutcomeArray"
+                                                :inputArray="userListArray"
                                                 :inputId="'leadNotesCreatedBy_'+i"
                                                 :labelValue="'Created By'"
-                                                :dataValue="item.created_by"
-                                                v-model="item.created_by"
-                                                :errorMessage="(form.errors) ? form.errors['lead_notes.' + i + '.created_by'] : '' "
+                                                :dataValue="item.created_by_id"
+                                                :customValue="true"
+                                                v-model="item.created_by_id"
+                                                :errorMessage="(form.errors) ? form.errors['lead_notes.' + i + '.created_by_id'] : '' "
                                                 class="col-span-2"
                                             />
                                         </div>

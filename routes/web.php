@@ -157,6 +157,9 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Leads Routes
     */
+    Route::get('/leads/lead-appointment-labels', [LeadController::class, 'getAllLeadAppointmentLabels'])->name('leads.getAllLeadAppointmentLabels');
+    Route::get('/leads/lead-contact-outcomes', [LeadController::class, 'getAllLeadContactOutcomes'])->name('leads.getAllLeadContactOutcomes');
+    Route::get('/leads/lead-stages', [LeadController::class, 'getAllLeadStages'])->name('leads.getAllLeadStages');
     Route::post('/leads/import', [LeadController::class, 'importExcel'])->name('leads.import');
     Route::get('/leads/export/{selectedRowsData}', [LeadController::class, 'exportToExcel'])->name('leads.export');
     Route::get('/leads/{id}/lead-front', [LeadController::class, 'getLeadFront'])->name('leads.getLeadFront');
@@ -185,7 +188,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
         Route::get('/orders/{id}/orders-changelogs', [OrderController::class, 'getOrderChangelogs'])->name('orders.getOrderChangelogs');
         Route::get('/orders/count', [OrderController::class, 'getTotalOrderCount'])->name('orders.getTotalOrderCount');
         Route::resource('/orders', OrderController::class);
-
+        
     /*
     |--------------------------------------------------------------------------
     | Payment Methods Routes
@@ -193,14 +196,16 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
         Route::get('/payment-methods', function () {
             return Inertia::render('CRM/PaymentMethods/Index');
         })->name('crm.payment-methods');
-
+        
     /*
     |--------------------------------------------------------------------------
     | Payment Submissions Routes
     */
-        Route::get('/payment-submissions', function () {
-            return Inertia::render('CRM/PaymentSubmissions/Index');
-        })->name('crm.payment-submissions');
+        Route::get('/payment-submissions/count', [PaymentSubmissionController::class, 'getTotalPaymentSubmissionCount'])->name('payment-submissions.getTotalPaymentSubmissionCount');
+        Route::resource('/payment-submissions', PaymentSubmissionController::class);
+        // Route::get('/payment-submissions', function () {
+        //     return Inertia::render('CRM/PaymentSubmissions/Index');
+        // })->name('crm.payment-submissions');
 
     /*
     |--------------------------------------------------------------------------
@@ -214,12 +219,14 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Sale Orders Routes
     */
+        Route::get('/sale-orders/count', [SaleOrderController::class, 'getTotalSaleOrderCount'])->name('sale-orders.getTotalSaleOrderCount');
         Route::resource('/sale-orders', SaleOrderController::class);
 
     /*
     |--------------------------------------------------------------------------
     | Users / Clients Routes
     */
+        Route::get('/users-clients/user-list', [UserClientController::class, 'getUserList'])->name('users-clients.getUserList');
         Route::get('/users-clients/account-managers', [UserClientController::class, 'getAccountManagers'])->name('users-clients.getAccountManagers');
         Route::get('/users-clients/{id}/orders', [UserClientController::class, 'getUserOrders'])->name('users-clients.getUserOrders');
         Route::get('/users-clients/sites', [UserClientController::class, 'getAllSites'])->name('users-clients.getAllSites');

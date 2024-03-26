@@ -3,7 +3,8 @@ import axios from "axios";
 import dayjs from 'dayjs';
 import Label from '@/Components/Label.vue';
 import Button from '@/Components/Button.vue';
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3'
 import UserOrdersModal from './UserOrdersModal.vue';
 import { AtSymbolIcon } from '@heroicons/vue/outline';
 import UserChangelogsSection from './UserChangelogsSection.vue';
@@ -26,8 +27,10 @@ const categories = ref([
 
 const emit = defineEmits(['closeModal', 'rowEdit']);
 
+const page = usePage();
 const userId = ref();
 const isUserOrdersModalOpen = ref(false);
+const user = computed(() => page.props.auth.user)
 
 onMounted(() => {
     if (props.selectedRowData) {
@@ -308,13 +311,13 @@ const closeUserOrdersModal = () => {
                                         <CustomLabelGroup
                                             :inputId="'last_login'"
                                             :labelValue="'Last login'"
-                                            :dataValue="(props.selectedRowData && props.selectedRowData.last_login !== '') ? formatToUserTimezone(props.selectedRowData.last_login, props.selectedRowData.timezone, true) : '-'"
+                                            :dataValue="(props.selectedRowData && props.selectedRowData.last_login !== '') ? formatToUserTimezone(props.selectedRowData.last_login, user.timezone, true) : '-'"
                                             class="text-gray-700"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'date_joined'"
                                             :labelValue="'Date joined'"
-                                            :dataValue="props.selectedRowData ? formatToUserTimezone(props.selectedRowData.date_joined, props.selectedRowData.timezone, true) : '-'"
+                                            :dataValue="props.selectedRowData ? formatToUserTimezone(props.selectedRowData.date_joined, user.timezone, true) : '-'"
                                         />
                                     </div>
                                 </TabPanel>

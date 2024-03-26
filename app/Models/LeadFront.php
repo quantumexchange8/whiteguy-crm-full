@@ -9,27 +9,32 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LeadFront extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
-    protected $table = "lead_front";
+    protected $table = "core_leadfront";
+    
+    public $timestamps = false;
 
     protected $fillable = [
         'name', 
-        'assignee', 
+        'mimo', 
         'product', 
         'quantity', 
         'price', 
-        'total', 
-        'commission', 
         'vc', 
         'sdm', 
         'liquid', 
-        'mimo', 
-        'bank_name', 
         'bank_account', 
         'note', 
-        'linked_lead',
+        'commission', 
         'edited_at', 
+        'created_at', 
+        'lead_id', // from linked_lead
+        'email',
+        'phone_number',
+        // 'assignee', 
+        // 'total', 
+        // 'bank_name', 
     ];
     
     /**
@@ -37,6 +42,6 @@ class LeadFront extends Model
      */
     public function lead(): BelongsTo
     {
-        return $this->belongsTo(Lead::class, 'linked_lead');
+        return $this->belongsTo(Lead::class, 'lead_id');
     }
 }

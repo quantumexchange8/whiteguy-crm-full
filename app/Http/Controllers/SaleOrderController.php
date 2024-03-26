@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SaleOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -84,5 +85,10 @@ class SaleOrderController extends Controller
         $data = DB::table('sale_orders')->orderBy('id')->get();
 
         return response()->json($data);
+    }
+
+    public function getTotalSaleOrderCount()
+    {   
+        return response()->json(SaleOrder::count());
     }
 }

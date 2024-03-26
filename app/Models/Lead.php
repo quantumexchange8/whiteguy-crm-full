@@ -35,7 +35,6 @@ class Lead extends Model
         'phone_number_alt_2',
         'phone_number_alt_3',
         'attachment',
-        'address',
         'private_remark',
         'remark',
         'data_source',
@@ -57,12 +56,13 @@ class Lead extends Model
         'campaign_product',
         'data_code',
         'data_type',
-        'delete_at',
+        'deleted_at',
         'deleted_note',
         'sort_id',
     ];
 
     /**
+     * User Model
      * Get the user that created the lead.
      */
     public function creator(): BelongsTo
@@ -71,6 +71,7 @@ class Lead extends Model
     }
 
     /**
+     * User Model
      * Get the user assigned to the lead.
      */
     public function assignee(): BelongsTo
@@ -79,22 +80,53 @@ class Lead extends Model
     }
 
     /**
+     * LeadFront Model
      * Get the linked lead front.
      */
     public function leadfront(): HasOne
     {
-        return $this->hasOne(LeadFront::class, 'linked_lead');
+        return $this->hasOne(LeadFront::class, 'lead_id');
     }
 
     /**
+     * LeadNote Model
      * Get the linked lead notes.
      */
     public function leadnotes(): HasMany
     {
-        return $this->hasMany(LeadNote::class, 'linked_lead');
+        return $this->hasMany(LeadNote::class, 'lead_id');
+    }
+    
+    /**
+     * LeadStage Model
+     * Get the lead stage of the lead.
+     */
+    public function stage(): BelongsTo
+    {
+        return $this->belongsTo(LeadStage::class, 'stage_id');
+    }
+    
+    /**
+     * LeadContactOutcome Model
+     * Get the lead stage of the lead.
+     */
+    public function contactOutcome(): BelongsTo
+    {
+        return $this->belongsTo(LeadContactOutcome::class, 'contact_outcome_id');
+    }
+    
+    /**
+     * LeadAppointmentLabel Model
+     * Get the lead stage of the lead.
+     */
+    public function appointmentLabel(): BelongsTo
+    {
+        return $this->belongsTo(LeadAppointmentLabel::class, 'appointment_label_id');
     }
 
+
     /**
+     * LeadChangelog Model
      * Get the linked lead changelogs.
      */
     public function leadchangelogs(): HasMany

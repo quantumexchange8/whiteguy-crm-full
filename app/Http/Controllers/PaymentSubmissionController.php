@@ -2,17 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PaymentSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class PaymentSubmissionController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // Get the flashed messages from the session
+        $errors = $request->session()->get('errors');
+        $errorMsg = $request->session()->get('errorMsg');
+
+        // Clear the flashed messages from the session
+        $request->session()->forget('errors');
+        $request->session()->forget('errorMsg');
+        $request->session()->save();
+
+        if (isset($errorMsg)) {
+            return Inertia::render('CRM/PaymentSubmissions/Index', [
+                'errors' => $errors,
+                'errorMsg' => $errorMsg
+            ]);
+        }
+
+        return Inertia::render('CRM/PaymentSubmissions/Index');
     }
 
     /**
@@ -64,12 +82,16 @@ class PaymentSubmissionController extends Controller
     }
 
     public function getPaymentSubmissions(Request $request)
-    {   
-        // Fetch total count
-        $dataTotalCount = DB::table('payment_submissions')->count();
+    {
+        $data = PaymentSubmission::with(['user', 'paymentMethod:id,title', 'user.site'])->get();
 
-        // Fetch announcements
-        $data = DB::table('payment_submissions')->orderBy('id')->cursorPaginate($dataTotalCount);
+        // dd($data);
+        // foreach ($data as $payment) {
+        //     // Handle client_stage attribute
+        //     if (!is_null($payment->client_stage) && $payment->client_stage !== '') {
+        //         $payment->client_stage = $client_stages[$payment->client_stage - 1];
+        //     }
+        // }
 
         return response()->json($data);
     }

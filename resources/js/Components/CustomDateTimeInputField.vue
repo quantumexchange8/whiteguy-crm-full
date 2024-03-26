@@ -50,6 +50,11 @@ const updateDateValue = (date) => {
     }
 }
 
+// Update parent component's value
+const clearDateValue = () => {
+    emit('update:modelValue', '');
+}
+
 </script>
 
 <template>
@@ -65,6 +70,7 @@ const updateDateValue = (date) => {
             :model-value="props.modelValue"
             :enable-time-picker="dateTimeOpt"
             @update:model-value="updateDateValue"
+            @cleared="clearDateValue"
             time-picker-inline 
             v-if="dateTimeOpt === true"
             :format="formatDate"
@@ -79,6 +85,7 @@ const updateDateValue = (date) => {
             :model-value="props.modelValue"
             :enable-time-picker="dateTimeOpt"
             @update:model-value="updateDateValue"
+            @cleared="clearDateValue"
             time-picker-inline 
             v-else
             :format="formatDate"

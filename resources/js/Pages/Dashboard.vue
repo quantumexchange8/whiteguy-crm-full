@@ -40,14 +40,24 @@ const leadFrontsColArray = ref([
     { field: "vc", title: "VC", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "sdm", title: "SDM", headerClass: "text-gray-300 text-s mw-max"  },
     { field: "liquid", title: "LIQUID", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "linked_lead", title: "LINKED LEAD", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "lead_id", title: "LINKED LEAD", headerClass: "text-gray-300 text-sm w-max"  },
+]);
+const paymentSubmissionsColArray = ref([
+    { field: "id", title: "ID", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "user_id", title: "USER", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "status", title: "STATUS", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "date", title: "DATE", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "amount", title: "CRYPTO AMOUNT", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "converted_amount", title: "CONVERTED USD AMOUNT", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "user_memo", title: "MEMO", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "payment_method_id", title: "PAYMENT METHOD", headerClass: "text-gray-300 text-sm w-max"  },
 ]);
 const leadsColArray = ref([
     { field: "id", title: "ID", headerClass: "dark:text-gray-300 text-sm w-max" },
-    { field: "assignee", title: "ASSIGNEE", headerClass: "dark:text-gray-300 text-sm w-max"  },
-    { field: "last_called", title: "LAST CALLED", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
+    { field: "assignee_id", title: "ASSIGNEE", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "contacted_at", title: "LAST CALLED", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
     { field: "give_up_at", title: "GIVE UP?", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
-    { field: "date_oppd_in", title: "DATE OPP'D IN", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
+    { field: "date", title: "DATE OPP'D IN", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
     { field: "first_name", title: "FIRST NAME", headerClass: "dark:text-gray-300 text-sm w-max" },
     { field: "last_name", title: "LAST NAME", headerClass: "dark:text-gray-300 text-sm w-max"  },
     { field: "phone_number", title: "PHONE NUMBER", headerClass: "dark:text-gray-300 text-sm w-max", type: 'number'  },
@@ -59,13 +69,13 @@ const leadsColArray = ref([
     { field: "data_code", title: "DATA CODE", headerClass: "dark:text-gray-300 text-sm w-max"  },
 ]);
 const usersColArray = ref([
-    { field: "site", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "username", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm w-max" },
     { field: "account_id", title: "ACCOUNT ID", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "full_legal_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "full_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "lead_status", title: "LEAD STATUS", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
     { field: "client_stage", title: "CLIENT STAGE", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
     { field: "rank", title: "RANK", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
-    { field: "account_manager", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "account_manager_id", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm w-max" },
     { field: "kyc_status", title: "KYC STATUS", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "is_active", title: "ACTIVE", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "is_staff", title: "STAFF", headerClass: "text-gray-300 text-sm w-max"  },
@@ -102,8 +112,8 @@ onMounted(async () => {
 		const totalOrderCountResponse = await axios.get(route('orders.getTotalOrderCount'));
 		totalOrderCount.value = totalOrderCountResponse.data;
 
-		// const totalSaleOrderCountResponse = await axios.get(route('sales-orders.getLeadChangelogs', props.selectedRowData.id));
-		// leadChangelogsData.value = leadChangelogsResponse.data;
+		const totalSaleOrderCountResponse = await axios.get(route('sale-orders.getTotalSaleOrderCount'));
+		totalSaleOrderCount.value = totalSaleOrderCountResponse.data;
 
 	} catch (error) {
 		console.error('Error fetching data:', error);
@@ -210,10 +220,10 @@ onMounted(async () => {
 			<div class="grid grid-cols-1 lg:grid-cols-12 mb-8 gap-6">
 				<div class="col-span-full lg:col-span-4">
 					<DashboardDatatable 
-						:cols="leadFrontsColArray" 
-						:targetApi="'/data/lead-fronts'"
-						:createLink="route('lead-fronts.create')"
-						:detailsLink="'lead-fronts'"
+						:cols="paymentSubmissionsColArray" 
+						:targetApi="'/data/payment-submissions'"
+						:createLink="route('payment-submissions.create')"
+						:detailsLink="'payment-submissions'"
 						:tableTitle="'Latest Payment Submissions'"
 					/>
 				</div>

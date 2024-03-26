@@ -1,19 +1,20 @@
 <script setup>
-import { useForm, router } from '@inertiajs/vue3';
-import { ref, onMounted, reactive, watch } from "vue";
-import { convertToHumanReadable, cl } from '@/Composables';
-import { ThreeDotsVertical, CheckCircleFillIcon, TimesCircleIcon } from '@/Components/Icons/solid';
+import axios from "axios";
+import { useForm, router, usePage } from '@inertiajs/vue3';
+import { ref, onMounted, reactive, watch, computed } from "vue";
 import { EyeIcon } from '@heroicons/vue/outline'
-import { TrashIcon, PageEditIcon } from '@/Components/Icons/outline';
-import CustomFileInputField from '@/Components/CustomFileInputField.vue';
-import Vue3Datatable from "@bhplugin/vue3-datatable";
 import "@bhplugin/vue3-datatable/dist/style.css";
-import Button from '@/Components/Button.vue';
+import Vue3Datatable from "@bhplugin/vue3-datatable";
+import { convertToHumanReadable, cl, formatToUserTimezone } from '@/Composables';
 import Input from '@/Components/Input.vue';
 import Modal from '@/Components/Modal.vue';
+import Button from '@/Components/Button.vue';
 import Dropdown from '@/Components/Dropdown.vue';
-import axios from "axios";
+import { TrashIcon, PageEditIcon } from '@/Components/Icons/outline';
+import CustomFileInputField from '@/Components/CustomFileInputField.vue';
+import { ThreeDotsVertical, CheckCircleFillIcon, TimesCircleIcon } from '@/Components/Icons/solid';
 
+const page = usePage();
 const categories = ref([]);
 const filterDateColumns = reactive([]);
 const booleanColumns = reactive([]);
@@ -39,6 +40,8 @@ const isDuplicate = ref(false);
 const clientArray  = ref(
 	[ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ]
 );
+
+const user = computed(() => page.props.auth.user)
 
 const props = defineProps({
     cols: {
@@ -75,16 +78,6 @@ const props = defineProps({
     errors:Object,
 })
 
-onMounted(() => {
-    // loading.value = true;
-    
-    // setTimeout(() => {
-        getData();
-        getCategoryFilters();
-        // loading.value = false;
-    // }, 500);
-});
-
 const params = reactive({
     page: 1,
     pagesize: 10,
@@ -92,6 +85,17 @@ const params = reactive({
     column_filters: [],
     sort_column: 'id',
     sort_direction: 'desc',
+});
+
+onMounted(() => {
+    // loading.value = true;
+    
+    // setTimeout(() => {
+        // loading.value = false;
+    // }, 500);
+        params.search = '';
+        getData();
+        getCategoryFilters();
 });
 
 const getData = async () => {
@@ -610,6 +614,7 @@ watch(() => categories.value, (newVal) => {
                                         <p class="dark:text-gray-300">By {{ convertToHumanReadable(key) }}</p>
                                         <div class="flex flex-row flex-wrap gap-2 p-2">
                                             <div v-for="(item, index) in value" :key="index">
+                                                <!-- {{ cl(value + ":-" + index + ":" + item) }} -->
                                                 <input 
                                                     :id="key + index" 
                                                     type="radio" 
@@ -812,6 +817,15 @@ watch(() => categories.value, (newVal) => {
                         </div>
                     </Modal>
                 </div>
+            </template>
+            <template #contacted_at="rows">
+                <div class="min-w-max">{{ (rows.value.contacted_at && rows.value.contacted_at !== '-') ? formatToUserTimezone(rows.value.contacted_at, user.timezone, true) : '-' }}</div>
+            </template>
+            <template #give_up_at="rows">
+                <div class="min-w-max">{{ (rows.value.give_up_at && rows.value.give_up_at !== '-') ? formatToUserTimezone(rows.value.give_up_at, user.timezone, true) : '-' }}</div>
+            </template>
+            <template #date="rows">
+                <div class="min-w-max">{{ (rows.value.date && rows.value.date !== '-') ? formatToUserTimezone(rows.value.date, user.timezone, true) : '-' }}</div>
             </template>
             <template #sdm="rows">
                 <CheckCircleFillIcon 

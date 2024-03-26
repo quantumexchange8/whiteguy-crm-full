@@ -337,10 +337,7 @@ class LeadFrontController extends Controller
             return response()->json($data);
         }
 
-        // Default fetch all on load
-        $data = DB::table('lead_front')
-                    ->whereNull('deleted_at')
-                    ->get();
+        $data = LeadFront::with(['lead', 'lead.assignee', 'lead.assignee.site'])->get();
 
         // dd($data);
         return response()->json($data);

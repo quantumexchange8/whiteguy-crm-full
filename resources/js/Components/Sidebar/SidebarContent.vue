@@ -93,9 +93,9 @@ import { TemplateIcon } from '@heroicons/vue/outline'
                 :active="route().current('crm.payment-methods')" 
             />
             <SidebarCollapsibleItem 
-                :href="route('crm.payment-submissions')" 
+                :href="route('payment-submissions.index')" 
                 title="Payment Submissions" 
-                :active="route().current('crm.payment-submissions')" 
+                :active="route().current('payment-submissions.index')" 
             />
             <SidebarCollapsibleItem 
                 :href="route('crm.private-messages')" 
