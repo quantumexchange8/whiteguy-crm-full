@@ -65,7 +65,7 @@ class Lead extends Model
      * User Model
      * Get the user that created the lead.
      */
-    public function creator(): BelongsTo
+    public function leadCreator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_id');
     }

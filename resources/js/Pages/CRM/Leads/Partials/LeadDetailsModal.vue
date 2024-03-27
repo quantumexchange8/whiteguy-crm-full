@@ -37,7 +37,6 @@ const emit = defineEmits(['closeModal', 'rowEdit']);
 onMounted(async () => {
   try {
     const leadFrontResponse = await axios.get(route('leads.getLeadFront', props.selectedRowData.id));
-    cl(leadFrontResponse);
     leadFrontData.value = leadFrontResponse.data;
 
     if (leadFrontData.value) {

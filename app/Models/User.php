@@ -86,6 +86,7 @@ class User extends Authenticatable
     // ];
 
     /**
+     * Site Model
      * Get the site of the user.
      */
     public function site(): BelongsTo
@@ -94,6 +95,7 @@ class User extends Authenticatable
     }
 
     /**
+     * Lead Model
      * Get leads created by the user.
      */
     public function createdLeads(): HasMany
@@ -102,6 +104,7 @@ class User extends Authenticatable
     }
 
     /**
+     * Lead Model
      * Get leads assigned to the user.
      */
     public function assignedLeads(): HasMany
@@ -110,6 +113,16 @@ class User extends Authenticatable
     }
 
     /**
+     * LeadNote Model
+     * Get lead notes created by the user.
+     */
+    public function createdLeadNotes(): HasMany
+    {
+        return $this->hasMany(LeadNote::class, 'created_by_id');
+    }
+
+    /**
+     * Order Model
      * Get user's orders.
      */
     public function orders(): HasMany
@@ -118,10 +131,20 @@ class User extends Authenticatable
     }
 
     /**
+     * PaymentSubmission Model
      * Get user's payment submissions.
      */
     public function paymentSubmissions(): HasMany
     {
         return $this->hasMany(PaymentSubmission::class, 'user_id');
+    }
+
+    /**
+     * AuditlogLogentry Model
+     * Get user's payment submissions.
+     */
+    public function logEntries(): HasMany
+    {
+        return $this->hasMany(AuditlogLogentry::class, 'actor_id');
     }
 }

@@ -287,13 +287,13 @@ class LeadController extends Controller
     public function update(LeadRequest $request, string $id)
     {
         $data = $request->all();
-
+        
         // Additional validation based on user selection (Lead Front | Lead Notes)
         if ($data['create_lead_front']) {
             $leadFrontRequest = new LeadFrontRequest();
             $request->validate($leadFrontRequest->rules());
         }
-
+        
         if (count($data['lead_notes']) > 0) {
             $leadNoteRequest = new LeadNotesRequest();
             $request->validate($leadNoteRequest->rules());
@@ -325,7 +325,7 @@ class LeadController extends Controller
 
         // Lead Front changes
         // $leadFrontChanges = [];
-        $oldLeadFrontData = LeadFront::where('linked_lead', $id)->get();
+        // $oldLeadFrontData = LeadFront::where('linked_lead', $id)->get();
 
         // Retrieve all column names from the database table
         // $leadFrontColumns = Schema::getColumnListing('lead_front');
@@ -400,7 +400,7 @@ class LeadController extends Controller
 
         // Lead Notes changes
         // $leadNotesChanges = [];
-        $oldLeadNotesData = LeadNote::where('linked_lead', $id)->get();
+        // $oldLeadNotesData = LeadNote::where('linked_lead', $id)->get();
 
         // Check if lead notes data exists in the request
         // if (isset($data['lead_notes']) && is_array($data['lead_notes'])) {
@@ -456,45 +456,43 @@ class LeadController extends Controller
             'vc' => $data['vc'],
             'sdm' => $data['sdm'],
             'email' => $data['email'],
-            'email_alt_1' => $data['email_alt_1'],
-            'email_alt_2' => $data['email_alt_2'],
-            'email_alt_3' => $data['email_alt_3'],
+            'email_alt_1' => '',
+            'email_alt_2' => '',
+            'email_alt_3' => '',
             'phone_number' => $data['phone_number'],
-            'phone_number_alt_1' => $data['phone_number_alt_1'],
-            'phone_number_alt_2' => $data['phone_number_alt_2'],
-            'phone_number_alt_3' => $data['phone_number_alt_3'],
-            'attachment' => $data['attachment'],
+            'phone_number_alt_1' => '',
+            'phone_number_alt_2' => '',
+            'phone_number_alt_3' => '',
+            'attachment' => '',
             'private_remark' => $data['private_remark'],
             'remark' => $data['remark'],
             'data_source' => $data['data_source'],
-            'appointment_start_at' => $data['appointment_start_at'],
-            'appointment_end_at' => $data['appointment_end_at'],
-            'contacted_at' => $data['contacted_at'],
-            'assignee_read_at' => $data['assignee_read_at'],
-            'edited_at' => $data['edited_at'],
-            'created_at' => $data['created_at'],
+            'appointment_start_at' => $data['appointment_start_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['appointment_start_at']) : $data['appointment_start_at'],
+            'appointment_end_at' => $data['appointment_end_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['appointment_end_at']) : $data['appointment_end_at'],
+            'contacted_at' => $data['contacted_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['contacted_at']) : $data['contacted_at'],
+            'assignee_read_at' => $data['assignee_read_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['assignee_read_at']) : $data['assignee_read_at'],
+            'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+            'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['created_at']),
             'appointment_label_id' => $data['appointment_label_id'],
             'assignee_id' => $data['assignee_id'],
             'contact_outcome_id' => $data['contact_outcome_id'],
             'created_by_id' => $data['created_by_id'],
             'stage_id' => $data['stage_id'],
-            'give_up_at' => $data['give_up_at'],
+            'give_up_at' => $data['give_up_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['give_up_at']) : $data['give_up_at'],
             'account_manager' => $data['account_manager'],
             'address' => $data['address'],
             'agents_book' => $data['agents_book'],
             'campaign_product' => $data['campaign_product'],
             'data_code' => $data['data_code'],
             'data_type' => $data['data_type'],
-            'deleted_at' => $data['deleted_at'],
-            'deleted_note' => $data['deleted_note'],
+            'deleted_at' => $data['deleted_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['deleted_at']) : $data['deleted_at'],
+            'deleted_note' => '',
             'sort_id' => $data['sort_id'],
 		]);
         // $updateActionCount++;
 
         // Update existing lead front or insert a new lead front
         if ($data['create_lead_front']) {
-            $total = $request->lead_front_quantity * $request->lead_front_price;
-
             if (isset($data['lead_front_id']) && $data['lead_front_id'] !== ''){
                 $existingLeadFront = LeadFront::find($data['lead_front_id']);
 
@@ -511,8 +509,8 @@ class LeadController extends Controller
                         'bank' => $data['lead_front_bank'],
                         'note' => $data['lead_front_note'],
                         'commission' => $data['lead_front_commission'],
-                        'edited_at' => $data['lead_front_edited_at'],
-                        'created_at' => $data['lead_front_created_at'],
+                        'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['lead_front_edited_at']),
+                        'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['lead_front_created_at']),
                         'lead_id' => $id,
                         'email' => $data['email'],
                         'phone_number' => $data['phone_number'],
@@ -534,8 +532,8 @@ class LeadController extends Controller
                     'bank' => $data['lead_front_bank'],
                     'note' => $data['lead_front_note'],
                     'commission' => $data['lead_front_commission'],
-                    'edited_at' => $data['lead_front_edited_at'],
-                    'created_at' => $data['lead_front_created_at'],
+                    'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['lead_front_edited_at']),
+                    'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['lead_front_created_at']),
                     'lead_id' => $id,
                     'email' => $data['email'],
                     'phone_number' => $data['phone_number'],
@@ -556,18 +554,26 @@ class LeadController extends Controller
                     $existingLeadNotes = LeadNote::find($value['id']);
             
                     $existingLeadNotes->update([
-                        'linked_lead' => $id,
                         'note' => $value['note'],
+                        // 'attachment' => '',
+                        // 'edited_at' => $data['lead_front_edited_at'],
+                        // 'created_at' => $data['lead_front_created_at'],
+                        'created_by_id' => $value['created_by_id'],
+                        'lead_id' => $id,
+                        'color' => 'info',
                         'user_editable' => $value['user_editable'],
-                        'created_by' => $value['created_by'],
                     ]);
                 } else {
                     // Insert into lead_notes table
                     $newLeadNote = LeadNote::create([
-                        'linked_lead' => $id,
                         'note' => $value['note'],
+                        // 'attachment' => '',
+                        // 'edited_at' => $data['lead_front_edited_at'],
+                        // 'created_at' => $data['lead_front_created_at'],
+                        'created_by_id' => $value['created_by_id'],
+                        'lead_id' => $id,
+                        'color' => 'info',
                         'user_editable' => $value['user_editable'],
-                        'created_by' => $value['created_by'],
                     ]);
                     $newLeadNote->save();
 
@@ -741,14 +747,21 @@ class LeadController extends Controller
                     }
                 }
             }
-            $data = $query->with(['creator', 'assignee'])->get();
+            $data = $query->with(['leadCreator', 'assignee'])->get();
 
             return response()->json($data);
         }
 
         // Default fetch all on load
-        $data = Lead::with(['creator:id,username', 'creator.site', 'assignee:id,username'])
-                        ->limit(5000)
+        $data = Lead::with([
+                            'leadCreator:id,username', 
+                            'leadCreator.site', 
+                            'assignee:id,username', 
+                            'leadnotes',
+                            'leadnotes.leadNoteCreator:id,username',
+                            'leadnotes.leadNoteCreator.site',
+                            ])
+                        ->limit(500)
                         ->orderByDesc('id')
                         ->get();
 
@@ -803,18 +816,22 @@ class LeadController extends Controller
 
     public function getLeadNotes(string $id)
     {
-        $existingLeadNotes = LeadNote::where('linked_lead', $id)
-                                        ->orderBy('created_at', 'desc')
-                                        ->get()
-                                        ->map(function ($note) {
-                                            $note['source'] = 'lead_note';
-                                            return $note;
-                                        });
-
+        // $existingLeadNotes = LeadNote::where('linked_lead', $id)
+        //                                 ->orderBy('created_at', 'desc')
+        //                                 ->get()
+        //                                 ->map(function ($note) {
+        //                                     $note['source'] = 'lead_note';
+        //                                     return $note;
+        //                                 });
+        $existingLeadNotes = LeadNote::where('lead_id', $id)
+                                        ->with(['leadNoteCreator:id,username,site_id', 'leadNoteCreator.site:id,name'])
+                                        ->get();
 
         foreach($existingLeadNotes as $key=>$value) {
             $existingLeadNotes[$key]->user_editable = boolval($existingLeadNotes[$key]->user_editable);
         }
+
+        // dd($existingLeadNotes);
 
         return response()->json($existingLeadNotes);
     }
@@ -828,6 +845,9 @@ class LeadController extends Controller
                                                     $changelog['source'] = 'lead_changelog';
                                                     return $changelog;
                                                 });
+        // $existingLeadChangelogs = LeadNote::where('lead_id', $id)
+        //                                 ->with(['leadNoteCreator:id,username,site_id', 'leadNoteCreator.site:id,name'])
+        //                                 ->get();
 
         return response()->json($existingLeadChangelogs);
     }

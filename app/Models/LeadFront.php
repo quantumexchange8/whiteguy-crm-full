@@ -24,7 +24,7 @@ class LeadFront extends Model
         'vc', 
         'sdm', 
         'liquid', 
-        'bank_account', 
+        'bank', 
         'note', 
         'commission', 
         'edited_at', 

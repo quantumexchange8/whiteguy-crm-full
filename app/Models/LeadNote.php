@@ -27,10 +27,20 @@ class LeadNote extends Model
     ];
     
     /**
+     * User Model
+     * Get the user that created the lead note.
+     */
+    public function leadNoteCreator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
+    
+    /**
      * Get the lead that owns the lead note.
      */
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class, 'lead_id');
     }
+    
 }

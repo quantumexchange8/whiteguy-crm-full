@@ -136,8 +136,8 @@ const form = useForm({
 	lead_front_note: (props.leadFrontData) ? props.leadFrontData.note : '',
 	lead_front_commission: (props.leadFrontData) ? props.leadFrontData.commission : '',
 	lead_front_vc: (props.leadFrontData) ? props.leadFrontData.vc : '',
-	lead_front_edited_at: (props.leadFrontData) ? formatToUserTimezone(props.leadFrontData.edited_at, user.timezone, true) : '-',
-	lead_front_created_at: (props.leadFrontData) ? formatToUserTimezone(props.leadFrontData.created_at, user.timezone, true) : '-',
+	lead_front_edited_at: (props.leadFrontData) ? props.leadFrontData.edited_at : '',
+	lead_front_created_at: (props.leadFrontData) ? `${props.leadFrontData.created_at}00` : '',
 	lead_front_email: '',
 	lead_front_phone_number: '',
     lead_notes: (props.leadNotesData) ? props.leadNotesData : [],
@@ -158,9 +158,14 @@ const formSubmit = () => {
         form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : 0;
         form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : 0;
         form.lead_front_edited_at = setDateTimeWithOffset(true);
+        form.lead_front_created_at = form.lead_front_created_at ? form.lead_front_created_at : '';
         form.lead_front_email = form.email;
         form.lead_front_phone_number = form.phone_number;
     }
+
+    // cl(props.leadFrontData.created_at);
+    // cl(form.lead_front_created_at);
+    // cl(user.value.timezone);
 
 	form.put(route('leads.update', props.data.id), {
         preserveScroll: true,
@@ -911,14 +916,14 @@ const closeLeadNoteModal = () => {
                                             ref="leadFrontEditedAt"
                                             :inputId="'leadFrontEditedAt'"
                                             :labelValue="'Edited at'"
-                                            :dataValue="form.lead_front_edited_at"
+                                            :dataValue=" formatToUserTimezone(props.leadFrontData.edited_at, user.timezone, true) || '-'"
                                             v-model="form.lead_front_edited_at"
                                         />
                                         <CustomLabelGroup
                                             ref="leadFrontCreatedAt"
                                             :inputId="'leadFrontCreatedAt'"
                                             :labelValue="'Created at'"
-                                            :dataValue="form.lead_front_created_at"
+                                            :dataValue="formatToUserTimezone(props.leadFrontData.created_at, user.timezone, true) || '-'"
                                             v-model="form.lead_front_created_at"
                                         />
                                     </div>
