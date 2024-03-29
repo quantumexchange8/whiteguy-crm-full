@@ -164,7 +164,8 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     Route::get('/leads/export/{selectedRowsData}', [LeadController::class, 'exportToExcel'])->name('leads.export');
     Route::get('/leads/{id}/lead-front', [LeadController::class, 'getLeadFront'])->name('leads.getLeadFront');
     Route::get('/leads/{id}/lead-notes', [LeadController::class, 'getLeadNotes'])->name('leads.getLeadNotes');
-    Route::get('/leads/{id}/lead-changelogs', [LeadController::class, 'getLeadChangelogs'])->name('leads.getLeadChangelogs');
+    Route::get('/leads/{id}/lead-log-entries', [LeadController::class, 'getLeadLogEntries'])->name('leads.getLeadLogEntries');
+    // Route::get('/leads/{id}/lead-changelogs', [LeadController::class, 'getLeadChangelogs'])->name('leads.getLeadChangelogs');
     Route::get('/leads/{id}/lead-notes-changelogs', [LeadController::class, 'getLeadNotesAndChangelogs'])->name('leads.getLeadNotesAndChangelogs');
     Route::get('/leads/count', [LeadController::class, 'getTotalLeadCount'])->name('leads.getTotalLeadCount');
     Route::delete('/leads/{id}/lead-front', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
@@ -203,9 +204,6 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     */
         Route::get('/payment-submissions/count', [PaymentSubmissionController::class, 'getTotalPaymentSubmissionCount'])->name('payment-submissions.getTotalPaymentSubmissionCount');
         Route::resource('/payment-submissions', PaymentSubmissionController::class);
-        // Route::get('/payment-submissions', function () {
-        //     return Inertia::render('CRM/PaymentSubmissions/Index');
-        // })->name('crm.payment-submissions');
 
     /*
     |--------------------------------------------------------------------------

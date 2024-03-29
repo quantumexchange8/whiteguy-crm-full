@@ -37,4 +37,13 @@ class AuditlogLogentry extends Model
     {
         return $this->belongsTo(User::class, 'actor_id');
     }
+    
+    /**
+     * ContentType Model
+     * Get the content type of the log entry.
+     */
+    public function contentType(): BelongsTo
+    {
+        return $this->belongsTo(AuditlogLogentry::class, 'content_type_id');
+    }
 }

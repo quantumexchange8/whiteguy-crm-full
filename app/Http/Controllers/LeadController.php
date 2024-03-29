@@ -16,6 +16,8 @@ use App\Http\Requests\LeadFrontRequest;
 use App\Http\Requests\LeadNotesRequest;
 use App\Http\Requests\LeadRequest;
 use App\Imports\LeadsImport;
+use App\Models\AuditlogLogentry;
+use App\Models\ContentType;
 use App\Models\LeadFront;
 use App\Models\LeadNote;
 use App\Models\Lead;
@@ -301,7 +303,7 @@ class LeadController extends Controller
         
         // Lead changes
         // $leadChanges = [];
-        $oldLeadData = Lead::find($id);
+        // $oldLeadData = Lead::find($id);
 
         // Loop through existing data across lead, lead front, and lead notes and compare against the request to detect any changes
         // Only log found changes into lead changelog table
@@ -420,7 +422,7 @@ class LeadController extends Controller
         //             // Iterate over each attribute of the lead note
         //             foreach ($newLeadNoteData as $key => $newValue) {
         //                 // Skip 'id', 'linked_lead', 'created_at', 'updated_at', and 'deleted_at' columns
-        //                 if (in_array($key, ['id', 'linked_lead', 'created_at', 'updated_at', 'deleted_at'])) {
+        //                 if (in_array($key, ['id', 'linked_lead', 'created_at'])) {
         //                     continue;
         //                 }
 
@@ -445,6 +447,75 @@ class LeadController extends Controller
         // $updateActionCount = 0;
         
         $existingLead = Lead::find($id);
+        $systemNotesArray = [];
+        
+        if (isset($existingLead)) {
+            foreach ($existingLead->toArray() as $key => $oldValue) {
+                if ($key === 'appointment_start_end' || $key === 'created_at') {
+                    continue;
+                }
+                
+                $newValue = $data[$key] ?? null;
+                
+                // Check if the value has changed and if so, set the respective note message along with the new value
+                if ($newValue !== $oldValue) {
+                    switch($key) {
+                        case('stage_id'):
+                            $leadStage = LeadStage::select('title')->find($newValue);
+                            $note = "Moved to stage '" . $leadStage->title . "'";
+                            break;
+                        case('appointment_start_at'):
+                            $appointmentLabel = LeadAppointmentLabel::select('title')->find($data['appointment_label_id']);
+                            $note = "Appointment scheduled for " . $newValue . " - " . $data['appointment_end_at'] . " with label '" . (isset($appointmentLabel) ? $appointmentLabel->title : "None") . "'";
+                            break;
+                        case('contact_outcome_id'):
+                            $leadContactOutcome = LeadContactOutcome::select('title')->find($newValue);
+                            $note = "Marked as called with the outcome '" . $leadContactOutcome->title . "'";
+                            break;
+                        case('give_up_at'):
+                            $note = "Gave up at " . $newValue;
+                            break;
+                        default:
+                            $note = false;
+                    }
+
+                    if ($note){
+                        array_push($systemNotesArray, $note);
+                    }
+                }
+            }
+            
+            // dd($systemNotesArray);
+
+            // Only if there are any lead changes made
+            if (isset($systemNotesArray) && count($systemNotesArray) > 0) {
+                if (count($systemNotesArray) > 1) {
+                    // If user made more than one action then it will be combined into a different note format
+                    $note = "Multiple actions taken.\r\n";
+                    foreach ($systemNotesArray as $key => $value) {
+                        $note .= $value . ". \r\n";
+                    }
+                } else {
+                    $note = $systemNotesArray[0];
+                }
+    
+                // dd('[SYSTEM] ' . $note);
+                
+                $newLeadNote = LeadNote::create([
+                    'note' => '[SYSTEM] ' . $note,
+                    'attachment' => '',
+                    'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+                    'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+                    'created_by_id' => auth()->user()->id,
+                    'lead_id' => $id,
+                    'color' => 'info',
+                    'user_editable' => false,
+                ]);
+                $newLeadNote->save();
+            }
+        }
+        
+        dd($systemNotesArray);
         
         $existingLead->update([
             'date' => $data['date'],
@@ -555,24 +626,25 @@ class LeadController extends Controller
             
                     $existingLeadNotes->update([
                         'note' => $value['note'],
-                        // 'attachment' => '',
-                        // 'edited_at' => $data['lead_front_edited_at'],
-                        // 'created_at' => $data['lead_front_created_at'],
+                        'attachment' => '',
+                        'edited_at' => $value['edited_at'],
+                        'created_at' => $value['created_at'],
                         'created_by_id' => $value['created_by_id'],
                         'lead_id' => $id,
-                        'color' => 'info',
+                        'color' => 'primary',
                         'user_editable' => $value['user_editable'],
                     ]);
+
                 } else {
                     // Insert into lead_notes table
                     $newLeadNote = LeadNote::create([
                         'note' => $value['note'],
-                        // 'attachment' => '',
-                        // 'edited_at' => $data['lead_front_edited_at'],
-                        // 'created_at' => $data['lead_front_created_at'],
+                        'attachment' => '',
+                        'edited_at' => $value['edited_at'],
+                        'created_at' => $value['created_at'],
                         'created_by_id' => $value['created_by_id'],
                         'lead_id' => $id,
-                        'color' => 'info',
+                        'color' => 'primary',
                         'user_editable' => $value['user_editable'],
                     ]);
                     $newLeadNote->save();
@@ -831,25 +903,39 @@ class LeadController extends Controller
             $existingLeadNotes[$key]->user_editable = boolval($existingLeadNotes[$key]->user_editable);
         }
 
-        // dd($existingLeadNotes);
 
         return response()->json($existingLeadNotes);
     }
 
-    public function getLeadChangelogs(string $id)
-    {
-        $existingLeadChangelogs = LeadChangelog::where('lead_id', $id)
-                                                ->orderBy('created_at', 'desc')
-                                                ->get()
-                                                ->map(function ($changelog) {
-                                                    $changelog['source'] = 'lead_changelog';
-                                                    return $changelog;
-                                                });
-        // $existingLeadChangelogs = LeadNote::where('lead_id', $id)
-        //                                 ->with(['leadNoteCreator:id,username,site_id', 'leadNoteCreator.site:id,name'])
-        //                                 ->get();
+    // public function getLeadChangelogs(string $id)
+    // {
+    //     $existingLeadChangelogs = LeadChangelog::where('lead_id', $id)
+    //                                             ->orderBy('created_at', 'desc')
+    //                                             ->get()
+    //                                             ->map(function ($changelog) {
+    //                                                 $changelog['source'] = 'lead_changelog';
+    //                                                 return $changelog;
+    //                                             });
+    //     return response()->json($existingLeadChangelogs);
+    // }
 
-        return response()->json($existingLeadChangelogs);
+    public function getLeadLogEntries(string $id)
+    {
+        $contentTypeId = ContentType::with('auditLogEntries')
+                                        ->where('app_label', 'core')
+                                        ->where('model', 'lead')
+                                        ->select('id')
+                                        ->get();
+
+        $leadLogEntries = [];
+
+        foreach ($contentTypeId[0]->auditLogEntries as $key => $value) {
+            if ((string)$value->object_id === $id){
+                array_push($leadLogEntries, $value);
+            }
+        }
+
+        return response()->json($leadLogEntries);
     }
 
     public function exportToExcel($selectedRowsData)

@@ -23,8 +23,11 @@ class LeadNotesRequest extends FormRequest
     {
         return [
             'lead_notes.*.note' => 'required|string',
+            // 'lead_notes.*.attachment' => 'required|string|max:200',
+            'lead_notes.*.edited_at' => 'required|date_format:Y-m-d H:i:s.uO',
+            'lead_notes.*.created_at' => 'required|date_format:Y-m-d H:i:s.uO',
+            'lead_notes.*.created_by_id' => 'required|integer',
             'lead_notes.*.user_editable' => 'required|boolean',
-            'lead_notes.*.created_by' => 'required|string',
         ];
     }
 
@@ -32,8 +35,8 @@ class LeadNotesRequest extends FormRequest
     {
         return [
             'lead_notes.*.note' => 'Note',
+            'lead_notes.*.created_by_id' => 'Create By',
             'lead_notes.*.user_editable' => 'User Editable',
-            'lead_notes.*.created_by' => 'Create By',
         ];
     }
 
@@ -41,7 +44,7 @@ class LeadNotesRequest extends FormRequest
     {
         return [
             'lead_notes.*.note.required' => 'The Note field is required.',
-            'lead_notes.*.created_by.required' => 'The Created By field is required.',
+            'lead_notes.*.created_by_id.required' => 'The Created By field is required.',
         ];
     }
 }

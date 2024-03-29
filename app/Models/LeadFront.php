@@ -29,15 +29,13 @@ class LeadFront extends Model
         'commission', 
         'edited_at', 
         'created_at', 
-        'lead_id', // from linked_lead
+        'lead_id',
         'email',
         'phone_number',
-        // 'assignee', 
-        // 'total', 
-        // 'bank_name', 
     ];
     
     /**
+     * User model
      * Get the user that owns the phone.
      */
     public function lead(): BelongsTo

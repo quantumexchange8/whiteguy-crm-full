@@ -20,8 +20,8 @@ class LeadNote extends Model
         'attachment',
         'edited_at',
         'created_at',
-        'created_by_id', // from created_by
-        'lead_id', // from linked_lead
+        'created_by_id',
+        'lead_id',
         'color',
         'user_editable', 
     ];
@@ -36,6 +36,7 @@ class LeadNote extends Model
     }
     
     /**
+     * Lead model
      * Get the lead that owns the lead note.
      */
     public function lead(): BelongsTo

@@ -1,17 +1,19 @@
 <script setup>
+import axios from "axios";
 import { ref, onMounted, reactive } from 'vue'
-import { cl, back, convertToHumanReadable } from '@/Composables'
+import dayjs from 'dayjs';
+dayjs.extend(customParseFormat);
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { 
     TabGroup, TabList, Tab, TabPanels, TabPanel, Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot 
 } from '@headlessui/vue'
-import { CheckCircleIcon, ErrorCircleIcon } from '@/Components/Icons/outline';
-import { ThreeDotsVertical } from '@/Components/Icons/solid';
 import { ChevronUpIcon } from '@heroicons/vue/solid'
-import Button from '@/Components/Button.vue'
+import { cl, back, convertToHumanReadable } from '@/Composables'
 import Label from '@/Components/Label.vue'
+import Button from '@/Components/Button.vue'
 import Dropdown from '@/Components/Dropdown.vue'
-import axios from "axios";
-import dayjs from 'dayjs';
+import { ThreeDotsVertical } from '@/Components/Icons/solid';
+import { CheckCircleIcon, ErrorCircleIcon } from '@/Components/Icons/outline';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -21,16 +23,14 @@ const props = defineProps({
     },
 })
 
-const leadChangelogsCategories = ref([
+const leadLogEntriesCategories = ref([
     'Lead Notes', 'History'
 ])
 
 const leadNotesData = reactive({});
-const leadChangelogsData = reactive({});
-// const combinedLogsData = reactive([]);
-// let originalCombinedLogsData = null;
+const leadLogEntriesData = reactive({});
 let originalLeadNoteslogsData = null;
-let originalLeadChangelogsData = null;
+let originalLeadLogEntriesData = null;
 
 onMounted(async () => {
   try {
@@ -38,9 +38,9 @@ onMounted(async () => {
     leadNotesData.value = leadNotesResponse.data;
     originalLeadNoteslogsData = leadNotesResponse.data;
 
-    const leadChangelogsResponse = await axios.get(route('leads.getLeadChangelogs', props.selectedRowData.id));
-    leadChangelogsData.value = leadChangelogsResponse.data;
-    originalLeadChangelogsData = leadChangelogsData.value;
+    const leadLogEntriesResponse = await axios.get(route('leads.getLeadLogEntries', props.selectedRowData.id));
+    leadLogEntriesData.value = leadLogEntriesResponse.data;
+    originalLeadLogEntriesData = leadLogEntriesData.value;
 
     // let combinedLogsArray = [];
 
@@ -82,61 +82,52 @@ const filterBySystemNotes = () => {
 
 const filterByToday = () => {
   const today = dayjs();
-//   combinedLogsData.value = originalCombinedLogsData.filter((log) =>
-//     dayjs(log.created_at).isSame(today, 'day')
-//   );
   leadNotesData.value = originalLeadNoteslogsData.filter((log) =>
     dayjs(log.created_at).isSame(today, 'day')
   );
-  leadChangelogsData.value = originalLeadChangelogsData.filter((log) =>
-    dayjs(log.created_at).isSame(today, 'day')
+  leadLogEntriesData.value = originalLeadLogEntriesData.filter((log) =>
+    dayjs(log.timestamp).isSame(today, 'day')
   );
 };
 
 const filterByPast7Days = () => {
   const sevenDaysAgo = dayjs().subtract(7, 'day');
-//   combinedLogsData.value = originalCombinedLogsData.filter((log) =>
-//     dayjs(log.created_at).isAfter(sevenDaysAgo)
-//   );
   leadNotesData.value = originalLeadNoteslogsData.filter((log) =>
     dayjs(log.created_at).isAfter(sevenDaysAgo)
   );
-  leadChangelogsData.value = originalLeadChangelogsData.filter((log) =>
-    dayjs(log.created_at).isAfter(sevenDaysAgo)
+  leadLogEntriesData.value = originalLeadLogEntriesData.filter((log) =>
+    dayjs(log.timestamp).isAfter(sevenDaysAgo)
   );
 };
 
 const filterByThisMonth = () => {
   const startOfMonth = dayjs().startOf('month');
-//   combinedLogsData.value = originalCombinedLogsData.filter((log) =>
-//     dayjs(log.created_at).isAfter(startOfMonth)
-//   );
   leadNotesData.value = originalLeadNoteslogsData.filter((log) =>
     dayjs(log.created_at).isAfter(startOfMonth)
   );
-  leadChangelogsData.value = originalLeadChangelogsData.filter((log) =>
-    dayjs(log.created_at).isAfter(startOfMonth)
+  leadLogEntriesData.value = originalLeadLogEntriesData.filter((log) =>
+    dayjs(log.timestamp).isAfter(startOfMonth)
   );
 };
 
 const filterByThisYear = () => {
   const startOfYear = dayjs().startOf('year');
-//   combinedLogsData.value = originalCombinedLogsData.filter((log) =>
-//     dayjs(log.created_at).isAfter(startOfYear)
-//   );
   leadNotesData.value = originalLeadNoteslogsData.filter((log) =>
     dayjs(log.created_at).isAfter(startOfYear)
   );
-  leadChangelogsData.value = originalLeadChangelogsData.filter((log) =>
-    dayjs(log.created_at).isAfter(startOfYear)
+  leadLogEntriesData.value = originalLeadLogEntriesData.filter((log) =>
+    dayjs(log.timestamp).isAfter(startOfYear)
   );
 };
 
 const showAll = () => {
-    // combinedLogsData.value = originalCombinedLogsData;
     leadNotesData.value = originalLeadNoteslogsData;
-    leadChangelogsData.value = originalLeadChangelogsData;
+    leadLogEntriesData.value = originalLeadLogEntriesData;
 };
+
+const formatLogChanges = (value) => {
+    return dayjs(value, 'YYYY-MM-DD HH:mm', false).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : value;
+}
 
 </script>
 
@@ -212,7 +203,7 @@ const showAll = () => {
             <TabGroup>
                 <TabList class="flex space-x-1 rounded-xl bg-blue-600/30 p-1 flex-wrap md:flex-nowrap">
                     <Tab
-                        v-for="category in leadChangelogsCategories"
+                        v-for="category in leadLogEntriesCategories"
                         as="template"
                         :key="category"
                         v-slot="{ selected }"
@@ -238,9 +229,6 @@ const showAll = () => {
                         ]"
                     >
                         <!-- For Lead Notes Only -->
-                        <div class="w-full flex justify-center" v-if="!leadNotesData.value || leadNotesData.value.length === 0">
-                            <h3 class="font-semibold text-gray-200"> No records found for this lead currently. </h3>
-                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8 pl-2">
                             <p class="dark:text-gray-200 col-span-full md:col-span-3 font-semibold text-base pl-2 self-center">Filter By: </p>
                             <Button 
@@ -269,6 +257,9 @@ const showAll = () => {
                             >
                                 <span>System</span>
                             </Button>
+                        </div>
+                        <div class="w-full flex justify-center" v-if="!leadNotesData.value || leadNotesData.value.length === 0">
+                            <h3 class="font-semibold text-gray-200"> No records found for this lead currently. </h3>
                         </div>
                         <div v-for="(log, index) in leadNotesData.value" :key="index">
                             <div class="flex flex-col md:grid grid-cols-12">
@@ -363,11 +354,11 @@ const showAll = () => {
                             'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
                         ]"
                     >
-                        <!-- For Lead Changelogs Only -->
-                        <div class="w-full flex justify-center" v-if="!leadChangelogsData.value || leadChangelogsData.value.length === 0">
+                        <!-- For Lead Log Entries Only -->
+                        <div class="w-full flex justify-center" v-if="!leadLogEntriesData.value || leadLogEntriesData.value.length === 0">
                             <h3 class="font-semibold text-gray-200"> No records found for this lead currently. </h3>
                         </div>
-                        <div v-for="(log, index) in leadChangelogsData.value" :key="index">
+                        <div v-for="(log, index) in leadLogEntriesData.value" :key="index">
                             <div class="flex flex-col md:grid grid-cols-12">
                                 <div class="flex md:contents">
                                     <div class="col-start-1 col-end-2 mr-10 md:mx-auto relative">
@@ -383,12 +374,12 @@ const showAll = () => {
                                         <span class="text-xs text-gray-400">
                                             {{ log.created_at }}
                                         </span>
-                                        <div v-if="log.lead_changes && Object.keys(log.lead_changes).length > 0">
+                                        <div v-if="log.changes && Object.keys(log.changes).length > 0">
                                             <Disclosure v-slot="{ open }">
                                                 <DisclosureButton 
                                                     class="bg-gray-700 dark:bg-gray-800/50 rounded-xl text-gray-300 p-2 mt-2 flex items-center w-full mb-1 text-sm font-bold"
                                                 >
-                                                    Lead Changelogs 
+                                                    Lead Log Entries 
                                                     <span class="text-xs font-thin pl-4">
                                                         ( {{ log.id }} )
                                                     </span>
@@ -410,7 +401,32 @@ const showAll = () => {
                                                     <DisclosurePanel 
                                                         class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3 max-h-52 overflow-auto"
                                                     >
-                                                        <div v-for="(value, ix) in log.lead_changes" :key="ix">
+                                                        <div v-for="(value, ix) in JSON.parse(log.changes)" :key="ix">
+                                                            <Label
+                                                                :inputId="'leadChangelogColumn'+ix"
+                                                                :labelValue="'Lead Notes'"
+                                                                class="font-semibold !text-gray-200/75 text-xs col-span-1 pb-1"
+                                                            >
+                                                                ◉ [{{ (ix === 'New') ? 'New Lead' : convertToHumanReadable(ix) }}] 
+                                                            </Label>
+                                                            <Label
+                                                                :inputId="'leadChangelog'+ix"
+                                                                :labelValue="'Lead Notes'"
+                                                                class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
+                                                                v-if="ix === 'New' || ix === 'Delete'"
+                                                            >
+                                                                ➤ {{ value.description }}.
+                                                            </Label>
+                                                            <Label
+                                                                :inputId="'leadChangelog'+ix"
+                                                                :labelValue="'Lead Notes'"
+                                                                class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
+                                                                v-else
+                                                            >
+                                                                ➤ {{ convertToHumanReadable(ix) }} has been {{ (value[0] !== null && value[0] !== 'None') ? 'changed from "' + formatLogChanges(value[0]) : 'set from "' + formatLogChanges(value[0]) }}" to "{{ formatLogChanges(value[1]) }}".
+                                                            </Label>
+                                                        </div>
+                                                        <!-- <div v-for="(value, ix) in log.changes" :key="ix">
                                                             <Label
                                                                 :inputId="'leadChangelogColumn'+ix"
                                                                 :labelValue="'Lead Notes'"
@@ -434,7 +450,7 @@ const showAll = () => {
                                                             >
                                                                 ➤ {{ convertToHumanReadable(ix) }} has been {{ (value.old !== null) ? 'changed from "' + value.old : "set" }}" to "{{ value.new }}".
                                                             </Label>
-                                                        </div>
+                                                        </div> -->
                                                     </DisclosurePanel>
                                                 </TransitionRoot>
                                             </Disclosure>
@@ -444,7 +460,7 @@ const showAll = () => {
                                                 <DisclosureButton 
                                                     class="bg-gray-700 dark:bg-gray-800/50 rounded-xl text-gray-300 p-2 mt-2 flex items-center w-full mb-1 text-sm font-bold"
                                                 >
-                                                    Lead Front Changelogs 
+                                                    Lead Front LogEntries 
                                                     <span class="text-xs font-thin pl-4">
                                                         ( {{ log.id }} )
                                                     </span>
@@ -500,7 +516,7 @@ const showAll = () => {
                                                 <DisclosureButton 
                                                     class="bg-gray-700 dark:bg-gray-800/50 rounded-xl text-gray-300 p-2 mt-2 flex items-center w-full mb-1 text-sm font-bold"
                                                 >
-                                                    Lead Note Changelogs 
+                                                    Lead Note LogEntries 
                                                     <span class="text-xs font-thin pl-4">
                                                         ( {{ log.id }} )
                                                     </span>
