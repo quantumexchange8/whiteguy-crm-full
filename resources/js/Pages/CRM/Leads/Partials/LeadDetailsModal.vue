@@ -39,10 +39,10 @@ onMounted(async () => {
     const leadFrontResponse = await axios.get(route('leads.getLeadFront', props.selectedRowData.id));
     leadFrontData.value = leadFrontResponse.data;
 
-    if (leadFrontData.value) {
-        leadFrontData.value.sdm = (leadFrontData.value.sdm) ? 'Yes' : 'No';
-        leadFrontData.value.liquid = (leadFrontData.value.liquid) ? 'Yes' : 'No';
-    }
+    // if (leadFrontData.value) {
+    //     leadFrontData.value.sdm = (leadFrontData.value.sdm) ? 'Yes' : 'No';
+    //     leadFrontData.value.liquid = (leadFrontData.value.liquid) ? 'Yes' : 'No';
+    // }
     
     replaceHyphensWithEmpty(props.selectedRowData);
   } catch (error) {
@@ -405,22 +405,22 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontQuantity'"
                                             :labelValue="'Amount of Shares'"
-                                            :dataValue="parseFloat(leadFrontData.value?.quantity).toFixed(2) || '-'"
+                                            :dataValue="leadFrontData.value?.quantity ? parseFloat(leadFrontData.value.quantity).toFixed(2) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontPrice'"
                                             :labelValue="'Price per Share'"
-                                            :dataValue="parseFloat(leadFrontData.value?.price).toFixed(2) || '-'"
+                                            :dataValue="leadFrontData.value?.price ? parseFloat(leadFrontData.value.price).toFixed(2) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontSdm'"
                                             :labelValue="'Sdm'"
-                                            :dataValue="leadFrontData.value?.sdm || '-'"
+                                            :dataValue="(leadFrontData.value?.sdm) ? ((leadFrontData.value.sdm) ? 'Yes' : 'No') : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontLiquid'"
                                             :labelValue="'Liquid'"
-                                            :dataValue="leadFrontData.value?.liquid || '-'"
+                                            :dataValue="leadFrontData.value?.liquid ? ((leadFrontData.value.liquid) ? 'Yes' : 'No') : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontBank'"
@@ -455,7 +455,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontCommission'"
                                             :labelValue="'Agent Commission %'"
-                                            :dataValue="leadFrontData.value ? parseFloat(leadFrontData.value.commission).toFixed(2) : '-'"
+                                            :dataValue="leadFrontData.value?.commission ? parseFloat(leadFrontData.value.commission).toFixed(2) : '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -475,7 +475,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontCreatedAt'"
                                             :labelValue="'Created at'"
-                                            :dataValue="leadFrontData.value ? dayjs(leadFrontData.value.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'"
+                                            :dataValue="leadFrontData.value?.created_at ? dayjs(leadFrontData.value.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'"
                                         />
                                     </div>
                                 </TabPanel>

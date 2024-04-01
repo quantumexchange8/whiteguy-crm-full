@@ -289,16 +289,18 @@ class LeadController extends Controller
     public function update(LeadRequest $request, string $id)
     {
         $data = $request->all();
+        // dd($data);
         
         // Additional validation based on user selection (Lead Front | Lead Notes)
         if ($data['create_lead_front']) {
             $leadFrontRequest = new LeadFrontRequest();
-            $request->validate($leadFrontRequest->rules());
+            $this->validate($request, $leadFrontRequest->rules(), $leadFrontRequest->messages(), $leadFrontRequest->attributes());
         }
         
+        // dd($request->lead_notes);
         if (count($data['lead_notes']) > 0) {
             $leadNoteRequest = new LeadNotesRequest();
-            $request->validate($leadNoteRequest->rules());
+            $this->validate($request, $leadNoteRequest->rules(), $leadNoteRequest->messages(), $leadNoteRequest->attributes());
         }
         
         // Lead changes
@@ -499,8 +501,6 @@ class LeadController extends Controller
                     $note = $systemNotesArray[0];
                 }
     
-                // dd('[SYSTEM] ' . $note);
-                
                 $newLeadNote = LeadNote::create([
                     'note' => '[SYSTEM] ' . $note,
                     'attachment' => '',
@@ -515,7 +515,7 @@ class LeadController extends Controller
             }
         }
         
-        dd($systemNotesArray);
+        // dd($data);
         
         $existingLead->update([
             'date' => $data['date'],
@@ -627,11 +627,11 @@ class LeadController extends Controller
                     $existingLeadNotes->update([
                         'note' => $value['note'],
                         'attachment' => '',
-                        'edited_at' => $value['edited_at'],
-                        'created_at' => $value['created_at'],
+                        'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $value['edited_at']),
+                        'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $value['edited_at']),
                         'created_by_id' => $value['created_by_id'],
                         'lead_id' => $id,
-                        'color' => 'primary',
+                        'color' => $value['color'],
                         'user_editable' => $value['user_editable'],
                     ]);
 
@@ -640,8 +640,8 @@ class LeadController extends Controller
                     $newLeadNote = LeadNote::create([
                         'note' => $value['note'],
                         'attachment' => '',
-                        'edited_at' => $value['edited_at'],
-                        'created_at' => $value['created_at'],
+                        'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $value['edited_at']),
+                        'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $value['created_at']),
                         'created_by_id' => $value['created_by_id'],
                         'lead_id' => $id,
                         'color' => 'primary',
@@ -731,7 +731,8 @@ class LeadController extends Controller
     public function deleteLeadFront(string $id)
     {
         $existingLeadFront = LeadFront::find($id);
-        $linkedLead = $existingLeadFront->linked_lead;
+        $linkedLead = $existingLeadFront->lead_id;
+        // dd($existingLeadFront);
         $existingLeadFront->delete();
 
         // $leadFrontChanges = [];
@@ -761,7 +762,7 @@ class LeadController extends Controller
     public function deleteLeadNote(string $id)
     {
         $existingLeadNote = LeadNote::find($id);
-        $linkedLead = $existingLeadNote->linked_lead;
+        $linkedLead = $existingLeadNote->lead_id;
         $existingLeadNote->delete();
 
         // $leadNotesChanges = [];
@@ -833,7 +834,7 @@ class LeadController extends Controller
                             'leadnotes.leadNoteCreator:id,username',
                             'leadnotes.leadNoteCreator.site',
                             ])
-                        ->limit(500)
+                        ->limit(2000)
                         ->orderByDesc('id')
                         ->get();
 
@@ -897,6 +898,7 @@ class LeadController extends Controller
         //                                 });
         $existingLeadNotes = LeadNote::where('lead_id', $id)
                                         ->with(['leadNoteCreator:id,username,site_id', 'leadNoteCreator.site:id,name'])
+                                        ->orderByDesc('id')
                                         ->get();
 
         foreach($existingLeadNotes as $key=>$value) {

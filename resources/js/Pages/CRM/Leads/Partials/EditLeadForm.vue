@@ -1,8 +1,9 @@
 <script setup>
 import dayjs from 'dayjs';
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, reactive, computed, watch } from 'vue'
 import { useForm, usePage } from '@inertiajs/vue3'
 import { cl, back, populateArrayFromResponse, setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone } from '@/Composables'
+import LeadChangelogsModalSection from './LeadChangelogsModalSection.vue'
 import Modal from '@/Components/Modal.vue'
 import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
@@ -36,6 +37,7 @@ const stageArray = reactive({});
 const contactOutcomeArray = reactive({});
 const appointmentLabelArray = reactive({});
 const userListArray  = reactive({});
+const newLeadNotesArray  = reactive([]);
 const showPersonalInformationSection= ref(true);
 const showLeadDetailsSection = ref(true);
 const showLeadFrontForm = ref((props.leadFrontData) ? true : false);
@@ -131,8 +133,6 @@ const form = useForm({
 	lead_front_sdm: (props.leadFrontData) ? props.leadFrontData.sdm : false,
 	lead_front_liquid: (props.leadFrontData) ? props.leadFrontData.liquid : false,
 	lead_front_bank: (props.leadFrontData) ? props.leadFrontData.bank : '',
-	// lead_front_bank_name: (props.leadFrontData) ? props.leadFrontData.bank_name : '',
-	// lead_front_bank_account: (props.leadFrontData) ? props.leadFrontData.bank_account : '',
 	lead_front_note: (props.leadFrontData) ? props.leadFrontData.note : '',
 	lead_front_commission: (props.leadFrontData) ? props.leadFrontData.commission : '',
 	lead_front_vc: (props.leadFrontData) ? props.leadFrontData.vc : '',
@@ -158,21 +158,29 @@ const formSubmit = () => {
         form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : 0;
         form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : 0;
         form.lead_front_edited_at = setDateTimeWithOffset(true);
-        form.lead_front_created_at = form.lead_front_created_at ? form.lead_front_created_at : '';
+        form.lead_front_created_at = form.lead_front_created_at ? form.lead_front_created_at : setDateTimeWithOffset(true);
         form.lead_front_email = form.email;
         form.lead_front_phone_number = form.phone_number;
     }
 
+    // cl(form.lead_notes);
     form.lead_notes.forEach(note => {
-        if (note.created_at === '') {
-            note.created_at = setDateTimeWithOffset(true);
-        }
+        note.created_at = (note.created_at === '') 
+                            ? note.created_at = setDateTimeWithOffset(true) 
+                            : note.created_at.endsWith('00') ? note.created_at : `${note.created_at}00`;
+        
         note.edited_at = setDateTimeWithOffset(true);
     });
+
+    // newLeadNotesArray.forEach(newLeadNote => {
+    //     // Push the new lead note into form.lead_notes
+    //     form.lead_notes.push(newLeadNote);
+    // });
+    cl(form.lead_notes);
+
 	form.put(route('leads.update', props.data.id), {
         preserveScroll: true,
         onSuccess: () => form.reset(),
-    
     })
 };
 
@@ -215,18 +223,16 @@ const clearLeadFrontFormFields = () => {
     form.lead_front_name = '';
     form.lead_front_mimo = '';
     form.lead_front_product = '';
-    form.lead_front_quantity = 0;
-    form.lead_front_price = 0;
+    form.lead_front_quantity = 0.00;
+    form.lead_front_price = 0.00;
     form.lead_front_vc = '';
     form.lead_front_sdm = false;
     form.lead_front_liquid = false;
     form.lead_front_bank = '';
     form.lead_front_note = '';
-    form.lead_front_commission = 0;
+    form.lead_front_commission = 0.00;
     form.lead_front_edited_at = '-';
     form.lead_front_created_at = '-';
-	// form.lead_front_edited_at = '';
-	// form.lead_front_created_at = '';
 	form.lead_front_email = '';
 	form.lead_front_phone_number = '';
     form.reset()
@@ -245,18 +251,18 @@ const deleteLeadFront = () => {
                     lead_front_name: '',
                     lead_front_mimo: '',
                     lead_front_product: '',
-                    lead_front_quantity: 0,
-                    lead_front_price: 0,
+                    lead_front_quantity: 0.00,
+                    lead_front_price: 0.00,
+                    lead_front_vc: '',
                     lead_front_sdm: false,
                     lead_front_liquid: false,
                     lead_front_bank: '',
                     lead_front_note: '',
-                    lead_front_commission: 0,
-                    lead_front_vc: '',
-                    lead_front_email: '',
-                    lead_front_phone_number: '',
+                    lead_front_commission: 0.00,
                     lead_front_edited_at: '-',
                     lead_front_created_at: '-',
+                    lead_front_email: '',
+                    lead_front_phone_number: '',
                 });
                 clearLeadFrontFormFields();
             },
@@ -269,12 +275,12 @@ const deleteLeadFront = () => {
         form.lead_front_product = '';
         form.lead_front_quantity = 0.00;
         form.lead_front_price = 0.00;
+        form.lead_front_vc = '';
         form.lead_front_sdm = false;
         form.lead_front_liquid = false;
         form.lead_front_bank = '';
         form.lead_front_note = '';
         form.lead_front_commission = 0.00;
-        form.lead_front_vc = '';
         form.lead_front_edited_at = '';
         form.lead_front_created_at = '';
         form.lead_front_email = '';
@@ -284,9 +290,9 @@ const deleteLeadFront = () => {
     }
 }
 
-const deleteLeadNote = (id) => {
-    form.delete(route('leads.deleteLeadNote', id));
-}
+// const deleteLeadNote = (id) => {
+//     form.delete(route('leads.deleteLeadNote', id));
+// }
 
 const removeLeadNote = (i, id) => {
     form.lead_notes.splice(i, 1);
@@ -303,9 +309,15 @@ const addLeadNote = () => {
         'edited_at': '',
         'created_at': '',
         'created_by_id': '',
-        'user_editable': false,
+        'user_editable': true,
     });
 }
+
+// Filtered array containing only new lead notes
+const filteredLeadNotes = computed(() => {
+  const existingLeadNoteIds = props.leadNotesData.map(note => note.id)
+  return form.lead_notes.filter(note => !existingLeadNoteIds.includes(note.id))
+})
 
 const openModal = () => {
      showModal.value = true;
@@ -322,6 +334,20 @@ const openLeadNoteModal = (i) => {
 const closeLeadNoteModal = () => {
     selectedLeadNote.value = null;
 }
+
+// watch(() => newLeadNotesArray, (newVal) => {
+//     if (newVal) {
+//         // Loop through each new lead note
+//         newVal.forEach(newLeadNote => {
+//             // Push the new lead note into form.lead_notes
+//             form.lead_notes.push(newLeadNote);
+//         });
+//         // Clear the newLeadNotesArray after merging
+//         newLeadNotesArray.value = [];
+//     }
+//     cl(form.lead_notes);
+
+// }, { deep: true });
 
 </script>
 
@@ -869,25 +895,6 @@ const closeLeadNoteModal = () => {
                                             :errorMessage="(form.errors) ? form.errors.lead_front_bank : '' "
                                             v-model="form.lead_front_bank"
                                         />
-                                        <!-- <CustomTextInputField
-                                            :inputType="'text'"
-                                            :inputId="'leadFrontBankName'"
-                                            :labelValue="'Bank Name'"
-                                            :dataValue="props.leadFrontData ? props.leadFrontData.bank_name : ''"
-                                            class="col-span-2"
-                                            :errorMessage="(form.errors) ? form.errors.lead_front_bank_name : '' "
-                                            v-model="form.lead_front_bank_name"
-                                        />
-                                        <CustomTextInputField
-                                            :inputType="'number'"
-                                            :inputId="'leadFrontBankAccount'"
-                                            :labelValue="'Bank Account'"
-                                            :errorMessage="(form.errors) ? form.errors.lead_front_bank_account : '' "
-                                            :dataValue="props.leadFrontData ? props.leadFrontData.bank_account : ''"
-                                            class="col-span-2"
-                                            v-model="form.lead_front_bank_account"
-                                            @keypress="isNumber($event, false)"
-                                        /> -->
                                     </div>
                                 </div>
                             </div>
@@ -961,34 +968,38 @@ const closeLeadNoteModal = () => {
                             <hr class="border-b rounded-md border-gray-600 mb-6 w-full">
                         </div>
                         <div class="input-group-wrapper flex flex-col gap-8">
-                            <div class="grid grid-cols-1 sm:grid-cols-8 gap-8" v-for="(item, i) in form.lead_notes" :key="i">
+                            <LeadChangelogsModalSection
+                                :selectedRowData="props.data"
+                                :withHistory="false"
+                                class="w-full"
+                            />
+                            <div class="grid grid-cols-1 sm:grid-cols-8 gap-8" v-for="(item, i) in filteredLeadNotes" :key="i">
                                 <hr class="divider !mb-0 col-span-8" v-if="i > 0">
                                 <div class="col-span-8 sm:col-span-7 grid grid-cols-1 lg:grid-cols-3 gap-8">
                                     <div class="input-group col-span-3 flex flex-col gap-6">
                                         <CustomTextInputField
                                             :inputType="'textarea'"
-                                            :inputId="'leadNotesNote_'+i"
+                                            :inputId="'leadNotesNote_'+(i + props.leadNotesData.length)"
                                             :labelValue="'Note'"
-                                            :dataValue="item.note"
-                                            :errorMessage="(form.errors) ? form.errors['lead_notes.' + i + '.note']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['lead_notes.' + (i + props.leadNotesData.length) + '.note']  : '' "
                                             v-model="item.note"
                                             class="col-span-3"
                                         />
                                         <div class="grid grid-cols-1 sm:grid-cols-3 col-span-3">
                                             <Checkbox
                                                 v-model:checked="item.user_editable"
-                                                :inputId="'leadNotesNote_'+i"
+                                                :inputId="'leadNotesNote_'+(i + props.leadNotesData.length)"
                                                 :labelValue="'User Editable'"
+                                                :defaultChecked="true"
                                                 class="col-span-1"
                                             />
                                             <CustomSelectInputField
                                                 :inputArray="userListArray"
-                                                :inputId="'leadNotesCreatedBy_'+i"
+                                                :inputId="'leadNotesCreatedBy_'+(i + props.leadNotesData.length)"
                                                 :labelValue="'Created By'"
-                                                :dataValue="item.created_by_id"
                                                 :customValue="true"
                                                 v-model="item.created_by_id"
-                                                :errorMessage="(form.errors) ? form.errors['lead_notes.' + i + '.created_by_id'] : '' "
+                                                :errorMessage="(form.errors) ? form.errors['lead_notes.' + (i + props.leadNotesData.length) + '.created_by_id'] : '' "
                                                 class="col-span-2"
                                             />
                                         </div>
@@ -1000,12 +1011,12 @@ const closeLeadNoteModal = () => {
                                         :variant="'danger'" 
                                         :size="'sm'" 
                                         class="justify-center gap-2 w-full"
-                                        @click="openLeadNoteModal(i)"
+                                        @click="openLeadNoteModal((i + props.leadNotesData.length))"
                                     >
                                         <TrashIcon class="flex-shrink-0 w-5 h-5 cursor-pointer" aria-hidden="true" />
                                     </Button>
                                     <Modal 
-                                        :show="i === selectedLeadNote" 
+                                        :show="(i + props.leadNotesData.length) === selectedLeadNote" 
                                         maxWidth="2xl" 
                                         :closeable="true" 
                                         @close="closeLeadNoteModal">
@@ -1030,7 +1041,7 @@ const closeLeadNoteModal = () => {
                                                     :variant="'danger'" 
                                                     :size="'sm'" 
                                                     class="justify-center px-6 py-2"
-                                                    @click="removeLeadNote(i, item.id)"
+                                                    @click="removeLeadNote((i + props.leadNotesData.length), item.id)"
                                                 >
                                                     <span>Confirm</span>
                                                 </Button>

@@ -43,8 +43,10 @@ class LeadNotesRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'lead_notes.*.note.required' => 'The Note field is required.',
-            'lead_notes.*.created_by_id.required' => 'The Created By field is required.',
+            'lead_notes.*.note.required' => 'The note field is required.',
+            'lead_notes.*.note.string' => 'The note field must be a string.',
+            'lead_notes.*.created_by_id.required' => 'The created by field is required.',
+            'lead_notes.*.created_by_id.integer' => 'The created by field must be an integer.',
         ];
     }
 }
