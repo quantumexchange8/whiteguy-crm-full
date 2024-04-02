@@ -1,14 +1,14 @@
 <script setup>
 import axios from "axios";
 import dayjs from 'dayjs';
+import { ref, onMounted, reactive } from 'vue';
+import { ChevronUpIcon } from '@heroicons/vue/solid';
+import { Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot } from '@headlessui/vue';
+import { cl, back, convertToHumanReadable } from '@/Composables';
 import Label from '@/Components/Label.vue';
 import Button from '@/Components/Button.vue';
-import { ref, onMounted, reactive } from 'vue';
 import Dropdown from '@/Components/Dropdown.vue';
-import { ChevronUpIcon } from '@heroicons/vue/solid';
 import { ThreeDotsVertical } from '@/Components/Icons/solid';
-import { cl, back, convertToHumanReadable } from '@/Composables';
-import { Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot } from '@headlessui/vue';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -18,27 +18,14 @@ const props = defineProps({
     },
 })
 
-const usersClientsChangelogsData = reactive({});
-let originalusersClientsChangelogsData = null;
+const userLogEntriesData = reactive({});
+let originalUserLogEntriesData = null;
 
 onMounted(async () => {
   try {
-    const usersClientsChangelogsResponse = await axios.get(route('users-clients.getUserChangelogs', props.selectedRowData.id));
-    usersClientsChangelogsData.value = usersClientsChangelogsResponse.data;
-
-    let usersClientsLogsArray = [];
-    for (let key in usersClientsChangelogsData.value) {
-        usersClientsLogsArray.push(usersClientsChangelogsData.value[key]);
-    }
-
-    usersClientsLogsArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    Object.keys(usersClientsChangelogsData.value).forEach((col, index) => {
-        usersClientsChangelogsData.value[col].created_at = dayjs(usersClientsChangelogsData.value[col].created_at).format('DD MMMM YYYY, hh:mm A');
-    });
-    
-    usersClientsChangelogsData.value = usersClientsLogsArray;
-    originalusersClientsChangelogsData = usersClientsChangelogsData.value;
+    const userLogEntriesResponse = await axios.get(route('users-clients.getUserLogEntries', props.selectedRowData.id));
+    userLogEntriesData.value = userLogEntriesResponse.data;
+    originalUserLogEntriesData = userLogEntriesData.value;
 
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -47,42 +34,45 @@ onMounted(async () => {
 
 const filterByToday = () => {
   const today = dayjs();
-  usersClientsChangelogsData.value = originalusersClientsChangelogsData.filter((log) =>
-    dayjs(log.created_at).isSame(today, 'day')
+  userLogEntriesData.value = originalUserLogEntriesData.filter((log) =>
+    dayjs(log.timestamp).isSame(today, 'day')
   );
 };
 
 const filterByPast7Days = () => {
   const sevenDaysAgo = dayjs().subtract(7, 'day');
-  usersClientsChangelogsData.value = originalusersClientsChangelogsData.filter((log) =>
-    dayjs(log.created_at).isAfter(sevenDaysAgo)
+  userLogEntriesData.value = originalUserLogEntriesData.filter((log) =>
+    dayjs(log.timestamp).isAfter(sevenDaysAgo)
   );
 };
 
 const filterByThisMonth = () => {
   const startOfMonth = dayjs().startOf('month');
-  usersClientsChangelogsData.value = originalusersClientsChangelogsData.filter((log) =>
-    dayjs(log.created_at).isAfter(startOfMonth)
+  userLogEntriesData.value = originalUserLogEntriesData.filter((log) =>
+    dayjs(log.timestamp).isAfter(startOfMonth)
   );
 };
 
 const filterByThisYear = () => {
   const startOfYear = dayjs().startOf('year');
-  usersClientsChangelogsData.value = originalusersClientsChangelogsData.filter((log) =>
-    dayjs(log.created_at).isAfter(startOfYear)
+  userLogEntriesData.value = originalUserLogEntriesData.filter((log) =>
+    dayjs(log.timestamp).isAfter(startOfYear)
   );
 };
 
 const showAll = () => {
-  usersClientsChangelogsData.value = originalusersClientsChangelogsData;
+  userLogEntriesData.value = originalUserLogEntriesData;
 };
 
+const formatLogChanges = (value) => {
+    return dayjs(value, 'YYYY-MM-DD HH:mm', false).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : value;
+}
 </script>
 
 <template>
     <div class="input-group p-8 rounded-xl">
         <div class="flex justify-between">
-            <p class="dark:text-gray-300 font-semibold text-xl pb-2">User Client Changelog</p>
+            <p class="dark:text-gray-300 font-semibold text-xl pb-2">History</p>
             <Dropdown 
                 :align="'right'" 
                 :width="50" 
@@ -149,10 +139,10 @@ const showAll = () => {
         </div>
         <div class="container hidden-scrollable max-h-[500px] pt-2">
             <!-- For User Client Changelogs -->
-            <div class="w-full flex justify-center" v-if="!usersClientsChangelogsData.value || usersClientsChangelogsData.value.length === 0">
+            <div class="w-full flex justify-center" v-if="!userLogEntriesData.value || userLogEntriesData.value.length === 0">
                 <h3 class="font-semibold text-gray-200"> No records found for this user currently. </h3>
             </div>
-            <div v-for="(log, index) in usersClientsChangelogsData.value" :key="index">
+            <div v-for="(log, index) in userLogEntriesData.value" :key="index">
                 <div class="flex flex-col md:grid grid-cols-12">
                     <div class="flex md:contents">
                         <div class="col-start-1 col-end-2 mr-10 md:mx-auto relative">
@@ -163,7 +153,7 @@ const showAll = () => {
                         </div>
                         <div class="bg-gray-700 dark:bg-gray-700/70 col-start-2 col-end-13 p-4 rounded-xl mb-4 mr-auto shadow-md w-full">
                             <h3 class="font-semibold text-gray-200">
-                                [System]: {{ log.description }}
+                                [System]: {{ log.action === 0 ? 'Newly created' : 'Updated' }}
                             </h3>
                             <span class="text-xs text-gray-400">
                                 {{ log.created_at }}
@@ -173,7 +163,7 @@ const showAll = () => {
                                     <DisclosureButton 
                                         class="bg-gray-700 dark:bg-gray-800/50 rounded-xl text-gray-300 p-2 mt-2 flex items-center w-full mb-1 text-sm font-bold"
                                     >
-                                        User Client Changelogs 
+                                        User Client Log Entries 
                                         <span class="text-xs font-thin pl-4">
                                             ( {{ log.id }} )
                                         </span>
@@ -196,7 +186,29 @@ const showAll = () => {
                                         <DisclosurePanel 
                                             class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3 max-h-52 overflow-auto"
                                         >
-                                            <div v-for="(value, ix) in log.changes" :key="ix">
+                                            <div v-for="(value, ix) in JSON.parse(log.changes)" :key="ix">
+                                                <Label
+                                                    :inputId="'userClientChangelogColumn'+ix"
+                                                    class="font-semibold !text-gray-200/75 text-xs col-span-1 pb-1"
+                                                >
+                                                    ◉ [{{ (ix === 'New') ? 'New Lead' : convertToHumanReadable(ix) }}] 
+                                                </Label>
+                                                <Label
+                                                    :inputId="'userClientChangelog'+ix"
+                                                    class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
+                                                    v-if="ix === 'New' || ix === 'Delete'"
+                                                >
+                                                    ➤ {{ value.description }}.
+                                                </Label>
+                                                <Label
+                                                    :inputId="'userClientChangelog'+ix"
+                                                    class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
+                                                    v-else
+                                                >
+                                                    ➤ {{ convertToHumanReadable(ix) }} has been {{ (value[0] !== null && value[0] !== 'None') ? 'changed from "' + formatLogChanges(value[0]) : 'set from "' + formatLogChanges(value[0]) }}" to "{{ formatLogChanges(value[1]) }}".
+                                                </Label>
+                                            </div>
+                                            <!-- <div v-for="(value, ix) in log.changes" :key="ix">
                                                 <Label
                                                     :inputId="'userClientChangelogColumn'+ix"
                                                     :labelValue="'Lead Notes'"
@@ -220,7 +232,7 @@ const showAll = () => {
                                                 >
                                                     ➤ {{ convertToHumanReadable(ix) }} has been {{ (value.old !== null) ? 'changed from "' + value.old : 'set' }}" to "{{ value.new }}".
                                                 </Label>
-                                            </div>
+                                            </div> -->
                                         </DisclosurePanel>
                                     </TransitionRoot>
                                 </Disclosure>

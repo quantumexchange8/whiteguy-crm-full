@@ -321,13 +321,6 @@ const formatLogChanges = (value) => {
                                                 <DisclosurePanel 
                                                     class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3"
                                                 >
-                                                    <!-- <Label
-                                                        :inputId="'leadNotesNote'+index"
-                                                        :labelValue="'Lead Notes'"
-                                                        class="font-semibold !text-gray-200/75"
-                                                    >
-                                                        Note: {{ log.note || '-' }}
-                                                    </Label> -->
                                                     <Label
                                                         :inputId="'leadNotesUserEditable'+index"
                                                         :labelValue="'Lead Notes'"
@@ -381,48 +374,15 @@ const formatLogChanges = (value) => {
                                                 <DisclosurePanel 
                                                     class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3"
                                                 >
-                                                    <!-- <Label
-                                                        :inputId="'leadNotesNote'+index"
-                                                        :labelValue="'Lead Notes'"
-                                                        class="font-semibold !text-gray-200/75"
-                                                    >
-                                                        Note: {{ log.note || '-' }}
-                                                    </Label>
-                                                    <Label
-                                                        :inputId="'leadNotesUserEditable'+index"
-                                                        :labelValue="'Lead Notes'"
-                                                        class="leading-relaxed font-semibold !text-gray-200/75"
-                                                    >
-                                                        User editable: 
-                                                        <span class="inline-block align-middle">
-                                                            <component 
-                                                                :is="log.user_editable ? CheckCircleIcon : ErrorCircleIcon" 
-                                                                class="w-4 h-4 ring rounded-full ml-2"
-                                                                :class="{
-                                                                    'ring-green-700': log.user_editable,
-                                                                    'ring-red-500 ': !log.user_editable,
-                                                                }"
-                                                            />
-                                                        </span>
-                                                    </Label>
-                                                    <Label
-                                                        :inputId="'leadNotesCreatedBy'+index"
-                                                        :labelValue="'Lead Notes'"
-                                                        class="font-semibold !text-gray-200/75"
-                                                    >
-                                                        Created by: <span class="inline-block bg-cyan-800 rounded-xl py-1 px-3">{{ log.lead_note_creator.username || '' }} ({{ log.lead_note_creator.site.name || '' }})</span>
-                                                    </Label> -->
                                                     <div v-for="(value, ix) in JSON.parse((log.note.slice(log.note.indexOf('{')).replace(/<br>/g, '')))" :key="ix">
                                                         <Label
                                                             :inputId="'leadChangelogColumn'+ix"
-                                                            :labelValue="'Lead Notes'"
                                                             class="font-semibold !text-gray-200/75 text-xs col-span-1 pb-1"
                                                         >
                                                             ◉ [{{ convertToHumanReadable(ix) }}] 
                                                         </Label>
                                                         <Label
                                                             :inputId="'leadChangelog'+ix"
-                                                            :labelValue="'Lead Notes'"
                                                             class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
                                                         >
                                                             ➤ {{ convertToHumanReadable(ix) }} has been set to "{{ value }}".
@@ -457,7 +417,7 @@ const formatLogChanges = (value) => {
                                     </div>
                                     <div class="bg-gray-700 dark:bg-gray-700/70 col-start-2 col-end-13 p-4 rounded-xl mb-4 mr-auto shadow-md w-full">
                                         <h3 class="font-semibold text-gray-200">
-                                            [System]: {{ log.description }}
+                                            [System]: {{ log.action === 0 ? 'Newly created' : 'Updated' }}
                                         </h3>
                                         <span class="text-xs text-gray-400">
                                             {{ log.created_at }}
@@ -539,121 +499,6 @@ const formatLogChanges = (value) => {
                                                                 ➤ {{ convertToHumanReadable(ix) }} has been {{ (value.old !== null) ? 'changed from "' + value.old : "set" }}" to "{{ value.new }}".
                                                             </Label>
                                                         </div> -->
-                                                    </DisclosurePanel>
-                                                </TransitionRoot>
-                                            </Disclosure>
-                                        </div>
-                                        <div v-if="log.lead_front_changes && Object.keys(log.lead_front_changes).length > 0">
-                                            <Disclosure v-slot="{ open }">
-                                                <DisclosureButton 
-                                                    class="bg-gray-700 dark:bg-gray-800/50 rounded-xl text-gray-300 p-2 mt-2 flex items-center w-full mb-1 text-sm font-bold"
-                                                >
-                                                    Lead Front LogEntries 
-                                                    <span class="text-xs font-thin pl-4">
-                                                        ( {{ log.id }} )
-                                                    </span>
-                                                    <ChevronUpIcon
-                                                        :class="[
-                                                            open ? 'transition-all duration-200 rotate-270 transform' : '',
-                                                            !open ? 'transition-all duration-200 rotate-180 transform' : '',
-                                                        ]"
-                                                        class="h-5 w-5 text-gray-400 ml-auto"
-                                                    />
-                                                </DisclosureButton>
-                                                <TransitionRoot
-                                                    className="transition-all duration-500"
-                                                    enterFrom="transform scale-95 opacity-0 max-h-0"
-                                                    enterTo="transform scale-100 opacity-100 max-h-96"
-                                                    leaveFrom="transform scale-100 opacity-100 max-h-96"
-                                                    leaveTo="transform scale-95 opacity-0 max-h-0"
-                                                >
-                                                    <DisclosurePanel 
-                                                        class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3 max-h-52 overflow-auto"
-                                                    >
-                                                        <div v-for="(value, ix) in log.lead_front_changes" :key="ix">
-                                                            <Label
-                                                                :inputId="'leadChangelogColumn'+ix"
-                                                                :labelValue="'Lead Notes'"
-                                                                class="font-semibold !text-gray-200/75 text-xs col-span-1 pb-1"
-                                                            >
-                                                                ◉ [ Lead Front ID: {{ value.id }} ]: [{{ (ix === 'New') ? 'New Lead Front' : convertToHumanReadable(ix) }}] 
-                                                            </Label>
-                                                            <Label
-                                                                :inputId="'leadChangelog'+ix"
-                                                                :labelValue="'Lead Notes'"
-                                                                class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                                v-if="ix === 'New' || ix === 'Delete'"
-                                                            >
-                                                                ➤ {{ value.description }}.
-                                                            </Label>
-                                                            <Label
-                                                                :inputId="'leadChangelog'+ix"
-                                                                :labelValue="'Lead Notes'"
-                                                                class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                                v-else
-                                                            >
-                                                                ➤ {{ convertToHumanReadable(ix) }} has been {{ (value.old !== null) ? 'changed from "' + value.old : 'set' }}" to "{{ value.new }}".
-                                                            </Label>
-                                                        </div>
-                                                    </DisclosurePanel>
-                                                </TransitionRoot>
-                                            </Disclosure>
-                                        </div>
-                                        <div v-if="log.lead_notes_changes && Object.keys(log.lead_notes_changes).length > 0">
-                                            <Disclosure v-slot="{ open }">
-                                                <DisclosureButton 
-                                                    class="bg-gray-700 dark:bg-gray-800/50 rounded-xl text-gray-300 p-2 mt-2 flex items-center w-full mb-1 text-sm font-bold"
-                                                >
-                                                    Lead Note LogEntries 
-                                                    <span class="text-xs font-thin pl-4">
-                                                        ( {{ log.id }} )
-                                                    </span>
-                                                    <ChevronUpIcon
-                                                        :class="[
-                                                            open ? 'transition-all duration-200 rotate-270 transform' : '',
-                                                            !open ? 'transition-all duration-200 rotate-180 transform' : '',
-                                                        ]"
-                                                        class="h-5 w-5 text-gray-400 ml-auto"
-                                                    />
-                                                </DisclosureButton>
-                                                <TransitionRoot
-                                                    enter="transition-all ease-in-out duration-300 overflow-hidden"
-                                                    enterFrom="transform scale-95 opacity-0 max-h-0"
-                                                    enterTo="transform scale-100 opacity-100 max-h-96"
-                                                    leave="transition-all ease-out duration-150 overflow-hidden"
-                                                    leaveFrom="transform scale-100 opacity-100 max-h-96"
-                                                    leaveTo="transform scale-95 opacity-0 max-h-0"
-                                                >
-                                                    <DisclosurePanel 
-                                                        class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3 max-h-52 overflow-auto"
-                                                    >
-                                                        <div v-for="leadNotesChanges in log.lead_notes_changes">
-                                                            <div v-for="(value, ix) in leadNotesChanges" :key="ix">
-                                                                <Label
-                                                                    :inputId="'leadChangelogColumn'+ix"
-                                                                    :labelValue="'Lead Notes'"
-                                                                    class="font-semibold !text-gray-200/75 text-xs col-span-1 pb-1"
-                                                                >
-                                                                    ◉ [ Lead Note ID: {{ value.id }} ]: [ {{ (ix === 'New' || ix === 'Delete') ? ix + ' Note' : convertToHumanReadable(ix) }} ]
-                                                                </Label>
-                                                                <Label
-                                                                    :inputId="'leadChangelog'+ix"
-                                                                    :labelValue="'Lead Notes'"
-                                                                    class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                                    v-if="ix === 'New' || ix === 'Delete'"
-                                                                >
-                                                                    ➤ {{ value.description }}.
-                                                                </Label>
-                                                                <Label
-                                                                    :inputId="'leadChangelog'+ix"
-                                                                    :labelValue="'Lead Notes'"
-                                                                    class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                                    v-else
-                                                                >
-                                                                    ➤ {{ convertToHumanReadable(ix) }} has been {{ (value.old !== null) ? 'changed from "' + value.old : 'set' }}" to "{{ value.new }}".
-                                                                </Label>
-                                                            </div>
-                                                        </div>
                                                     </DisclosurePanel>
                                                 </TransitionRoot>
                                             </Disclosure>

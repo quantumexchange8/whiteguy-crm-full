@@ -210,7 +210,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'appointment_label'"
                                             :labelValue="'Appointment Label:'"
-                                            :dataValue="props.selectedRowData?.appointment_label_id || '-'"
+                                            :dataValue="(props.selectedRowData?.appointment_label_id) ? props.selectedRowData.appointment_label.title : '-'"
                                             class="text-gray-700"
                                         />
                                         <CustomLabelGroup
@@ -241,7 +241,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'contact_outcome'"
                                             :labelValue="'Contact Outcome:'"
-                                            :dataValue="props.selectedRowData?.contact_outcome_id || '-'"
+                                            :dataValue="(props.selectedRowData?.contact_outcome_id) ? props.selectedRowData.contact_outcome.title : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'give_up_at'"
@@ -251,7 +251,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'assignee'"
                                             :labelValue="'Assignee:'"
-                                            :dataValue="props.selectedRowData?.assignee_id || '-'"
+                                            :dataValue="(props.selectedRowData?.assignee_id) ? (props.selectedRowData.assignee.username + ' (' + props.selectedRowData.assignee.site.name + ')') : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'assignee_read_at'"
@@ -261,7 +261,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'stage'"
                                             :labelValue="'Stage:'"
-                                            :dataValue="props.selectedRowData?.stage_id || '-'"
+                                            :dataValue="(props.selectedRowData?.stage_id) ? props.selectedRowData.stage.title : '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -326,7 +326,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'created_by'"
                                             :labelValue="'Created By'"
-                                            :dataValue="props.selectedRowData?.created_by_id || '-'"
+                                            :dataValue="(props.selectedRowData?.created_by_id) ? (props.selectedRowData.lead_creator.username + ' (' + props.selectedRowData.lead_creator.site.name + ')') : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'delete_at'"
@@ -427,16 +427,6 @@ onMounted(async () => {
                                             :labelValue="'Bank'"
                                             :dataValue="leadFrontData.value?.bank || '-'"
                                         />
-                                        <!-- <CustomLabelGroup
-                                            :inputId="'leadFrontBankName'"
-                                            :labelValue="'Bank Name'"
-                                            :dataValue="leadFrontData.value?.bank_name || '-'"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontBankAccount'"
-                                            :labelValue="'Bank Account'"
-                                            :dataValue="leadFrontData.value?.bank_account || '-'"
-                                        /> -->
                                     </div>
                                 </TabPanel>
                                 <TabPanel

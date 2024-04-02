@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContentType;
 use App\Models\User;
 use Carbon\Carbon;
 use Inertia\Inertia;
@@ -369,11 +370,15 @@ class UserClientController extends Controller
     public function getUsersClients(Request $request)
     {   
         if ($request['checkedFilters']) {
-            $query = new User;
+            $query = User::query();
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
-                    $query->whereIn($category, $options);
+                    $tempArray = [];
+                    foreach ($options as $value) {
+                        array_push($tempArray, (($value === "true" || $value === "false") ? $value : (int)$value));
+                    }
+                    $query->whereIn($category, $tempArray);
                 } elseif (is_string($options) && $options !== '') {
                     switch($options) {
                         case('Today'):
@@ -399,13 +404,49 @@ class UserClientController extends Controller
                     }
                 }
             }
-            $data = $query->with('site')->get();
+            $data = $query->with('site')
+                            ->orderByDesc('id')
+                            ->get();
+        
+            $ranks =[ "Normal", "VIP" ];
+            $client_stages = [ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ];
+            $kyc_statuses = [ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ];
+            $acc_types = [ "Individual", "Joint", "Trust", "Corporate" ];
+    
+            foreach ($data as $user) {
+                // Handle client_stage attribute
+                if (!is_null($user->client_stage) && $user->client_stage !== '') {
+                    $user->client_stage = $client_stages[$user->client_stage - 1];
+                }
+            
+                // Handle rank attribute
+                if (!is_null($user->rank) && $user->rank !== '') {
+                    $user->rank = $ranks[$user->rank - 1];
+                }
+                
+                // Handle kyc_status attribute
+                if (!is_null($user->kyc_status) && $user->kyc_status !== '') {
+                    $user->kyc_status = $kyc_statuses[$user->kyc_status - 1];
+                }
+                
+                // Handle account_type attribute
+                if (!is_null($user->account_type) && $user->account_type !== '') {
+                    $user->account_type = $acc_types[$user->account_type - 1];
+                }
+    
+                // Handle account_manager_id attribute
+                if (!is_null($user->account_manager_id) && $user->account_manager_id !== '') {
+                    $accManager = User::find($user->account_manager_id);
+                    $user->account_manager_id = $accManager->username . " (" . $accManager->site->name . ")";
+                }
+            }
 
             return response()->json($data);
         }
 
         $data = User::with('site')
-                        ->orderByDesc('id')
+                            ->limit(10)
+                            ->orderByDesc('id')
                         ->get();
         
         $ranks =[ "Normal", "VIP" ];
@@ -441,6 +482,8 @@ class UserClientController extends Controller
             }
         }
 
+        // dd($data);
+
         return response()->json($data);
     }
 
@@ -473,30 +516,71 @@ class UserClientController extends Controller
 
     public function getCategories(Request $request)
     {
-        $site = DB::table('django_site')
+        $site_id = DB::table('django_site')
                         ->select('id','domain')
                         ->orderBy('id')
                         ->groupBy('id')
-                        ->get();
+                        ->get()
+                        ->map(function ($site) {
+                            return [
+                                'id' => $site->id,
+                                'title' => $site->domain,
+                            ];
+                        });
 
-        $is_active = [ false, true ];
-        $account_type = [ false, true ];
-        $client_stage = [ false, true ];
-        $rank = [ false, true ];
-        $kyc_status = [ 
-            "Not started", 
-            "Pending documents", 
-            "In progress", 
-            "Rejected", 
-            "Approved" 
+        $is_active = [ 
+            ['id' => true, 'title' => "Yes"],
+            ['id' => false, 'title' => "No"]
         ];
-        $has_crm_access = [ false, true ];
-        $has_leads_access = [ false, true ];
-        $is_staff = [ false, true ];
-        $is_superuser = [ false, true ];
+        $account_type = [ 
+            ['id' => 1, 'title' => "Individual"],
+            ['id' => 2, 'title' => "Joint"],
+            ['id' => 3, 'title' => "Trust"],
+            ['id' => 4, 'title' => "Corporate"],
+        ];
+        $client_stage = [ 
+            ['id' => 1, 'title' => "ALLO"],
+            ['id' => 2, 'title' => "NO ALLO"],
+            ['id' => 3, 'title' => "REMM"],
+            ['id' => 4, 'title' => "TT"],
+            ['id' => 5, 'title' => "CLEARED"],
+            ['id' => 6, 'title' => "PENDING"],
+            ['id' => 7, 'title' => "KICKED"],
+            ['id' => 8, 'title' => "CARRIED OVER"],
+            ['id' => 9, 'title' => "FREE SWITCH"],
+            ['id' => 10, 'title' => "CXL"],
+            ['id' => 11, 'title' => "CXL-CLIENT DROPPED"]
+        ];
+        $rank = [ 
+            ['id' => 1, 'title' => "Normal"],
+            ['id' => 2, 'title' => "VIP"],
+        ];
+        $kyc_status = [ 
+            ['id' => 1, 'title' => "Not started"],
+            ['id' => 2, 'title' => "Pending documents"],
+            ['id' => 3, 'title' => "In progress"],
+            ['id' => 4, 'title' => "Rejected"],
+            ['id' => 5, 'title' => "Approved"]
+        ];
+        $has_crm_access = [ 
+            ['id' => true, 'title' => "Yes"],
+            ['id' => false, 'title' => "No"]
+        ];
+        $has_leads_access = [ 
+            ['id' => true, 'title' => "Yes"],
+            ['id' => false, 'title' => "No"]
+        ];
+        $is_staff = [ 
+            ['id' => true, 'title' => "Yes"],
+            ['id' => false, 'title' => "No"]
+        ];
+        $is_superuser = [ 
+            ['id' => true, 'title' => "Yes"],
+            ['id' => false, 'title' => "No"]
+        ];
 
         $data = [
-            'site' => $site,
+            'site_id' => $site_id,
             'is_active' => $is_active,
             'account_type' => $account_type,
             'client_stage' => $client_stage,
@@ -511,13 +595,33 @@ class UserClientController extends Controller
         return response()->json($data);
     }
 
-    public function getUserChangelogs(string $id)
-    {
-        $existingUserClientChangelogs = UserClientChangelog::where('users_clients_id', $id)
-                                                ->orderBy('created_at', 'desc')
-                                                ->get();
+    // public function getUserChangelogs(string $id)
+    // {
+    //     $existingUserClientChangelogs = UserClientChangelog::where('users_clients_id', $id)
+    //                                             ->orderBy('created_at', 'desc')
+    //                                             ->get();
 
-        return response()->json($existingUserClientChangelogs);
+    //     return response()->json($existingUserClientChangelogs);
+    // }
+
+    public function getUserLogEntries(string $id)
+    {
+        $contentTypeId = ContentType::with('auditLogEntries')
+                                        ->where('app_label', 'core')
+                                        ->where('model', 'user')
+                                        ->select('id')
+                                        ->orderByDesc('id')
+                                        ->get();
+
+        $userLogEntries = [];
+
+        foreach ($contentTypeId[0]->auditLogEntries as $key => $value) {
+            if ((string)$value->object_id === $id){
+                array_push($userLogEntries, $value);
+            }
+        }
+
+        return response()->json($userLogEntries);
     }
     
     public function exportToExcel($selectedRowsData)

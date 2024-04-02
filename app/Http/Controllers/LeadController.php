@@ -22,6 +22,7 @@ use App\Models\LeadFront;
 use App\Models\LeadNote;
 use App\Models\Lead;
 use App\Models\LeadChangelog;
+use App\Models\User;
 use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Schema;
@@ -289,7 +290,6 @@ class LeadController extends Controller
     public function update(LeadRequest $request, string $id)
     {
         $data = $request->all();
-        // dd($data);
         
         // Additional validation based on user selection (Lead Front | Lead Notes)
         if ($data['create_lead_front']) {
@@ -790,11 +790,16 @@ class LeadController extends Controller
     public function getLeads(Request $request)
     {
         if ($request['checkedFilters']) {
-            $query = new Lead;
+            $query = Lead::query();
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
-                    $query->whereIn($category, $options);
+                    $tempArray = [];
+                    foreach ($options as $value) {
+                        array_push($tempArray, (int)$value);
+                    }
+                    $query->whereIn($category, $tempArray);
+
                 } elseif (is_string($options) && $options !== '') {
                     switch($options) {
                         case('Today'):
@@ -820,25 +825,44 @@ class LeadController extends Controller
                     }
                 }
             }
-            $data = $query->with(['leadCreator', 'assignee'])->get();
+            // dd($query->toSql(), $query->getBindings());
+            $data = $query->with([
+                                'leadCreator:id,username,site_id', 
+                                'leadCreator.site:id,name', 
+                                'assignee:id,username,site_id', 
+                                'assignee.site:id,name', 
+                                'leadnotes',
+                                'leadnotes.leadNoteCreator:id,username,site_id',
+                                'leadnotes.leadNoteCreator.site:id,name',
+                                'contactOutcome:id,title',
+                                'stage:id,title',
+                                'appointmentLabel:id,title'
+                            ])
+                            ->limit(10)
+                            ->orderByDesc('id')
+                            ->get();
+
+            // dd($data);
 
             return response()->json($data);
         }
 
         // Default fetch all on load
         $data = Lead::with([
-                            'leadCreator:id,username', 
-                            'leadCreator.site', 
-                            'assignee:id,username', 
+                            'leadCreator:id,username,site_id', 
+                            'leadCreator.site:id,name', 
+                            'assignee:id,username,site_id', 
+                            'assignee.site:id,name', 
                             'leadnotes',
-                            'leadnotes.leadNoteCreator:id,username',
-                            'leadnotes.leadNoteCreator.site',
-                            ])
+                            'leadnotes.leadNoteCreator:id,username,site_id',
+                            'leadnotes.leadNoteCreator.site:id,name',
+                            'contactOutcome:id,title',
+                            'stage:id,title',
+                            'appointmentLabel:id,title'
+                        ])
                         ->limit(2000)
                         ->orderByDesc('id')
                         ->get();
-
-        
 
         return response()->json($data);
     }
@@ -853,30 +877,40 @@ class LeadController extends Controller
 
     public function getCategories(Request $request)
     {
-        $contact_outcome = DB::table('core_leadcontactoutcome')
-                                ->select('title')
+        $contact_outcome_id = DB::table('core_leadcontactoutcome')
+                                ->select('id', 'title')
                                 ->orderBy('id')
                                 ->get();
 
-        $stage = DB::table('core_leadstage')
-                        ->select('title')
+        $stage_id = DB::table('core_leadstage')
+                        ->select('id', 'title')
                         ->orderBy('id')
                         ->get();
 
-        $last_called = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+        $contacted_at = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
 
         $give_up_at = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
 
-        $assignee = Lead::orderBy('assignee_id')
-                        ->groupBy('assignee_id')
-                        ->pluck('assignee_id');
+        $assignee_id = User::has('assignedLeads')
+                            ->with('site:id,name')
+                            ->select('id', 'username', 'site_id')
+                            ->orderByDesc('id')
+                            ->get()
+                            ->map(function ($user) {
+                                return [
+                                    'id' => $user->id,
+                                    'title' => $user->username . ' (' . $user->site->name . ')',
+                                ];
+                            });
+
+        // dd($contact_outcome_id);
 
         $data = [
-            'contact_outcome' => $contact_outcome,
-            'stage' => $stage,
-            'last_called' => $last_called,
+            'contact_outcome_id' => $contact_outcome_id,
+            'stage_id' => $stage_id,
+            'contacted_at' => $contacted_at,
             'give_up_at' => $give_up_at,
-            'assignee' => $assignee,
+            'assignee_id' => $assignee_id,
         ];
         
         return response()->json($data);

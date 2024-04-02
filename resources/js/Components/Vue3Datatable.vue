@@ -629,7 +629,7 @@ watch(() => categories.value, (newVal) => {
                                                     type="checkbox" 
                                                     class="hidden peer" 
                                                     :name="key" 
-                                                    :value="item" 
+                                                    :value="item.id" 
                                                     v-model="checkedFilters[key]"
                                                     v-else
                                                 >
@@ -639,7 +639,7 @@ watch(() => categories.value, (newVal) => {
                                                         border rounded-lg cursor-pointer bg-brand-light text-brand-black border-gray-500
                                                         peer-checked:border-violet-400 peer-checked:bg-violet-700 peer-checked:text-white">
                                                     <div class="flex items-center justify-center w-full">
-                                                        <div class="text-sm dark:text-gray-300">{{ booleanColumns.includes(key) ? (item ? 'Yes' : 'No') : item }}</div>
+                                                        <div class="text-sm dark:text-gray-300">{{ booleanColumns.includes(key) ? (item ? 'Yes' : 'No') : (item?.title ?? item) }}</div>
                                                     </div>
                                                 </label>
                                             </div>

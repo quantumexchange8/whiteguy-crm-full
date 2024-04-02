@@ -125,12 +125,12 @@ class Lead extends Model
     }
 
 
-    /**
-     * LeadChangelog Model
-     * Get the linked lead changelogs.
-     */
-    public function leadchangelogs(): HasMany
-    {
-        return $this->hasMany(LeadChangelog::class, 'lead_id');
-    }
+    // /**
+    //  * LeadChangelog Model
+    //  * Get the linked lead changelogs.
+    //  */
+    // public function leadchangelogs(): HasMany
+    // {
+    //     return $this->hasMany(LeadChangelog::class, 'lead_id');
+    // }
 }

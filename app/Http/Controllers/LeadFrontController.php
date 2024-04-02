@@ -7,6 +7,7 @@ use App\Http\Requests\LeadFrontRequest;
 use App\Models\Lead;
 use App\Models\LeadChangelog;
 use App\Models\LeadFront;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,7 +63,6 @@ class LeadFrontController extends Controller
         // Insert into lead_front table
         $newLeadFrontData = LeadFront::create([
             'name' => $data['lead_front_name'],
-            'assignee' => $data['assignee'],
             'product' => $data['lead_front_product'],
             'quantity' => $data['lead_front_quantity'],
             'price' => $data['lead_front_price'],
@@ -187,9 +187,6 @@ class LeadFrontController extends Controller
                         $oldValue = boolval($oldValue);
                         $newValue = $data[$requestColumnName] ?? null;
                         break;
-                    case('assignee'):
-                        $newValue = $data['assignee'];
-                        break;
                     case('total'):
                         $oldValue = number_format($oldValue, 2);
                         $newValue = number_format($data['lead_front_quantity'] * $data['lead_front_price'], 2) ?? null;
@@ -215,7 +212,6 @@ class LeadFrontController extends Controller
 
             $oldLeadFrontData->update([
                 'name' => $data['lead_front_name'],
-                'assignee' => $data['assignee'],
                 'product' => $data['lead_front_product'],
                 'quantity' => $data['lead_front_quantity'],
                 'price' => $data['lead_front_price'],
@@ -302,11 +298,24 @@ class LeadFrontController extends Controller
     public function getAllLeadFronts(Request $request)
     {
         if ($request['checkedFilters']) {
-            $query = DB::table('lead_front')->whereNull('deleted_at');
+            $query = Leadfront::query();
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
-                    $query->whereIn($category, $options);
+                    if ($category === 'assignee_id'){
+                        foreach ($options as $value) {
+                            $query->whereHas('lead', function ($query) use ($value) {
+                                $query->where('assignee_id', $value);
+                            });
+                        }
+                    } else {
+                        $tempArray = [];
+                        foreach ($options as $value) {
+                            // dd($category);
+                            array_push($tempArray, (($category === 'vc') ? $value : (int)$value));
+                        }
+                        $query->whereIn($category, $tempArray);
+                    }
                 } elseif (is_string($options) && $options !== '') {
                     switch($options) {
                         case('Today'):
@@ -332,14 +341,19 @@ class LeadFrontController extends Controller
                     }
                 }
             }
-            $data = $query->get();
+            $data = $query->with(['lead', 'lead.assignee', 'lead.assignee.site'])
+                            ->limit(9000)
+                            ->orderByDesc('id')
+                            ->get();
 
             return response()->json($data);
         }
 
-        $data = LeadFront::with(['lead', 'lead.assignee', 'lead.assignee.site'])->get();
+        $data = LeadFront::with(['lead', 'lead.assignee', 'lead.assignee.site'])
+                            ->limit(9000)
+                            ->orderByDesc('id')
+                            ->get();
 
-        // dd($data);
         return response()->json($data);
     }
     
@@ -363,24 +377,36 @@ class LeadFrontController extends Controller
     public function getLeadFrontCategories(Request $request)
     {
         // Fetch all filter categories
-        $vc = DB::table('lead_front')
-                        ->whereNull('deleted_at')
+        $vc = LeadFront::select('vc')
                         ->orderBy('vc')
                         ->groupBy('vc')
-                        ->pluck('vc');
+                        ->get()
+                        ->map(function ($vcs) {
+                            return [
+                                'id' => $vcs->vc,
+                                'title' => $vcs->vc,
+                            ];
+                        });
 
-        $assignee = DB::table('lead_front')
-                        ->whereNull('deleted_at')
-                        ->orderBy('assignee')
-                        ->groupBy('assignee')
-                        ->pluck('assignee');
+        $assignee_id = User::has('assignedLeads')
+                            ->has('assignedLeads.leadfront')
+                            ->with('site:id,name')
+                            ->select('id', 'username', 'site_id')
+                            ->orderByDesc('id')
+                            ->get()
+                            ->map(function ($user) {
+                                return [
+                                    'id' => $user->id,
+                                    'title' => $user->username . ' (' . $user->site->name . ')',
+                                ];
+                            });
                         
         $created_at = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
 
         $data = [
             'created_at' => $created_at,
             'vc' => $vc,
-            'assignee' => $assignee,
+            'assignee_id' => $assignee_id,
         ];
         
         return response()->json($data);

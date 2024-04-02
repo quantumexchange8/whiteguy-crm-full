@@ -230,7 +230,8 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
         Route::get('/users-clients/sites', [UserClientController::class, 'getAllSites'])->name('users-clients.getAllSites');
         Route::get('/users-clients/export/{selectedRowsData}', [UserClientController::class, 'exportToExcel'])->name('users-clients.export');
         Route::get('/users-clients/generate-account-id', [UserClientController::class, 'generateAccountId'])->name('users-clients.generateAccountId');
-        Route::get('/users-clients/{id}/users-clients-changelogs', [UserClientController::class, 'getUserChangelogs'])->name('users-clients.getUserChangelogs');
+        Route::get('/users-clients/{id}/users-clients-entries', [UserClientController::class, 'getUserLogEntries'])->name('users-clients.getUserLogEntries');
+    // Route::get('/users-clients/{id}/users-clients-changelogs', [UserClientController::class, 'getUserChangelogs'])->name('users-clients.getUserChangelogs');
         Route::resource('/users-clients', UserClientController::class);
 });
 

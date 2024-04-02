@@ -327,11 +327,10 @@ const closeUserOrdersModal = () => {
                 </div>
             </div>
             <div class="col-span-1">
-                <!-- Old db changelogs are located in public.auditlog_logentry -->
-                <!-- <UserChangelogsSection
+                <UserChangelogsSection
                     :selectedRowData="props.selectedRowData"
                     class="w-full"
-                /> -->
+                />
             </div>
         </div>
         <div class="flex justify-end p-9">

@@ -167,16 +167,10 @@ const formSubmit = () => {
     form.lead_notes.forEach(note => {
         note.created_at = (note.created_at === '') 
                             ? note.created_at = setDateTimeWithOffset(true) 
-                            : note.created_at.endsWith('00') ? note.created_at : `${note.created_at}00`;
+                            : setFormattedDateTimeWithOffset(note.created_at, true);
         
         note.edited_at = setDateTimeWithOffset(true);
     });
-
-    // newLeadNotesArray.forEach(newLeadNote => {
-    //     // Push the new lead note into form.lead_notes
-    //     form.lead_notes.push(newLeadNote);
-    // });
-    cl(form.lead_notes);
 
 	form.put(route('leads.update', props.data.id), {
         preserveScroll: true,
