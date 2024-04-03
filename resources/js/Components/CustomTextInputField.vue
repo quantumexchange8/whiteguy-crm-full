@@ -59,7 +59,7 @@ const props = defineProps({
         <InputIconWrapper>
             <template #icon>
                 <DashboardIcon 
-                    class="flex-shrink-0 w-6 h-6" 
+                    class="flex-shrink-0 w-5 h-5" 
                     aria-hidden="true" 
                 />
             </template>

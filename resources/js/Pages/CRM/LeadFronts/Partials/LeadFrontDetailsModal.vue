@@ -32,15 +32,14 @@ const emit = defineEmits(['closeModal', 'rowEdit']);
 
 onMounted(async () => {
   try {
-    const leadResponse = await axios.get(route('lead-fronts.getLead', props.selectedRowData.linked_lead));
+    const leadResponse = await axios.get(route('lead-fronts.getLead', props.selectedRowData.id));
     // cl(leadResponse);
-    leadData.value = leadResponse.data[0];
+    leadData.value = leadResponse.data;
 
-    props.selectedRowData.sdm = (props.selectedRowData.sdm) ? 'Yes' : 'No';
-    props.selectedRowData.liquid = (props.selectedRowData.liquid) ? 'Yes' : 'No';
+    // props.selectedRowData.sdm = (props.selectedRowData.sdm) ? 'Yes' : 'No';
+    // props.selectedRowData.liquid = (props.selectedRowData.liquid) ? 'Yes' : 'No';
 
     replaceHyphensWithEmpty(props.selectedRowData);
-
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -61,7 +60,7 @@ onMounted(async () => {
                     </p>
                     <div class="flex flex-col max-w-full lg:col-span-6 gap-5 bg-gray-100 dark:bg-gray-900/60 p-3 rounded-lg">
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                            <p class="dark:text-gray-400 text-sm pr-2 lg:col-span-4">
+                            <p class="dark:text-gray-400 text-sm pr-2 lg:col-span-4 whitespace-nowrap">
                                 <span class="text-xs font-thin">
                                     <PhoneIcon
                                         class="h-4 w-4 text-purple-400 inline-block"
@@ -181,32 +180,27 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontQuantity'"
                                             :labelValue="'Amount of Shares'"
-                                            :dataValue="parseFloat(props.selectedRowData ? props.selectedRowData.quantity : 0).toFixed(2)"
+                                            :dataValue="parseFloat(props.selectedRowData?.quantity ?? 0).toFixed(2)"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontPrice'"
                                             :labelValue="'Price per Share'"
-                                            :dataValue="parseFloat(props.selectedRowData ? props.selectedRowData.price : 0).toFixed(2)"
+                                            :dataValue="parseFloat(props.selectedRowData?.price ?? 0).toFixed(2)"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontSdm'"
                                             :labelValue="'Sdm'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.sdm : '-'"
+                                            :dataValue="(props.selectedRowData?.sdm) ? ((props.selectedRowData.sdm) ? 'Yes' : 'No') : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontLiquid'"
                                             :labelValue="'Liquid'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.liquid : '-'"
+                                            :dataValue="(props.selectedRowData?.liquid) ? ((props.selectedRowData.liquid) ? 'Yes' : 'No') : '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'leadFrontBankName'"
-                                            :labelValue="'Bank Name'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.bank_name : '-'"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'leadFrontBankAccount'"
-                                            :labelValue="'Bank Account'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.bank_account : '-'"
+                                            :inputId="'leadFrontBank'"
+                                            :labelValue="'Bank'"
+                                            :dataValue="props.selectedRowData?.bank ?? '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -220,13 +214,13 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontNote'"
                                             :labelValue="'Special Note'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.note : '-'"
+                                            :dataValue="props.selectedRowData?.note ?? '-'"
                                             class="text-gray-700"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontCommission'"
                                             :labelValue="'Agent Commission %'"
-                                            :dataValue="parseFloat(props.selectedRowData ? props.selectedRowData.commission : 0).toFixed(2)"
+                                            :dataValue="parseFloat(props.selectedRowData?.commission ?? 0).toFixed(2)"
                                         />
                                     </div>
                                 </TabPanel>

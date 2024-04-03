@@ -1,11 +1,12 @@
 <script setup>
 import axios from "axios";
-import { useForm, router, usePage } from '@inertiajs/vue3';
+import { useForm, router, usePage, Link } from '@inertiajs/vue3';
 import { ref, onMounted, reactive, watch, computed } from "vue";
 import { EyeIcon } from '@heroicons/vue/outline'
 import "@bhplugin/vue3-datatable/dist/style.css";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
 import { convertToHumanReadable, cl, formatToUserTimezone } from '@/Composables';
+import Label from '@/Components/Label.vue'
 import Input from '@/Components/Input.vue';
 import Modal from '@/Components/Modal.vue';
 import Button from '@/Components/Button.vue';
@@ -747,6 +748,40 @@ watch(() => categories.value, (newVal) => {
             <template #username="rows">
                 <strong><span class="text-purple-300">{{ rows.value.username }} ({{ rows.value.site.name }})</span></strong>
             </template>
+            <template #lead_assignee="rows">
+                <Link
+                    :href="route('users-clients.edit', rows.value.assignee.id)"
+                    class="font-medium"
+                >
+                    <strong><span class="text-purple-300 hover:text-purple-400">{{ rows.value.assignee.username }} ({{ rows.value.assignee.site.name }})</span></strong>
+                </Link>
+            </template>
+            <template #lead_front_assignee="rows">
+                <Link
+                    :href="route('users-clients.edit', rows.value.lead.assignee.id)"
+                    class="font-medium"
+                >
+                    <strong><span class="text-purple-300 hover:text-purple-400">{{ rows.value.lead.assignee.username }} ({{ rows.value.lead.assignee.site.name }})</span></strong>
+                </Link>
+            </template>
+            <template #account_manager_id="rows">
+                <Link
+                    :href="route('users-clients.edit', rows.value.account_manager.id)"
+                    class="font-medium"
+                    v-if="rows.value.account_manager !== '-'"
+                >
+                    <strong><span class="text-purple-300 hover:text-purple-400">{{ rows.value.account_manager_id }}</span></strong>
+                </Link>
+                <span v-else class="text-gray-300">{{ rows.value.account_manager_id }}</span>
+            </template>
+            <template #lead_id="rows">
+                <Link
+                    :href="route('leads.edit', rows.value.lead.id)"
+                    class="font-medium"
+                >
+                    <strong><span class="text-purple-300 hover:text-purple-400">{{ rows.value.lead.first_name + ' ' + rows.value.lead.last_name }}</span></strong>
+                </Link>
+            </template>
             <template #actions="rows">
                 <div class="flex flex-row flex-nowrap gap-1">
                     <Button 
@@ -817,6 +852,12 @@ watch(() => categories.value, (newVal) => {
                         </div>
                     </Modal>
                 </div>
+            </template>
+            <template #lead_front_commission="rows">
+                <div class="min-w-max">{{ (parseFloat(rows.value.commission) / 100 * (parseFloat(rows.value.quantity) * parseFloat(rows.value.price))).toFixed(2) }}</div>
+            </template>
+            <template #lead_front_total="rows">
+                <div class="min-w-max">{{ (parseFloat(rows.value.quantity) * parseFloat(rows.value.price)).toFixed(2) }}</div>
             </template>
             <template #contacted_at="rows">
                 <div class="min-w-max">{{ (rows.value.contacted_at && rows.value.contacted_at !== '-') ? formatToUserTimezone(rows.value.contacted_at, user.timezone, true) : '-' }}</div>

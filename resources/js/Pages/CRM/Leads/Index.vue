@@ -21,7 +21,7 @@ const toast = useToast();
 const colArray = ref([
 	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
     { field: "id", title: "ID", headerClass: "dark:text-gray-300 text-sm w-max" },
-    { field: "assignee_id", title: "ASSIGNEE", headerClass: "dark:text-gray-300 text-sm w-max"  },
+    { field: "lead_assignee", title: "ASSIGNEE", headerClass: "dark:text-gray-300 text-sm w-max"  },
     { field: "contacted_at", title: "LAST CALLED", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
     { field: "give_up_at", title: "GIVE UP?", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
     { field: "date", title: "DATE OPP'D IN", headerClass: "dark:text-gray-300 text-sm", type: 'date'  },

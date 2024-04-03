@@ -1,7 +1,7 @@
 <script setup>
-import { cl, back } from '@/Composables'
+import { cl, back, setDateTimeWithOffset, setFormattedDateTimeWithOffset } from '@/Composables'
 import { ref, onMounted } from 'vue'
-import { useForm } from '@inertiajs/vue3'
+import { Link, useForm } from '@inertiajs/vue3'
 import { PlusIcon } from '@/Components/Icons/solid'
 import { TrashIcon } from '@/Components/Icons/outline'
 import Label from '@/Components/Label.vue'
@@ -35,44 +35,37 @@ onMounted(() => {
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
-	linked_lead: props.data.linked_lead,
 	lead_front_name: props.data.name,
 	lead_front_mimo: props.data.mimo,
 	lead_front_product: props.data.product,
 	lead_front_quantity: props.data.quantity,
 	lead_front_price: props.data.price,
-	lead_front_sdm: Boolean(props.data.sdm),
-	lead_front_liquid: Boolean(props.data.liquid),
-	lead_front_bank_name: props.data.bank_name,
-	lead_front_bank_account: props.data.bank_account,
-	lead_front_note: props.data.note,
-	assignee: props.data.assignee,
-	lead_front_commission: props.data.commission,
 	lead_front_vc: props.data.vc,
+	lead_front_sdm: props.data.sdm,
+	lead_front_liquid: props.data.liquid,
+	lead_front_bank: props.data.bank,
+	lead_front_note: props.data.note,
+	lead_front_commission: props.data.commission,
 	lead_front_edited_at: props.data.edited_at,
 	lead_front_created_at: props.data.created_at,
+	lead_id: props.data.lead_id,
+	lead_front_email: props.data.email,
+	lead_front_phone_number: props.data.phone_number,
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
-	form.lead_front_bank_account = form.lead_front_bank_account ? parseInt(form.lead_front_bank_account) : '';
 	form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : '';
 	form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : '';
 	form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : '';
-	form.lead_front_edited_at = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
+	form.lead_front_edited_at = setDateTimeWithOffset(true);
+	form.lead_front_created_at = setFormattedDateTimeWithOffset(form.lead_front_created_at, true);
 
-	// Check and allow submit only if user has selected a lead to link the lead front to
-	if (form.assignee !== '') {
-		selectedAssigneeError.value = '';
-
-		form.put(route('lead-fronts.update', props.data.id), {
-		    preserveScroll: true,
-		    onSuccess: () => form.reset(),
-		
-		})
-	} else {
-		selectedAssigneeError.value = 'An assignee is required.';
-	}
+	form.put(route('lead-fronts.update', props.data.id), {
+		preserveScroll: true,
+		onSuccess: () => form.reset(),
+	
+	})
 };
 
 
@@ -138,10 +131,23 @@ const isValidNumber = (value) => {
 					<div class="flex flex-col col-span-1 gap-8">
 						<div class="input-group col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <CustomLabelGroup
-                                :inputId="'leadFrontEditedAt'"
-                                :labelValue="'Lead'"
-                                :dataValue="props.data.linked_lead"
-                            />
+                                :inputId="'lead_id'"
+                                :labelValue="'Linked Lead'"
+                                :dataValue="false"
+                            >
+								<Link
+									:href="route('leads.edit', props.data.lead.id)"
+									class="font-medium"
+								>
+									<Label
+										:id="'emalie'"
+										class="py-2 px-3 border border-gray-400 rounded-md h-[41px] cursor-pointer
+												dark:border-gray-600 dark:bg-dark-eval-1 dark:text-gray-300 dark:focus:ring-offset-dark-eval-1"
+									>
+										<strong><span class="text-cyan-500 hover:text-cyan-600">{{ props.data.lead.first_name + ' ' + props.data.lead.last_name }}</span></strong>
+									</Label>
+								</Link>
+							</CustomLabelGroup>
 							<CustomTextInputField
 								:inputType="'text'"
 								:inputId="'leadFrontName'"
@@ -218,25 +224,16 @@ const isValidNumber = (value) => {
                                     <CustomLabelGroup
                                         :inputId="'total'"
                                         :labelValue="'Total'"
-                                        :dataValue="parseFloat(props.data.total).toFixed(2)"
+                                        :dataValue="parseFloat(props.data.quantity * props.data.price).toFixed(2)"
                                     />
 									<CustomTextInputField
-										:inputId="'leadFrontBankName'"
-										:labelValue="'Bank Name'"
-										:dataValue="props.data.name"
+										:inputType="'textarea'"
+										:inputId="'leadFrontBank'"
+										:labelValue="'Bank'"
+										:dataValue="props.data.bank"
 										class="col-span-2"
-										:errorMessage="(form.errors) ? form.errors.lead_front_bank_name : '' "
-										v-model="form.lead_front_bank_name"
-									/>
-									<CustomTextInputField
-										:inputType="'number'"
-										:inputId="'leadFrontBankAccount'"
-										:labelValue="'Bank Account'"
-										:dataValue="props.data.bank_account"
-										class="col-span-2"
-										:errorMessage="(form.errors) ? form.errors.lead_front_bank_account : '' "
-										v-model="form.lead_front_bank_account"
-										@keypress="isNumber($event, false)"
+										:errorMessage="(form.errors) ? form.errors.lead_front_bank : '' "
+										v-model="form.lead_front_bank"
 									/>
 								</div>
 							</div>
@@ -249,7 +246,7 @@ const isValidNumber = (value) => {
 									:inputType="'textarea'"
 									:inputId="'leadFrontNote'"
 									:labelValue="'Special Note'"
-									class="col-span-2"
+									class="col-span-full lg:col-span-2"
 									:dataValue="props.data.note"
 									:errorMessage="(form.errors) ? form.errors.lead_front_note : '' "
 									v-model="form.lead_front_note"
@@ -257,12 +254,25 @@ const isValidNumber = (value) => {
                                 <CustomLabelGroup
                                     :inputId="'assignee'"
                                     :labelValue="'Assignee'"
-                                    :dataValue="props.data.assignee"
-                                />
+									:dataValue="false"
+								>
+									<Link
+										:href="route('users-clients.edit', props.data.lead.assignee.id)"
+										class="font-medium"
+									>
+										<Label
+											:id="'emalie'"
+											class="py-2 px-3 border border-gray-400 rounded-md h-[41px] cursor-pointer
+													dark:border-gray-600 dark:bg-dark-eval-1 dark:text-gray-300 dark:focus:ring-offset-dark-eval-1"
+										>
+											<strong><span class="text-cyan-500 hover:text-cyan-600">{{ props.data.lead.assignee.username + ' (' + props.data.lead.assignee.site.name + ')' }}</span></strong>
+										</Label>
+									</Link>
+								</CustomLabelGroup>
                                 <CustomLabelGroup
                                     :inputId="'leadFrontCommission'"
                                     :labelValue="'Agent Commission %'"
-                                    :dataValue="parseFloat(props.data.commission).toFixed(2)"
+                                    :dataValue="'(' + parseFloat(props.data.commission).toFixed(2) + '%) ' + (props.data.commission / 100 * (props.data.quantity * props.data.price)).toFixed(2)"
                                 />
 							</div>
 							<div class="input-group grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -275,7 +285,7 @@ const isValidNumber = (value) => {
 								<CustomLabelGroup
 									:inputId="'leadFrontCreatedAt'"
 									:labelValue="'Created at'"
-                                    :dataValue="dayjs(props.data.created_at).format('YYYY-MM-DD HH:mm:ss')"
+                                    :dataValue="props.data.created_at"
                                     v-model="form.lead_front_created_at"
 								/>
 							</div>

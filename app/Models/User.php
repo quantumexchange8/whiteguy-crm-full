@@ -86,6 +86,24 @@ class User extends Authenticatable
     // ];
 
     /**
+     * User Model
+     * Get users whos account is managed by the user.
+     */
+    public function managingAccounts(): HasMany
+    {
+        return $this->hasMany(User::class, 'account_manager_id');
+    }
+
+    /**
+     * User Model
+     * Get the account manager of the user.
+     */
+    public function accountManager(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'account_manager_id');
+    }
+
+    /**
      * Site Model
      * Get the site of the user.
      */

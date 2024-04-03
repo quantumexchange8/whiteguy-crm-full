@@ -1,6 +1,6 @@
 <script setup>
-import { cl, back } from '@/Composables'
-import { ref, onMounted } from 'vue'
+import { cl, back, populateArrayFromResponse, setDateTimeWithOffset } from '@/Composables'
+import { ref, onMounted, watch, reactive } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { PlusIcon } from '@/Components/Icons/solid'
 import { DeleteIcon } from '@/Components/Icons/outline'
@@ -18,18 +18,14 @@ defineProps({
     errors:Object
 })
 
-const leadsList = ref([]);
-const selectedLeadError = ref()
-const selectedAssigneeError = ref()
-const assigneeArray  = ref(
-	[ "125", "124", "123", "122", "121", "120" ]
-);
+const leadsList = reactive({});
+const leadEmail = ref('');
+const leadPhoneNumber = ref('');
 
 onMounted(async () => {
   try {
     const leadsListResponse = await axios.get(route('lead-fronts.getLeadList'));
-    leadsList.value = leadsListResponse.data;
-    // cl(leadsList.value);
+    populateArrayFromResponse(leadsListResponse.data, leadsList, 'id', 'value');
 
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -38,46 +34,37 @@ onMounted(async () => {
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
-	linked_lead: '',
+	lead_id: '',
 	lead_front_name: '',
 	lead_front_mimo: '',
 	lead_front_product: '',
 	lead_front_quantity: 0,
 	lead_front_price: 0,
+	lead_front_vc: '',
 	lead_front_sdm: false,
 	lead_front_liquid: false,
-	lead_front_bank_name: '',
-	lead_front_bank_account: '',
+	lead_front_bank: '',
 	lead_front_note: '',
-	assignee: '',
 	lead_front_commission: 0,
-	lead_front_vc: '',
 	lead_front_edited_at: '',
+	lead_front_created_at: '',
+	lead_front_email: '',
+	lead_front_phone_number: '',
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
-	form.lead_front_bank_account = form.lead_front_bank_account ? parseInt(form.lead_front_bank_account) : '';
 	form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : '';
 	form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : '';
 	form.lead_front_commission = isValidNumber(form.lead_front_commission) ? parseFloat(form.lead_front_commission) : '';
-	form.lead_front_edited_at = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss');
+	form.lead_front_edited_at = setDateTimeWithOffset(true);
+	form.lead_front_created_at = setDateTimeWithOffset(true);
 
-	// Check and allow submit only if user has selected a lead to link the lead front to
-	if (form.linked_lead !== '' && form.assignee !== '') {
-		selectedLeadError.value = '';
-		selectedAssigneeError.value = '';
-
-		form.post(route('lead-fronts.store'), {
-		    preserveScroll: true,
-		    onSuccess: () => form.reset(),
-		
-		})
-	} else {
-		selectedLeadError.value = 'A linked lead is required.';
-		selectedAssigneeError.value = 'An assignee is required.';
-	}
-
+	form.post(route('lead-fronts.store'), {
+		preserveScroll: true,
+		onSuccess: () => form.reset(),
+	
+	})
 };
 
 
@@ -98,6 +85,24 @@ const isValidNumber = (value) => {
     return value !== '' && !isNaN(parseFloat(value)) && isFinite(value);
 };
 
+const getLeadDetails = async (lead_id) => {
+	try {
+		const leadResponse = await axios.get(route('lead-fronts.getLeadDetails', lead_id));
+		leadEmail.value = leadResponse.data.email ?? '';
+		leadPhoneNumber.value = leadResponse.data.phone_number ?? '';
+		
+		form.lead_front_email = leadResponse.data.email;
+		form.lead_front_phone_number = leadResponse.data.phone_number;
+
+	} catch (error) {
+		console.error('Error fetching data:', error);
+	}
+}
+
+watch(() => form.lead_id, (lead_id) => {
+	getLeadDetails(lead_id);
+  }
+)
 </script>
 
 <template>
@@ -144,10 +149,11 @@ const isValidNumber = (value) => {
 						<div class="input-group col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <CustomSelectInputField
                                 :inputArray="leadsList"
-                                :inputId="'linked_lead'"
-                                :labelValue="'Lead'"
-                                :errorMessage="selectedLeadError ?? ''"
-                                v-model="form.linked_lead"
+                                :inputId="'lead_id'"
+                                :labelValue="'Linked Lead'"
+								:customValue="true"
+                                :errorMessage="(form.errors) ? form.errors.lead_id : '' "
+                                v-model="form.lead_id"
                             />
 							<CustomTextInputField
 								:inputType="'text'"
@@ -157,6 +163,34 @@ const isValidNumber = (value) => {
 								:errorMessage="(form.errors) ? form.errors.lead_front_name : '' "
 								v-model="form.lead_front_name"
 							/>
+							<CustomLabelGroup
+								:inputId="'leadFrontEmail'"
+								:labelValue="'Email'"
+								:dataValue="false"
+								class="text-gray-300"
+							>
+							<Label
+								:id="'emalie'"
+								class="py-2 px-3 border border-gray-400 rounded-md  h-[41px]
+										dark:border-gray-600 dark:bg-dark-eval-1 dark:text-gray-300 dark:focus:ring-offset-dark-eval-1"
+							>
+								{{ leadEmail || '-' }}
+							</Label>
+							</CustomLabelGroup>
+							<CustomLabelGroup
+								:inputId="'leadFrontPhoneNumber'"
+								:labelValue="'Phone Number'"
+								:dataValue="false"
+								class="text-gray-300"
+							>
+							<Label
+								:id="'emalie'"
+								class="py-2 px-3 border border-gray-400 rounded-md  h-[41px]
+										dark:border-gray-600 dark:bg-dark-eval-1 dark:text-gray-300 dark:focus:ring-offset-dark-eval-1"
+							>
+								{{ leadPhoneNumber || '-' }}
+							</Label>
+							</CustomLabelGroup>
 							<CustomTextInputField
 								:inputType="'text'"
 								:inputId="'leadFrontProduct'"
@@ -185,7 +219,7 @@ const isValidNumber = (value) => {
 						</div>
 						<div class="col-span-2 flex flex-col gap-10">
 							<div class="grid grid-cols-1 gap-10">
-								<div class="input-group grid grid-cols-1 lg:grid-cols-4 gap-6">
+								<div class="input-group grid grid-cols-1 lg:grid-cols-12 gap-6">
 									<CustomTextInputField
 										:inputType="'number'"
 										:inputId="'leadFrontQuantity'"
@@ -194,7 +228,7 @@ const isValidNumber = (value) => {
 										:decimalOption="true"
 										:step="0.01"
 										@keypress="isNumber($event)"
-										class="col-span-2"
+										class="col-span-6"
 										:errorMessage="(form.errors) ? form.errors.lead_front_quantity : '' "
 										v-model="form.lead_front_quantity"
 									/>
@@ -205,7 +239,7 @@ const isValidNumber = (value) => {
 										:dataValue="parseFloat(form.lead_front_price).toFixed(2)"
 										:decimalOption="true"
 										:step="0.01"
-										class="col-span-2"
+										class="col-span-6"
 										:errorMessage="(form.errors) ? form.errors.lead_front_price : '' "
 										@keypress="isNumber($event)"
 										v-model="form.lead_front_price"
@@ -214,30 +248,24 @@ const isValidNumber = (value) => {
 										v-model:checked="form.lead_front_sdm"
 										:inputId="'leadFrontSdm'"
 										:labelValue="'Sdm'"
+										class="col-span-2"
 										:errorMessage="(form.errors) ? form.errors.lead_front_sdm : '' "
 									/>
 									<Checkbox
 										v-model:checked="form.lead_front_liquid"
 										:inputId="'leadFrontLiquid'"
 										:labelValue="'Liquid'"
+										class="col-span-2"
 										:errorMessage="(form.errors) ? form.errors.lead_front_liquid : '' "
 									/>
 									<CustomTextInputField
-										:inputId="'leadFrontBankName'"
-										:labelValue="'Bank Name'"
-										:dataValue="form.lead_front_bank_name"
-										class="col-span-2 col-start-1"
-										:errorMessage="(form.errors) ? form.errors.lead_front_bank_name : '' "
-										v-model="form.lead_front_bank_name"
-									/>
-									<CustomTextInputField
-										:inputType="'number'"
-										:inputId="'leadFrontBankAccount'"
-										:labelValue="'Bank Account'"
-										class="col-span-2"
-										:errorMessage="(form.errors) ? form.errors.lead_front_bank_account : '' "
-										v-model="form.lead_front_bank_account"
-										@keypress="isNumber($event, false)"
+										:inputType="'textarea'"
+										:inputId="'leadFrontBank'"
+										:labelValue="'Bank'"
+										class="col-span-8"
+										:dataValue="form.lead_front_bank"
+										:errorMessage="(form.errors) ? form.errors.lead_front_bank : '' "
+										v-model="form.lead_front_bank"
 									/>
 								</div>
 							</div>
@@ -254,13 +282,6 @@ const isValidNumber = (value) => {
 									:dataValue="form.lead_front_note"
 									:errorMessage="(form.errors) ? form.errors.lead_front_note : '' "
 									v-model="form.lead_front_note"
-								/>
-								<CustomSelectInputField
-									:inputArray="assigneeArray"
-									:inputId="'assignee'"
-									:labelValue="'Assignee'"
-									:errorMessage="selectedAssigneeError ?? '' "
-									v-model="form.assignee"
 								/>
 								<CustomTextInputField
 									:inputType="'number'"

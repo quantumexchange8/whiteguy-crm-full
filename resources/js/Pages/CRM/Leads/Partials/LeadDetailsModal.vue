@@ -420,7 +420,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontLiquid'"
                                             :labelValue="'Liquid'"
-                                            :dataValue="leadFrontData.value?.liquid ? ((leadFrontData.value.liquid) ? 'Yes' : 'No') : '-'"
+                                            :dataValue="(leadFrontData.value?.liquid) ? ((leadFrontData.value.liquid) ? 'Yes' : 'No') : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontBank'"

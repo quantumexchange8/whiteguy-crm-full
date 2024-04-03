@@ -26,6 +26,13 @@ class UserClientController extends Controller
      */
     public function index(Request $request)
     {
+        // $accManager = User::with(['accountManager:id,username,site_id', 'accountManager.site:id,name'])
+        //                     ->limit(10)
+        //                     ->orderByDesc('id')
+        //                     ->get();
+
+        // dd($accManager);
+
         // Get the flashed messages from the session
         $errors = $request->session()->get('errors');
         $errorMsg = $request->session()->get('errorMsg');
@@ -404,7 +411,7 @@ class UserClientController extends Controller
                     }
                 }
             }
-            $data = $query->with('site')
+            $data = $query->with(['site', 'accountManager:id,username,site_id', 'accountManager.site:id,name'])
                             ->orderByDesc('id')
                             ->get();
         
@@ -436,15 +443,15 @@ class UserClientController extends Controller
     
                 // Handle account_manager_id attribute
                 if (!is_null($user->account_manager_id) && $user->account_manager_id !== '') {
-                    $accManager = User::find($user->account_manager_id);
-                    $user->account_manager_id = $accManager->username . " (" . $accManager->site->name . ")";
+                    // $accManager = User::find($user->account_manager_id);
+                    $user->account_manager_id = $user->accountManager->username . " (" . $user->accountManager->site->name . ")";
                 }
             }
 
             return response()->json($data);
         }
 
-        $data = User::with('site')
+        $data = User::with(['site', 'accountManager:id,username,site_id', 'accountManager.site:id,name'])
                             ->limit(10)
                             ->orderByDesc('id')
                         ->get();
@@ -477,8 +484,8 @@ class UserClientController extends Controller
 
             // Handle account_manager_id attribute
             if (!is_null($user->account_manager_id) && $user->account_manager_id !== '') {
-                $accManager = User::find($user->account_manager_id);
-                $user->account_manager_id = $accManager->username . " (" . $accManager->site->name . ")";
+                // $accManager = User::find($user->account_manager_id);
+                $user->account_manager_id = $user->accountManager->username . " (" . $user->accountManager->site->name . ")";
             }
         }
 

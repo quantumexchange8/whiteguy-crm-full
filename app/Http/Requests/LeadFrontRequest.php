@@ -35,6 +35,7 @@ class LeadFrontRequest extends FormRequest
             'lead_front_commission' => 'required|max_digits:20|decimal:0,2',
             'lead_front_edited_at' => 'required|date_format:Y-m-d H:i:s.uO',
             'lead_front_created_at' => 'required|date_format:Y-m-d H:i:s.uO',
+            'lead_id' => 'required|integer',
             'lead_front_email' => 'required|string|max:254',
             'lead_front_phone_number' => 'required|string|max:50',
         ];
@@ -56,6 +57,7 @@ class LeadFrontRequest extends FormRequest
             'lead_front_commission' => 'Commission',
             'lead_front_edited_at' => 'Edited At',
             'lead_front_created_at' => 'Created At',
+            'lead_id' => 'Linked Lead',
             'lead_front_email' => 'Email',
             'lead_front_phone_number' => 'Phone Number',
         ];
@@ -91,6 +93,8 @@ class LeadFrontRequest extends FormRequest
             'lead_front_commission.required' => 'The commission field is required.',
             'lead_front_commission.max_digits' => 'The commission field must not exceed 20 digits.',
             'lead_front_commission.decimal' => 'The commission field must be of number with 2 decimal points.',
+            'lead_id.required' => 'The linked lead field is required.',
+            'lead_id.integer' => 'The linked lead field must be an integer.',
             'lead_front_email.required' => 'The email field is required.',
             'lead_front_email.string' => 'The email field must be a string.',
             'lead_front_email.max' => 'The email field must not exceed 254 characters.',

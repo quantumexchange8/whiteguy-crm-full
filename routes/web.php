@@ -140,8 +140,10 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     */
     Route::get('/lead-fronts/export/{selectedRowsData}', [LeadFrontController::class, 'exportToExcel'])->name('lead-fronts.export');
     Route::get('/lead-fronts/leads-list', [LeadFrontController::class, 'getLeadList'])->name('lead-fronts.getLeadList');
+    Route::get('/lead-fronts/lead/{id}', [LeadFrontController::class, 'getLeadDetails'])->name('lead-fronts.getLeadDetails');
     Route::get('/lead-fronts/{id}/lead', [LeadFrontController::class, 'getLead'])->name('lead-fronts.getLead');
-    Route::get('/lead-fronts/{id}/lead-front-changelogs', [LeadFrontController::class, 'getLeadFrontChangelogs'])->name('lead-fronts.getLeadFrontChangelogs');
+    Route::get('/lead-fronts/{id}/lead-front-log-entries', [LeadFrontController::class, 'getLeadFrontLogEntries'])->name('lead-fronts.getLeadFrontLogEntries');
+    // Route::get('/lead-fronts/{id}/lead-front-changelogs', [LeadFrontController::class, 'getLeadFrontChangelogs'])->name('lead-fronts.getLeadFrontChangelogs');
     Route::get('/lead-fronts/count', [LeadFrontController::class, 'getTotalLeadFrontCount'])->name('lead-fronts.getTotalLeadFrontCount');
     Route::resource('/lead-fronts', LeadFrontController::class);
     
@@ -231,7 +233,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
         Route::get('/users-clients/export/{selectedRowsData}', [UserClientController::class, 'exportToExcel'])->name('users-clients.export');
         Route::get('/users-clients/generate-account-id', [UserClientController::class, 'generateAccountId'])->name('users-clients.generateAccountId');
         Route::get('/users-clients/{id}/users-clients-entries', [UserClientController::class, 'getUserLogEntries'])->name('users-clients.getUserLogEntries');
-    // Route::get('/users-clients/{id}/users-clients-changelogs', [UserClientController::class, 'getUserChangelogs'])->name('users-clients.getUserChangelogs');
+        // Route::get('/users-clients/{id}/users-clients-changelogs', [UserClientController::class, 'getUserChangelogs'])->name('users-clients.getUserChangelogs');
         Route::resource('/users-clients', UserClientController::class);
 });
 
