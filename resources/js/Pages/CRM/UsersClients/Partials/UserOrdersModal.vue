@@ -1,20 +1,18 @@
 <script setup>
 import axios from "axios";
 import dayjs from 'dayjs';
-import { Link } from '@inertiajs/vue3';
+import { ref, onMounted, reactive, computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { AtSymbolIcon } from '@heroicons/vue/outline';
+import { PhoneIcon, MapIcon, FlagIcon, CalendarIcon, ChevronUpIcon } from '@heroicons/vue/solid';
+import { TabGroup, TabList, Tab, TabPanels, TabPanel, Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot } from '@headlessui/vue';
+import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty, formatToUserTimezone } from '@/Composables';
 import Label from '@/Components/Label.vue';
 import Modal from '@/Components/Modal.vue';
 import Button from '@/Components/Button.vue';
-import { ref, onMounted, reactive } from 'vue';
 import Dropdown from '@/Components/Dropdown.vue';
-import { ChevronUpIcon } from '@heroicons/vue/solid';
-import { AtSymbolIcon } from '@heroicons/vue/outline';
 import { ThreeDotsVertical } from '@/Components/Icons/solid';
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue';
-import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
-import { PhoneIcon, MapIcon, FlagIcon, CalendarIcon } from '@heroicons/vue/solid';
-import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty } from '@/Composables';
-import { Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot } from '@headlessui/vue';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -29,6 +27,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'rowEdit']);
 
+const page = usePage();
+const user = computed(() => page.props.auth.user)
 const userOrdersData = reactive({});
 let originalUserOrdersData = null;
 
@@ -44,9 +44,9 @@ onMounted(async () => {
 
     userOrdersArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    Object.keys(userOrdersData.value).forEach((col, index) => {
-        userOrdersData.value[col].created_at = dayjs(userOrdersData.value[col].created_at).format('DD MMMM YYYY, hh:mm A');;
-    });
+    // Object.keys(userOrdersData.value).forEach((col, index) => {
+    //     userOrdersData.value[col].created_at = dayjs(userOrdersData.value[col].created_at).tz(user.timezone).format('DD MMMM YYYY, hh:mm A');
+    // });
     
     userOrdersData.value = userOrdersArray;
     originalUserOrdersData = userOrdersData.value;
@@ -86,8 +86,6 @@ const filterByThisYear = () => {
 const showAll = () => {
     userOrdersData.value = originalUserOrdersData;
 };
-
-let arr = ['1', '2', '3', "4", "5"]
 
 </script>
 
@@ -195,7 +193,7 @@ let arr = ['1', '2', '3', "4", "5"]
                                         Trade ID: {{ value.trade_id }}
                                     </Link>
                                     <span class="text-xs text-gray-400 ml-auto">
-                                        {{ value.created_at }}
+                                        {{ dayjs(value.created_at).tz(user.timezone).format('DD MMMM YYYY, hh:mm A') }}
                                     </span>
                                 </div>
                             </div>

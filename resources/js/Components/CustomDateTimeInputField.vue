@@ -1,10 +1,11 @@
 <script setup>
-import VueDatePicker from '@vuepic/vue-datepicker'
-import InputError from '@/Components/InputError.vue'
-import Label from '@/Components/Label.vue'
-import '@vuepic/vue-datepicker/dist/main.css'
 import dayjs from 'dayjs';
 import { onMounted } from 'vue'
+import '@vuepic/vue-datepicker/dist/main.css'
+import VueDatePicker from '@vuepic/vue-datepicker'
+import Label from '@/Components/Label.vue'
+import Button from '@/Components/Button.vue'
+import InputError from '@/Components/InputError.vue'
 
 const props = defineProps({
 	inputId: {
@@ -42,7 +43,7 @@ const formatDate = () => {
 // Update parent component's value
 const updateDateValue = (date) => {
     if (props.dateTimeOpt) {
-        const formattedDate = dayjs(date).format('YYYY-MM-DD HH:mm:ss');
+        const formattedDate = dayjs(date).format('YYYY-MM-DD HH:mm:ss.SSSSSS');
         emit('update:modelValue', formattedDate);
     } else {
         const formattedDate = dayjs(date).format('YYYY-MM-DD');
@@ -76,10 +77,23 @@ const clearDateValue = () => {
             :format="formatDate"
             enable-seconds
             auto-apply
+            dark
             placeholder="Select Date"
             input-class-name="py-2 focus:ring focus:ring-purple-500 focus:ring-offset-2 
                 focus:ring-offset-white dark:focus:ring-offset-dark-eval-1" 
-        />
+        >
+        <template #action-extra="{ selectCurrentDate }">
+            <Button 
+                :type="'button'"
+                :size="'sm'"
+                @click="selectCurrentDate()"
+                title="Select Select now"
+                class="justify-center gap-2 form-actions my-3"
+            >
+                <span>Select now</span>
+            </Button>
+        </template>
+        </VueDatePicker>
         <VueDatePicker 
             :id="inputId"
             :model-value="props.modelValue"
@@ -90,10 +104,23 @@ const clearDateValue = () => {
             v-else
             :format="formatDate"
             auto-apply
+            dark
             placeholder="Select Date"
             input-class-name="py-2 focus:ring focus:ring-purple-500 focus:ring-offset-2 
                 focus:ring-offset-white dark:focus:ring-offset-dark-eval-1" 
-        />
+        >
+        <template #action-extra="{ selectCurrentDate }">
+            <Button 
+                :type="'button'"
+                :size="'sm'"
+                @click="selectCurrentDate()"
+                title="Select Select now"
+                class="justify-center gap-2 form-actions mb-3"
+            >
+                <span>Select now</span>
+            </Button>
+        </template>
+        </VueDatePicker>
         <InputError
             :message="errorMessage"
             v-if="errorMessage"

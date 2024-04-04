@@ -14,6 +14,8 @@ class Order extends Model
 
     protected $table = "core_order";
 
+    public $timestamps = false;
+
     protected $fillable = [
         'trade_id',
         'date',
@@ -33,7 +35,8 @@ class Order extends Model
     ];
 
     /**
-     * Get the user that owns the order note.
+     * User Model
+     * Get the user that owns the order.
      */
     public function user(): BelongsTo
     {

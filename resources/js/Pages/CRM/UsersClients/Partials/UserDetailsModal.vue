@@ -28,9 +28,9 @@ const categories = ref([
 const emit = defineEmits(['closeModal', 'rowEdit']);
 
 const page = usePage();
+const user = computed(() => page.props.auth.user)
 const userId = ref();
 const isUserOrdersModalOpen = ref(false);
-const user = computed(() => page.props.auth.user)
 
 onMounted(() => {
     if (props.selectedRowData) {

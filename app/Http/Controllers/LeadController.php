@@ -290,6 +290,7 @@ class LeadController extends Controller
     public function update(LeadRequest $request, string $id)
     {
         $data = $request->all();
+        // dd($data);
         
         // Additional validation based on user selection (Lead Front | Lead Notes)
         if ($data['create_lead_front']) {
@@ -297,7 +298,6 @@ class LeadController extends Controller
             $this->validate($request, $leadFrontRequest->rules(), $leadFrontRequest->messages(), $leadFrontRequest->attributes());
         }
         
-        // dd($request->lead_notes);
         if (count($data['lead_notes']) > 0) {
             $leadNoteRequest = new LeadNotesRequest();
             $this->validate($request, $leadNoteRequest->rules(), $leadNoteRequest->messages(), $leadNoteRequest->attributes());
@@ -514,11 +514,9 @@ class LeadController extends Controller
                 $newLeadNote->save();
             }
         }
-        
-        // dd($data);
-        
+                
         $existingLead->update([
-            'date' => $data['date'],
+            'date' => $data['date'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['date']) : $data['date'],
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
             'country' => $data['country'],
@@ -538,7 +536,7 @@ class LeadController extends Controller
             'private_remark' => $data['private_remark'],
             'remark' => $data['remark'],
             'data_source' => $data['data_source'],
-            'appointment_start_at' => $data['appointment_start_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['appointment_start_at']) : $data['appointment_start_at'],
+            'appointment_start_at' => isset($data['appointment_start_at']) ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['appointment_start_at']) : $data['appointment_start_at'],
             'appointment_end_at' => $data['appointment_end_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['appointment_end_at']) : $data['appointment_end_at'],
             'contacted_at' => $data['contacted_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['contacted_at']) : $data['contacted_at'],
             'assignee_read_at' => $data['assignee_read_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['assignee_read_at']) : $data['assignee_read_at'],
@@ -860,7 +858,7 @@ class LeadController extends Controller
                             'stage:id,title',
                             'appointmentLabel:id,title'
                         ])
-                        ->limit(2000)
+                        ->limit(10000)
                         ->orderByDesc('id')
                         ->get();
 
@@ -982,7 +980,6 @@ class LeadController extends Controller
         }
 
         $currentDate = Carbon::now()->format('Ymd_His');
-        dd($currentDate);
         $exportTitle = 'leads_' . $currentDate . '.xlsx';
         
         return (new LeadsExport($leadsArr))->download($exportTitle);

@@ -138,15 +138,17 @@ const form = useForm({
 	lead_front_vc: (props.leadFrontData) ? props.leadFrontData.vc : '',
 	lead_front_edited_at: (props.leadFrontData) ? props.leadFrontData.edited_at : '',
 	lead_front_created_at: (props.leadFrontData) ? `${props.leadFrontData.created_at}00` : '',
-	lead_front_email: '',
-	lead_front_phone_number: '',
+	lead_id: (props.leadFrontData) ? props.leadFrontData.lead_id : '',
+	lead_front_email: (props.leadFrontData) ? props.leadFrontData.lead_front_email : '',
+	lead_front_phone_number: (props.leadFrontData) ? props.leadFrontData.lead_front_phone_number : '',
     lead_notes: (props.leadNotesData) ? props.leadNotesData : [],
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
     form.edited_at = setDateTimeWithOffset(true);
-    form.appointment_start_at = form.appointment_start_at ? setFormattedDateTimeWithOffset(form.appointment_start_at,true) : form.appointment_start_at;
+    form.date = form.date ? setFormattedDateTimeWithOffset(form.date ,true) : form.date;
+    form.appointment_start_at = form.appointment_start_at ? setFormattedDateTimeWithOffset(form.appointment_start_at, true) : form.appointment_start_at;
     form.appointment_end_at = form.appointment_end_at ? setFormattedDateTimeWithOffset(form.appointment_end_at, true) : form.appointment_end_at;
     form.contacted_at = form.contacted_at ? setFormattedDateTimeWithOffset(form.contacted_at, true) : form.contacted_at;
     form.assignee_read_at = form.assignee_read_at ? setFormattedDateTimeWithOffset(form.assignee_read_at, true) : form.assignee_read_at;
@@ -201,6 +203,7 @@ const expandLeadFrontForm = () => {
 	showLeadFrontForm.value = true;
 	clearButtonShow.value = true;
 	showButtonShow.value = false;
+	form.lead_id = props.data.id;
     form.create_lead_front = true;
 }
 
@@ -227,6 +230,7 @@ const clearLeadFrontFormFields = () => {
     form.lead_front_commission = 0.00;
     form.lead_front_edited_at = '-';
     form.lead_front_created_at = '-';
+	form.lead_id = '';
 	form.lead_front_email = '';
 	form.lead_front_phone_number = '';
     form.reset()
@@ -255,6 +259,7 @@ const deleteLeadFront = () => {
                     lead_front_commission: 0.00,
                     lead_front_edited_at: '-',
                     lead_front_created_at: '-',
+                    lead_id: '',
                     lead_front_email: '',
                     lead_front_phone_number: '',
                 });
@@ -277,6 +282,7 @@ const deleteLeadFront = () => {
         form.lead_front_commission = 0.00;
         form.lead_front_edited_at = '';
         form.lead_front_created_at = '';
+	    form.lead_id = '';
         form.lead_front_email = '';
         form.lead_front_phone_number = '';
         

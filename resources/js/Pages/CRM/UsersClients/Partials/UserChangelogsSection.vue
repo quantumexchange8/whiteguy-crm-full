@@ -1,7 +1,8 @@
 <script setup>
 import axios from "axios";
 import dayjs from 'dayjs';
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3'
 import { ChevronUpIcon } from '@heroicons/vue/solid';
 import { Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot } from '@headlessui/vue';
 import { cl, back, convertToHumanReadable } from '@/Composables';
@@ -18,6 +19,8 @@ const props = defineProps({
     },
 })
 
+const page = usePage();
+const user = computed(() => page.props.auth.user)
 const userLogEntriesData = reactive({});
 let originalUserLogEntriesData = null;
 
@@ -65,7 +68,20 @@ const showAll = () => {
 };
 
 const formatLogChanges = (value) => {
-    return dayjs(value, 'YYYY-MM-DD HH:mm', false).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : value;
+    // Check if the value is a valid date format
+    // if (dayjs(value, 'YYYY-MM-DD HH:mm', false).isValid()) {
+    //     // Format the date value
+    //     return dayjs(value).format('YYYY-MM-DD HH:mm:ss');
+    // } else {
+    //     // Return the original value if it's not a valid date format
+    //     return value;
+    // }
+
+    if(value instanceof Date) {
+        return "yes";
+    } else {
+        return "no";
+    }
 }
 </script>
 
@@ -156,7 +172,7 @@ const formatLogChanges = (value) => {
                                 [System]: {{ log.action === 0 ? 'Newly created' : 'Updated' }}
                             </h3>
                             <span class="text-xs text-gray-400">
-                                {{ log.created_at }}
+                                {{ dayjs(log.timestamp).tz(user.timezone).format('DD MMMM YYYY, hh:mm A') }}
                             </span>
                             <div v-if="log.changes && Object.keys(log.changes).length > 0">
                                 <Disclosure v-slot="{ open }">
@@ -196,14 +212,6 @@ const formatLogChanges = (value) => {
                                                 <Label
                                                     :inputId="'userClientChangelog'+ix"
                                                     class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                    v-if="ix === 'New' || ix === 'Delete'"
-                                                >
-                                                    ➤ {{ value.description }}.
-                                                </Label>
-                                                <Label
-                                                    :inputId="'userClientChangelog'+ix"
-                                                    class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                    v-else
                                                 >
                                                     ➤ {{ convertToHumanReadable(ix) }} has been {{ (value[0] !== null && value[0] !== 'None') ? 'changed from "' + formatLogChanges(value[0]) : 'set from "' + formatLogChanges(value[0]) }}" to "{{ formatLogChanges(value[1]) }}".
                                                 </Label>

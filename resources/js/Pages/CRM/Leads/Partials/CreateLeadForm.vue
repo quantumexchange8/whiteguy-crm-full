@@ -118,7 +118,8 @@ onMounted(async () => {
 const formSubmit = () => {
     form.edited_at = setDateTimeWithOffset(true);
     form.created_at = setDateTimeWithOffset(true);
-    form.appointment_start_at = form.appointment_start_at ? setFormattedDateTimeWithOffset(form.appointment_start_at,true) : form.appointment_start_at;
+    form.date = form.date ? setFormattedDateTimeWithOffset(form.date, true) : form.date;
+    form.appointment_start_at = form.appointment_start_at ? setFormattedDateTimeWithOffset(form.appointment_start_at, true) : form.appointment_start_at;
     form.appointment_end_at = form.appointment_end_at ? setFormattedDateTimeWithOffset(form.appointment_end_at, true) : form.appointment_end_at;
     form.contacted_at = form.contacted_at ? setFormattedDateTimeWithOffset(form.contacted_at, true) : form.contacted_at;
     form.assignee_read_at = form.assignee_read_at ? setFormattedDateTimeWithOffset(form.assignee_read_at, true) : form.assignee_read_at;

@@ -752,35 +752,41 @@ watch(() => categories.value, (newVal) => {
                 <Link
                     :href="route('users-clients.edit', rows.value.assignee.id)"
                     class="font-medium"
+                    v-if="rows.value.assignee_id !== '-'"
                 >
                     <strong><span class="text-purple-300 hover:text-purple-400">{{ rows.value.assignee.username }} ({{ rows.value.assignee.site.name }})</span></strong>
                 </Link>
+                <span v-else class="text-gray-300">{{ rows.value.assignee_id }}</span>
             </template>
             <template #lead_front_assignee="rows">
                 <Link
                     :href="route('users-clients.edit', rows.value.lead.assignee.id)"
                     class="font-medium"
+                    v-if="rows.value.lead.assignee && rows.value.lead.assignee.username !== '-'"
                 >
                     <strong><span class="text-purple-300 hover:text-purple-400">{{ rows.value.lead.assignee.username }} ({{ rows.value.lead.assignee.site.name }})</span></strong>
                 </Link>
+                <span v-else>{{ '-' }}</span>
             </template>
             <template #account_manager_id="rows">
                 <Link
                     :href="route('users-clients.edit', rows.value.account_manager.id)"
                     class="font-medium"
-                    v-if="rows.value.account_manager !== '-'"
+                    v-if="rows.value.account_manager && rows.value.account_manager_id !== '-'"
                 >
                     <strong><span class="text-purple-300 hover:text-purple-400">{{ rows.value.account_manager_id }}</span></strong>
                 </Link>
-                <span v-else class="text-gray-300">{{ rows.value.account_manager_id }}</span>
+                <span v-else class="text-gray-300">{{ '-' }}</span>
             </template>
             <template #lead_id="rows">
                 <Link
                     :href="route('leads.edit', rows.value.lead.id)"
                     class="font-medium"
+                    v-if="rows.value.lead_id && rows.value.lead_id !== '-'"
                 >
                     <strong><span class="text-purple-300 hover:text-purple-400">{{ rows.value.lead.first_name + ' ' + rows.value.lead.last_name }}</span></strong>
                 </Link>
+                <span v-else>{{ '-' }}</span>
             </template>
             <template #actions="rows">
                 <div class="flex flex-row flex-nowrap gap-1">

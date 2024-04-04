@@ -134,6 +134,7 @@ const showAll = () => {
 };
 
 const formatLogChanges = (value) => {
+    // cl("value: " + value + "\n isValid?: " + dayjs(value, 'YYYY-MM-DD HH:mm', false).isValid());
     return dayjs(value, 'YYYY-MM-DD HH:mm', false).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : value;
 }
 
@@ -420,7 +421,7 @@ const formatLogChanges = (value) => {
                                             [System]: {{ log.action === 0 ? 'Newly created' : 'Updated' }}
                                         </h3>
                                         <span class="text-xs text-gray-400">
-                                            {{ log.created_at }}
+                                            {{ log.timestamp }}
                                         </span>
                                         <div v-if="log.changes && Object.keys(log.changes).length > 0">
                                             <Disclosure v-slot="{ open }">
