@@ -1,11 +1,17 @@
 <script setup>
 import dayjs from 'dayjs';
-import { onMounted } from 'vue'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+import { onMounted, computed } from 'vue'
 import '@vuepic/vue-datepicker/dist/main.css'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
 import InputError from '@/Components/InputError.vue'
+import { usePage } from '@inertiajs/vue3'
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const props = defineProps({
 	inputId: {
@@ -30,13 +36,23 @@ const props = defineProps({
     }
 })
 
+const page = usePage();
+
+const user = computed(() => page.props.auth.user)
+
 const emit = defineEmits(['update:modelValue']);
 
 const formatDate = () => {
     if (props.dateTimeOpt) {
-        return dayjs(props.modelValue).format('DD-MM-YYYY HH:mm:ss');
+        if (page.props.auth.user.timezone) {
+            return dayjs(props.modelValue).tz(page.props.auth.user.timezone).format('DD-MM-YYYY HH:mm:ss');
+        }
+        return dayjs(props.modelValue).tz(dayjs.tz.guess()).format('DD-MM-YYYY HH:mm:ss');
     } else {
-        return dayjs(props.modelValue).format('DD-MM-YYYY');
+        if (page.props.auth.user.timezone) {
+            return dayjs(props.modelValue).tz(page.props.auth.user.timezone).format('DD-MM-YYYY');
+        }
+        return dayjs(props.modelValue).tz(dayjs.tz.guess()).format('DD-MM-YYYY');
     }
 }
 
@@ -82,12 +98,18 @@ const clearDateValue = () => {
             input-class-name="py-2 focus:ring focus:ring-purple-500 focus:ring-offset-2 
                 focus:ring-offset-white dark:focus:ring-offset-dark-eval-1" 
         >
+        <template #hours="{ text, value }">
+            {{ dayjs(props.modelValue).tz(user.timezone).hour() }}
+        </template>
+        <template #minutes="{ text, value }">
+            {{ dayjs(props.modelValue).tz(user.timezone).minute() }}
+        </template>
         <template #action-extra="{ selectCurrentDate }">
             <Button 
                 :type="'button'"
                 :size="'sm'"
                 @click="selectCurrentDate()"
-                title="Select Select now"
+                title="Select now"
                 class="justify-center gap-2 form-actions my-3"
             >
                 <span>Select now</span>
@@ -114,7 +136,7 @@ const clearDateValue = () => {
                 :type="'button'"
                 :size="'sm'"
                 @click="selectCurrentDate()"
-                title="Select Select now"
+                title="Select now"
                 class="justify-center gap-2 form-actions mb-3"
             >
                 <span>Select now</span>

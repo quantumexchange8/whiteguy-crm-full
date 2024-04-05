@@ -8,6 +8,8 @@ import {
     setDateTimeWithOffset, formatToUserTimezone 
 } from '@/Composables'
 import { useForm, usePage } from '@inertiajs/vue3';
+import UserOrdersModal from './UserOrdersModal.vue';
+import UpdateUserPasswordForm from './UpdateUserPasswordForm.vue';
 import Modal from '@/Components/Modal.vue';
 import Label from '@/Components/Label.vue';
 import Button from '@/Components/Button.vue';
@@ -21,8 +23,6 @@ import PasswordInputField from '@/Components/PasswordInputField.vue';
 import CustomTextInputField from '@/Components/CustomTextInputField.vue';
 import CustomSelectInputField from '@/Components/CustomSelectInputField.vue';
 import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue';
-import UserOrdersModal from './UserOrdersModal.vue';
-import UpdateUserPasswordForm from './UpdateUserPasswordForm.vue';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -638,6 +638,7 @@ const closeUserOrdersModal = () => {
                         >
                             <div class="input-group-wrapper">
                                 <div class="input-group">
+                                    {{ cl(user.timezone) }}
                                     <CustomLabelGroup
                                         :inputId="'last_login'"
                                         :labelValue="'Last login'"

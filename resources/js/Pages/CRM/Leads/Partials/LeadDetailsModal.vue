@@ -1,18 +1,20 @@
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
-import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty } from '@/Composables'
-import { AtSymbolIcon } from '@heroicons/vue/outline'
-import { 
-    TabGroup, TabList, Tab, TabPanels, TabPanel
-} from '@headlessui/vue'
-import { 
-    PhoneIcon, MapIcon, FlagIcon, CalendarIcon 
-} from '@heroicons/vue/solid'
-import LeadChangelogsModalSection from './LeadChangelogsModalSection.vue'
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
-import Button from '@/Components/Button.vue'
 import axios from "axios";
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+import { ref, onMounted, reactive, computed } from 'vue'
+import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty, formatToUserTimezone } from '@/Composables'
+import { usePage } from '@inertiajs/vue3'
+import { AtSymbolIcon } from '@heroicons/vue/outline'
+import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
+import { PhoneIcon, MapIcon, FlagIcon, CalendarIcon } from '@heroicons/vue/solid'
+import LeadChangelogsModalSection from './LeadChangelogsModalSection.vue'
+import Button from '@/Components/Button.vue'
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -33,6 +35,10 @@ const leadFrontCategories = ref([
 const leadFrontData = reactive({});
 
 const emit = defineEmits(['closeModal', 'rowEdit']);
+
+const page = usePage();
+
+const user = computed(() => page.props.auth.user)
 
 onMounted(async () => {
   try {
@@ -150,7 +156,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'date_oppd_in'"
                                             :labelValue="'Date Opp&rsquo;d In:'"
-                                            :dataValue="props.selectedRowData?.date || '-'"
+                                            :dataValue="(props.selectedRowData.date && props.selectedRowData.date !== '-') ? formatToUserTimezone(props.selectedRowData.date, user.timezone, true) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'campaign_product'"
@@ -216,12 +222,12 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'appointment_start_at'"
                                             :labelValue="'Appointment Start:'"
-                                            :dataValue="props.selectedRowData?.appointment_start_at || '-'"
+                                            :dataValue="props.selectedRowData.appointment_start_at ? formatToUserTimezone(props.selectedRowData.appointment_start_at, user.timezone, true) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'appointment_end_at'"
                                             :labelValue="'Appointment End:'"
-                                            :dataValue="props.selectedRowData?.appointment_end_at || '-'"
+                                            :dataValue="props.selectedRowData.appointment_end_at ? formatToUserTimezone(props.selectedRowData.appointment_end_at, user.timezone, true) : '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -233,9 +239,9 @@ onMounted(async () => {
                                 >
                                     <div class="grid grid-cols-1 sm:grid-cols-3">
                                         <CustomLabelGroup
-                                            :inputId="'last_called'"
+                                            :inputId="'contacted_at'"
                                             :labelValue="'Last Called:'"
-                                            :dataValue="props.selectedRowData?.contacted_at || '-'"
+                                            :dataValue="props.selectedRowData.contacted_at ? formatToUserTimezone(props.selectedRowData.contacted_at, user.timezone, true) : '-'"
                                             class="text-gray-700"
                                         />
                                         <CustomLabelGroup
@@ -246,7 +252,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'give_up_at'"
                                             :labelValue="'Give Up?:'"
-                                            :dataValue="props.selectedRowData?.give_up_at || '-'"
+                                            :dataValue="props.selectedRowData.give_up_at ? formatToUserTimezone(props.selectedRowData.give_up_at, user.timezone, true) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'assignee'"
@@ -256,7 +262,7 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'assignee_read_at'"
                                             :labelValue="'Assignee Read At:'"
-                                            :dataValue="props.selectedRowData?.assignee_read_at || '-'"
+                                            :dataValue="props.selectedRowData.assignee_read_at ? formatToUserTimezone(props.selectedRowData.assignee_read_at, user.timezone, true) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'stage'"
@@ -329,9 +335,14 @@ onMounted(async () => {
                                             :dataValue="(props.selectedRowData?.created_by_id) ? (props.selectedRowData.lead_creator.username + ' (' + props.selectedRowData.lead_creator.site.name + ')') : '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'delete_at'"
-                                            :labelValue="'Delete At'"
-                                            :dataValue="props.selectedRowData?.delete_at || '-'"
+                                            :inputId="'deleted_at'"
+                                            :labelValue="'Deleted At'"
+                                            :dataValue="props.selectedRowData.deleted_at ? formatToUserTimezone(props.selectedRowData.deleted_at, user.timezone, true) : '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'deleted_note'"
+                                            :labelValue="'Deleted Note'"
+                                            :dataValue="props.selectedRowData.deleted_note ? formatToUserTimezone(props.selectedRowData.deleted_note, user.timezone, true) : '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -459,13 +470,13 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontEditedAt'"
                                             :labelValue="'Edited at'"
-                                            :dataValue="leadFrontData.value?.edited_at || '-'"
+                                            :dataValue="leadFrontData.value.edited_at ? formatToUserTimezone(leadFrontData.value.edited_at, user.timezone, true) : '-'"
                                             class="text-gray-700"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontCreatedAt'"
                                             :labelValue="'Created at'"
-                                            :dataValue="leadFrontData.value?.created_at ? dayjs(leadFrontData.value.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'"
+                                            :dataValue="leadFrontData.value.created_at ? formatToUserTimezone(leadFrontData.value.created_at, user.timezone, true) : '-'"
                                         />
                                     </div>
                                 </TabPanel>

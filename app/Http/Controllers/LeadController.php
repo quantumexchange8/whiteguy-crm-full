@@ -858,7 +858,7 @@ class LeadController extends Controller
                             'stage:id,title',
                             'appointmentLabel:id,title'
                         ])
-                        ->limit(10000)
+                        ->limit(100)
                         ->orderByDesc('id')
                         ->get();
 

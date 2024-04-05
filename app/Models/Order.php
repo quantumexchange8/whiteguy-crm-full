@@ -27,6 +27,8 @@ class Order extends Model
         'current_unit_price',
         'profit',
         'status',
+        'edited_at',
+        'created_at',
         'users_id',
         'is_deleted',
         'limb_stage',
@@ -42,13 +44,22 @@ class Order extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    // /**
+    //  * SaleOrder Model
+    //  * Get the sale for the order.
+    //  */
+    // public function saleOrder(): BelongsTo
+    // {
+    //     return $this->belongsTo(SaleOrder::class, 'user_id');
+    // }
     
-    /**
-     * Get the orderChangeLog for the order.
-     */
-    public function orderChangelogs(): HasMany
-    {
-        return $this->hasMany(OrderChangelog::class, 'orders_id');
-    }
+    // /**
+    //  * Get the orderChangeLog for the order.
+    //  */
+    // public function orderChangelogs(): HasMany
+    // {
+    //     return $this->hasMany(OrderChangelog::class, 'orders_id');
+    // }
 
 }

@@ -1,6 +1,8 @@
 <script setup>
 import axios from "axios";
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { ref, onMounted, reactive, computed } from 'vue';
 import { usePage } from '@inertiajs/vue3'
 import { ChevronUpIcon } from '@heroicons/vue/solid';
@@ -10,6 +12,9 @@ import Label from '@/Components/Label.vue';
 import Button from '@/Components/Button.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import { ThreeDotsVertical } from '@/Components/Icons/solid';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -68,19 +73,14 @@ const showAll = () => {
 };
 
 const formatLogChanges = (value) => {
-    // Check if the value is a valid date format
-    // if (dayjs(value, 'YYYY-MM-DD HH:mm', false).isValid()) {
-    //     // Format the date value
-    //     return dayjs(value).format('YYYY-MM-DD HH:mm:ss');
-    // } else {
-    //     // Return the original value if it's not a valid date format
-    //     return value;
-    // }
-
-    if(value instanceof Date) {
-        return "yes";
+    const pattern = /^(?:(?:19|20|21)\d{2})-(?:(?:0[1-9])|(?:1[0-2]))-(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01]))\s(?:[01][0-9]|2[0-3]):(?:[0-5][0-9]):(?:[0-5][0-9])\.(?:\d{6})/;
+    
+    //Check if the value is a valid date format
+    if (pattern.test(value)) {
+        // Format the date value
+        return dayjs(value + '+00').tz(page.props.auth.user.timezone).format('YYYY-MM-DD HH:mm:ss');
     } else {
-        return "no";
+        return value;
     }
 }
 </script>
@@ -207,7 +207,7 @@ const formatLogChanges = (value) => {
                                                     :inputId="'userClientChangelogColumn'+ix"
                                                     class="font-semibold !text-gray-200/75 text-xs col-span-1 pb-1"
                                                 >
-                                                    ◉ [{{ (ix === 'New') ? 'New Lead' : convertToHumanReadable(ix) }}] 
+                                                    ◉ [{{ convertToHumanReadable(ix) }}] 
                                                 </Label>
                                                 <Label
                                                     :inputId="'userClientChangelog'+ix"
@@ -216,31 +216,6 @@ const formatLogChanges = (value) => {
                                                     ➤ {{ convertToHumanReadable(ix) }} has been {{ (value[0] !== null && value[0] !== 'None') ? 'changed from "' + formatLogChanges(value[0]) : 'set from "' + formatLogChanges(value[0]) }}" to "{{ formatLogChanges(value[1]) }}".
                                                 </Label>
                                             </div>
-                                            <!-- <div v-for="(value, ix) in log.changes" :key="ix">
-                                                <Label
-                                                    :inputId="'userClientChangelogColumn'+ix"
-                                                    :labelValue="'Lead Notes'"
-                                                    class="font-semibold !text-gray-200/75 text-xs col-span-1 pb-1"
-                                                >
-                                                    ◉ [ User Client ID: {{ log.users_clients_id }} ]: [{{ (ix === 'New') ? 'New User Client' : convertToHumanReadable(ix) }}] 
-                                                </Label>
-                                                <Label
-                                                    :inputId="'userClientChangelog'+ix"
-                                                    :labelValue="'Lead Notes'"
-                                                    class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                    v-if="ix === 'New' || ix === 'Delete' || ix ==='Password'"
-                                                >
-                                                    ➤ {{ value.description }}.
-                                                </Label>
-                                                <Label
-                                                    :inputId="'userClientChangelog'+ix"
-                                                    :labelValue="'Lead Notes'"
-                                                    class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                    v-else
-                                                >
-                                                    ➤ {{ convertToHumanReadable(ix) }} has been {{ (value.old !== null) ? 'changed from "' + value.old : 'set' }}" to "{{ value.new }}".
-                                                </Label>
-                                            </div> -->
                                         </DisclosurePanel>
                                     </TransitionRoot>
                                 </Disclosure>

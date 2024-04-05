@@ -43,7 +43,7 @@ onMounted(() => {
             <Label
                 :value="convertedDataValue"
                 :id="inputId"
-                class="py-2 px-3 border border-gray-400 rounded-md h-[41px]
+                class="py-2 px-3 border border-gray-400 rounded-md min-h-[41px]
                         dark:border-gray-600 dark:bg-dark-eval-1 dark:text-gray-300 dark:focus:ring-offset-dark-eval-1"
                 v-else
             >

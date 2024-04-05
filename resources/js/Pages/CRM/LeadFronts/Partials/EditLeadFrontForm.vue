@@ -1,7 +1,7 @@
 <script setup>
-import { cl, back, setDateTimeWithOffset, setFormattedDateTimeWithOffset } from '@/Composables'
-import { ref, onMounted } from 'vue'
-import { Link, useForm } from '@inertiajs/vue3'
+import { cl, back, setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone } from '@/Composables'
+import { ref, onMounted, computed } from 'vue'
+import { Link, useForm, usePage } from '@inertiajs/vue3'
 import { PlusIcon } from '@/Components/Icons/solid'
 import { TrashIcon } from '@/Components/Icons/outline'
 import Label from '@/Components/Label.vue'
@@ -22,6 +22,10 @@ const props = defineProps({
         default: () => ({}),
     },
 })
+
+
+const page = usePage();
+const user = computed(() => page.props.auth.user)
 
 const selectedAssigneeError = ref()
 const assigneeArray  = ref(
@@ -279,13 +283,13 @@ const isValidNumber = (value) => {
 								<CustomLabelGroup
 									:inputId="'leadFrontEditedAt'"
 									:labelValue="'Edited at'"
-                                    :dataValue="props.data.edited_at"
+                                    :dataValue="formatToUserTimezone(props.data.edited_at, user.timezone, true)"
                                     v-model="form.lead_front_edited_at"
 								/>
 								<CustomLabelGroup
 									:inputId="'leadFrontCreatedAt'"
 									:labelValue="'Created at'"
-                                    :dataValue="props.data.created_at"
+                                    :dataValue="formatToUserTimezone(props.data.created_at, user.timezone, true)"
                                     v-model="form.lead_front_created_at"
 								/>
 							</div>

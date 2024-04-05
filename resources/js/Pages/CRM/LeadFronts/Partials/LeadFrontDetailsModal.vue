@@ -1,18 +1,15 @@
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
-import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty } from '@/Composables'
-import { AtSymbolIcon } from '@heroicons/vue/outline'
-import { 
-    TabGroup, TabList, Tab, TabPanels, TabPanel
-} from '@headlessui/vue'
-import { 
-    PhoneIcon, MapIcon, FlagIcon, CalendarIcon 
-} from '@heroicons/vue/solid'
-import LeadFrontChangelogsSection from './LeadFrontChangelogsSection.vue'
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
-import Button from '@/Components/Button.vue'
 import axios from "axios";
 import dayjs from 'dayjs';
+import { usePage } from '@inertiajs/vue3'
+import { ref, onMounted, reactive, computed } from 'vue'
+import { AtSymbolIcon } from '@heroicons/vue/outline'
+import { PhoneIcon, MapIcon, FlagIcon, CalendarIcon } from '@heroicons/vue/solid'
+import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
+import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty, formatToUserTimezone } from '@/Composables'
+import LeadFrontChangelogsSection from './LeadFrontChangelogsSection.vue'
+import Button from '@/Components/Button.vue'
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -29,6 +26,10 @@ const leadFrontCategories = ref([
 const leadData = reactive({});
 
 const emit = defineEmits(['closeModal', 'rowEdit']);
+
+const page = usePage();
+
+const user = computed(() => page.props.auth.user)
 
 onMounted(async () => {
   try {
@@ -234,13 +235,13 @@ onMounted(async () => {
                                         <CustomLabelGroup
                                             :inputId="'leadFrontEditedAt'"
                                             :labelValue="'Edited at'"
-                                            :dataValue="props.selectedRowData ? props.selectedRowData.edited_at : '-'"
+                                            :dataValue="props.selectedRowData.edited_at ? formatToUserTimezone(props.selectedRowData.edited_at, user.timezone, true) : '-'"
                                             class="text-gray-700"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'leadFrontCreatedAt'"
                                             :labelValue="'Created at'"
-                                            :dataValue="props.selectedRowData ? dayjs(props.selectedRowData.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'"
+                                            :dataValue="props.selectedRowData.created_at ? formatToUserTimezone(props.selectedRowData.created_at, user.timezone, true) : '-'"
                                         />
                                     </div>
                                 </TabPanel>

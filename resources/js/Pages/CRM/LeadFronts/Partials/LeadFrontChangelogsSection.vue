@@ -1,16 +1,15 @@
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
-import { cl, back, convertToHumanReadable } from '@/Composables'
-import { 
-    Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot 
-} from '@headlessui/vue'
-import { ThreeDotsVertical } from '@/Components/Icons/solid';
-import { ChevronUpIcon } from '@heroicons/vue/solid'
-import Dropdown from '@/Components/Dropdown.vue'
-import Button from '@/Components/Button.vue'
-import Label from '@/Components/Label.vue'
 import axios from "axios";
 import dayjs from 'dayjs';
+import { usePage } from '@inertiajs/vue3'
+import { ref, onMounted, reactive, computed } from 'vue'
+import { ChevronUpIcon } from '@heroicons/vue/solid'
+import { Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot } from '@headlessui/vue'
+import { cl, back, convertToHumanReadable } from '@/Composables'
+import Label from '@/Components/Label.vue'
+import Button from '@/Components/Button.vue'
+import Dropdown from '@/Components/Dropdown.vue'
+import { ThreeDotsVertical } from '@/Components/Icons/solid';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -20,6 +19,8 @@ const props = defineProps({
     },
 })
 
+const page = usePage();
+const user = computed(() => page.props.auth.user)
 const leadFrontLogEntriesData = reactive({});
 let originalLeadFrontLogEntriesData = null;
 
@@ -65,7 +66,15 @@ const showAll = () => {
 };
 
 const formatLogChanges = (value) => {
-    return dayjs(value, 'YYYY-MM-DD HH:mm', false).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : value;
+    const pattern = /^(?:(?:19|20|21)\d{2})-(?:(?:0[1-9])|(?:1[0-2]))-(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01]))\s(?:[01][0-9]|2[0-3]):(?:[0-5][0-9]):(?:[0-5][0-9])\.(?:\d{6})/;
+    
+    //Check if the value is a valid date format
+    if (pattern.test(value)) {
+        // Format the date value
+        return dayjs(value + '+00').tz(page.props.auth.user.timezone).format('YYYY-MM-DD HH:mm:ss');
+    } else {
+        return value;
+    }
 }
 
 </script>
@@ -157,7 +166,7 @@ const formatLogChanges = (value) => {
                                 [System]: {{ log.action === 0 ? 'Newly created' : 'Updated' }}
                             </h3>
                             <span class="text-xs text-gray-400">
-                                {{ log.created_at }}
+                                {{ dayjs(log.timestamp).tz(user.timezone).format('DD MMMM YYYY, hh:mm A') }}
                             </span>
                             <div v-if="log.changes && Object.keys(log.changes).length > 0">
                                 <Disclosure v-slot="{ open }">

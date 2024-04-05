@@ -329,7 +329,9 @@ class OrderController extends Controller
 
             return response()->json($data);
         }
-        $data = Order::with('user:id,full_legal_name,phone_number,email,country_of_citizenship,address')->whereNull('deleted_at')->get();
+        $data = Order::with(['user:id,full_name,phone_number,email,country,address'])
+                        ->orderByDesc('id')
+                        ->get();
     
         return response()->json($data);
     }

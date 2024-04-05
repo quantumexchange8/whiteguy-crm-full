@@ -155,6 +155,10 @@ const formSubmit = () => {
     form.give_up_at = form.give_up_at ? setFormattedDateTimeWithOffset(form.give_up_at, true) : form.give_up_at;
     form.deleted_at = form.deleted_at ? setFormattedDateTimeWithOffset(form.deleted_at, true) : form.deleted_at;
 
+    // let dayete = dayjs().utcOffset('+11:00').format('YYYY-MM-DD HH:mm:ss.SSSSSSZZ');
+    // let dayetes = form.date;
+    // cl(dayetes);
+
 	if (form.create_lead_front) {
         form.lead_front_quantity = isValidNumber(form.lead_front_quantity) ? parseFloat(form.lead_front_quantity) : 0;
         form.lead_front_price = isValidNumber(form.lead_front_price) ? parseFloat(form.lead_front_price) : 0;
@@ -417,10 +421,9 @@ const closeLeadNoteModal = () => {
                             :dataValue="props.data.last_name"
                             v-model="form.last_name"
                         />
-                        <CustomDateTimeInputField
+                        <CustomTextInputField
                             :labelValue="'DOB'"
                             :inputId="'dob'"
-                            :dateTimeOpt="false"
                             :errorMessage="(form.errors) ? form.errors.date_of_birth : '' "
                             :dataValue="props.data.date_of_birth"
                             v-model="form.date_of_birth"
