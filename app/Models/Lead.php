@@ -18,7 +18,7 @@ class Lead extends Model
     public $timestamps = false;
     
     protected $fillable = [
-        'date', // from date_oppd_in
+        'date',
         'first_name', 
         'last_name', 
         'country', 
@@ -40,7 +40,7 @@ class Lead extends Model
         'data_source',
         'appointment_start_at',
         'appointment_end_at',
-        'contacted_at', // from last_called
+        'contacted_at',
         'assignee_read_at',
         'edited_at',
         'created_at',

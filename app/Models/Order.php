@@ -29,7 +29,7 @@ class Order extends Model
         'status',
         'edited_at',
         'created_at',
-        'users_id',
+        'user_id',
         'is_deleted',
         'limb_stage',
         'confirmation_name',

@@ -76,11 +76,11 @@ class LeadRequest extends FormRequest
                 $rules[$field] = [
                     'required',
                     ($field === 'email' || Str::contains($field, 'email')) ? 'email:rfc,dns' : 'string',
-                    ($field === 'email' || Str::contains($field, 'email')) ? '' : 'max:250',
+                    ($field === 'email' || Str::contains($field, 'email')) ? 'max:254' : 'max:250',
                     Rule::unique('core_lead')->ignore($this->input('id')),
                 ];
             } else {
-                $rules[$field] = 'required|' . (($field === 'email' || Str::contains($field, 'email')) ? 'email:rfc,dns' : 'string|max:250') . '|unique:core_lead|max:254';
+                $rules[$field] = 'required|' . (($field === 'email' || Str::contains($field, 'email')) ? 'email:rfc,dns|max:254' : 'string|max:250') . '|unique:core_lead';
             }
         }
 

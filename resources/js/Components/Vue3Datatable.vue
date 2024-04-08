@@ -748,6 +748,9 @@ watch(() => categories.value, (newVal) => {
             <template #username="rows">
                 <strong><span class="text-purple-300">{{ rows.value.username }} ({{ rows.value.site.name }})</span></strong>
             </template>
+            <template #user_id="rows">
+                <strong><span class="text-purple-300">{{ rows.value.user.username }} ({{ rows.value.user.site.name }})</span></strong>
+            </template>
             <template #lead_assignee="rows">
                 <Link
                     :href="route('users-clients.edit', rows.value.assignee.id)"
@@ -873,6 +876,22 @@ watch(() => categories.value, (newVal) => {
             </template>
             <template #date="rows">
                 <div class="min-w-max">{{ (rows.value.date && rows.value.date !== '-') ? formatToUserTimezone(rows.value.date, user.timezone, true) : '-' }}</div>
+            </template>
+            <template #order_total_price="rows">
+                <div class="min-w-max">{{ (parseFloat(rows.value.quantity) * parseFloat(rows.value.unit_price)).toFixed(2) }}</div>
+            </template>
+            <template #order_date="rows">
+                <div class="min-w-max">{{ (rows.value.date && rows.value.date !== '-') ? formatToUserTimezone(rows.value.date, user.timezone) : '-' }}</div>
+            </template>
+            <template #order_confirmed_at="rows">
+                <TimesCircleIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-if="rows.value.confirmed_at === '-'"
+                />
+                <CheckCircleFillIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-else
+                />
             </template>
             <template #sdm="rows">
                 <CheckCircleFillIcon 

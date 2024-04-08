@@ -22,18 +22,18 @@ const colArray = ref([
 	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
 	{ field: 'id', title: 'ID', headerClass: "dark:text-gray-300 text-sm w-max" },
     { field: "trade_id", title: "Trade ID", headerClass: "text-gray-300 text-sm w-max" },
-    { field: "date", title: "Date", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
+    { field: "order_date", title: "Date", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
     { field: "action_type", title: "Action Type", headerClass: "text-gray-300 text-sm w-max" },
     { field: "stock_type", title: "Stock Type", headerClass: "text-gray-300 text-sm w-max" },
     { field: "stock", title: "Stock", headerClass: "text-gray-300 text-sm w-max" },
     { field: "unit_price", title: "Unit Price", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
     { field: "quantity", title: "Quantity", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
-    { field: "total_price", title: "Total Price", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
+    { field: "order_total_price", title: "Total Price", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
     { field: "profit", title: "Profit / Loss", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
     { field: "status", title: "Status", headerClass: "text-gray-300 text-sm w-max" },
-    { field: "comfirmed_at", title: "Confirmed", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "order_confirmed_at", title: "Confirmed", headerClass: "text-gray-300 text-sm w-max", filter: false },
     { field: "limb_stage", title: "Limb Stage", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "users_id", title: "User / Client", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "user_id", title: "User / Client", headerClass: "text-gray-300 text-sm w-max" },
 ]);
 
 // Custom Toastification

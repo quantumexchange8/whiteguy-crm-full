@@ -10,8 +10,10 @@ use App\Exports\OrdersExport;
 use App\Models\OrderChangelog;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\OrderRequest;
+use App\Models\Site;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
 class OrderController extends Controller
 {
@@ -294,12 +296,26 @@ class OrderController extends Controller
 
     public function getOrders(Request $request)
     {   
+        // dd($request);
         if ($request['checkedFilters']) {
-            $query = DB::table('orders')->whereNull('deleted_at');
+            $query = Order::query();
 
             foreach ($request['checkedFilters'] as $category => $options) {
                 if (is_array($options) && count($options) > 0) {
-                    $query->whereIn($category, $options);
+                    $tempArray = [];
+                    foreach ($options as $value) {
+                        array_push($tempArray, (($category === "action_type" || $category === "status" || $category === "stock_type") ? $value : (int)$value));
+                    }
+                    
+                    if($category === "site_id") {
+                        $query->whereHas('user.site', function (EloquentBuilder $query) use ($tempArray) {
+                            $query->whereIn('django_site.id', $tempArray);
+                        });
+                        continue;
+                    }
+
+                    $query->whereIn($category, $tempArray);
+
                 } elseif (is_string($options) && $options !== '') {
                     switch($options) {
                         case('Today'):
@@ -325,13 +341,64 @@ class OrderController extends Controller
                     }
                 }
             }
-            $data = $query->get();
 
+            // dd($query->toSql());v
+
+            $data = $query->with([
+                                'user:id,full_name,username,phone_number,email,country,address,site_id',
+                                'user.site:id,name'
+                            ])
+                            ->orderByDesc('id')
+                            ->get();
+
+            $statusArray = [ "Pending", "In progress", "Active", "Cancelled", "Cancelled (approved)", "Cancelled (non-authorized)"];
+            $limbStageArray  = [ "ALLO", "Allo + docs", "TT", "CLEARED", "Cancelled", "Cancelled - bank block", "Cancelled - HTR", 
+                "Cancelled - order drop", "Cancelled refuse trade", "Kicked", "Carry over", "Free switch" 
+            ];
+
+            foreach ($data as $order) {
+                // Handle client_stage attribute
+                if (!is_null($order->status) && $order->status !== '') {
+                    $order->status = $statusArray[$order->status - 1];
+                }
+            
+                // Handle limb attribute
+                if (!is_null($order->limb_stage) && $order->limb_stage !== '') {
+                    $order->limb_stage = $limbStageArray[$order->limb_stage - 1];
+                }
+            }
+            // dd($data);
+            
             return response()->json($data);
         }
-        $data = Order::with(['user:id,full_name,phone_number,email,country,address'])
+        $data = Order::with([
+                                'user:id,full_name,username,phone_number,email,country,address,site_id',
+                                'user.site:id,name'
+                            ])
                         ->orderByDesc('id')
                         ->get();
+
+        $statusArray = [ 
+            "Pending", "In progress", "Active", "Cancelled", "Cancelled (approved)", "Cancelled (non-authorized)", 
+            "Pending allocation", "Pending payment", "Pending clearance", "Cleared", "Trade confirmation required"
+        ];
+        $limbStageArray  = [ 
+            "ALLO", "Allo + docs", "Tt", "Cleared", "Cancelled", "Cancelled - bank block", "Cancelled - HTR", 
+            "Cancelled - order drop", "Cancelled refuse trade", "Kicked", "Carry over", "Free switch" 
+        ];
+
+        foreach ($data as $order) {
+            // Handle client_stage attribute
+            if (!is_null($order->status) && $order->status !== '') {
+                $order->status = $statusArray[$order->status - 1];
+            }
+        
+            // Handle limb attribute
+            if (!is_null($order->limb_stage) && $order->limb_stage !== '') {
+                $order->limb_stage = $limbStageArray[$order->limb_stage - 1];
+            }
+        }
+        // dd($data);
     
         return response()->json($data);
     }
@@ -343,35 +410,72 @@ class OrderController extends Controller
 
     public function getCategories(Request $request)
     {
-        $status = DB::table('orders')
-                        ->orderBy('status')
-                        ->groupBy('status')
-                        ->pluck('status');
+        $status = [ 
+            ['id' => 1, 'title' => "Pending"],
+            ['id' => 2, 'title' => "In progress"],
+            ['id' => 3, 'title' => "Active"],
+            ['id' => 4, 'title' => "Cancelled"],
+            ['id' => 5, 'title' => "Cancelled (approved)"],
+            ['id' => 6, 'title' => "Cancelled (non-authorized)"],
+            ['id' => 7, 'title' => "Pending allocation"],
+            ['id' => 8, 'title' => "Pending payment"],
+            ['id' => 9, 'title' => "Pending clearance"],
+            ['id' => 10, 'title' => "Cleared"],
+            ['id' => 11, 'title' => "Trade confirmation required"]
+        ];
 
-        $limb_stage = DB::table('orders')
-                            ->orderBy('limb_stage')
-                            ->groupBy('limb_stage')
-                            ->pluck('limb_stage');
+        $limb_stage = [ 
+            ['id' => 1, 'title' => "ALLO"],
+            ['id' => 2, 'title' => "Allo + docs"],
+            ['id' => 3, 'title' => "TT"],
+            ['id' => 4, 'title' => "CLEARED"],
+            ['id' => 5, 'title' => "Cancelled"],
+            ['id' => 6, 'title' => "Cancelled - bank block"],
+            ['id' => 7, 'title' => "Cancelled - HTR"],
+            ['id' => 8, 'title' => "Cancelled - order drop"],
+            ['id' => 9, 'title' => "Cancelled refuse trade"],
+            ['id' => 10, 'title' => "Kicked"],
+            ['id' => 11, 'title' => "Carry over"],
+            ['id' => 12, 'title' => "Free switch"]
+        ];
 
-        $action_type = DB::table('orders')
-                            ->orderBy('action_type')
-                            ->groupBy('action_type')
-                            ->pluck('action_type');
+        $action_type = [ 
+            ['id' => "BUY", 'title' => "Buy"],
+            ['id' => "SELL", 'title' => "Sell"]
+        ];
 
+        $site_id = Site::select('id','domain')
+                        ->orderBy('id')
+                        ->groupBy('id')
+                        ->get()
+                        ->map(function ($site) {
+                            return [
+                                'id' => $site->id,
+                                'title' => $site->domain,
+                            ];
+                        });
 
-        $stock_type = DB::table('orders')
-                    ->orderBy('stock_type')
-                    ->groupBy('stock_type')
-                    ->pluck('stock_type');
+        $stock_type = [ 
+            ['id' => "BOND", 'title' => "Bonds"],
+            ['id' => "SHARE", 'title' => "Shares"],
+            ['id' => "ISA", 'title' => "ISAs"],
+            ['id' => "FUND", 'title' => "Funds"],
+            ['id' => "DIGITAL_ASSET", 'title' => "Digital Assets"],
+            ['id' => "MUTUAL_FUND", 'title' => "Mutual Fund"],
+            ['id' => "COMMODITY", 'title' => "Commodity"],
+            ['id' => "FOREX", 'title' => "Forex"],
+            ['id' => "UNKNOWN", 'title' => "Unknown"],
+        ];
 
-        $created_at = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+        $date = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
 
         $data = [
             'status' => $status,
             'limb_stage' => $limb_stage,
             'action_type' => $action_type,
+            'site_id' => $site_id,
             'stock_type' => $stock_type,
-            'created_at' => $created_at,
+            'date' => $date,
         ];
         
         return response()->json($data);
