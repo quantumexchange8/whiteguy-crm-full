@@ -1007,7 +1007,7 @@ class LeadController extends Controller
 
         // Set error messages to be displayed based on whether there are any errors
         if (count($errors) > 0) {
-            $errorMsgTitle = "You have partially imported the leads into the system.";
+            $errorMsgTitle = "It seems there are some errors during the leads import.";
             $errorMsgContent = "There are rows that have not been inputted correctly or filled completely. Any duplicated leads have been moved to the duplicated leads table. The import errors are as below.";
             $errorMsgType = "error";
             $rowErrorMsg = true;

@@ -57,4 +57,16 @@ class LeadDuplicated extends Model
         'deleted_note',
         'sort_id',
     ];
+
+    protected $dateFormat = 'Y-m-d H:i:s.uO';
+    protected $casts = [
+        'appointment_start_at' => 'datetime',
+        'appointment_end_at' => 'datetime',
+        'contacted_at' => 'datetime',
+        'assignee_read_at' => 'datetime',
+        'edited_at' => 'datetime',
+        'created_at' => 'datetime',
+        'give_up_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
 }
