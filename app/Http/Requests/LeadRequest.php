@@ -38,7 +38,7 @@ class LeadRequest extends FormRequest
             'data_source' => 'required|string|max:250',
             // 'appointment_start_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
             // 'appointment_end_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
-            'contacted_at' => 'required|date_format:Y-m-d H:i:s.uO',
+            // 'contacted_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
             // 'assignee_read_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
             'edited_at' => 'required|date_format:Y-m-d H:i:s.uO',
             'created_at' => 'required|date_format:Y-m-d H:i:s.uO',
@@ -88,6 +88,7 @@ class LeadRequest extends FormRequest
         $nullableDatesConditionalRules = [
             'appointment_start_at',
             'appointment_end_at',
+            'contacted_at',
             'assignee_read_at',
             'give_up_at',
             'deleted_at',

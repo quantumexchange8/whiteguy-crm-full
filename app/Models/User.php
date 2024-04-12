@@ -131,6 +131,24 @@ class User extends Authenticatable
     }
 
     /**
+     * LeadDuplicated Model
+     * Get leads created by the user.
+     */
+    public function createdDuplicatedLeads(): HasMany
+    {
+        return $this->hasMany(LeadDuplicated::class, 'created_by_id');
+    }
+
+    /**
+     * LeadDuplicated Model
+     * Get leads assigned to the user.
+     */
+    public function assignedDuplicatedLeads(): HasMany
+    {
+        return $this->hasMany(LeadDuplicated::class, 'assignee_id');
+    }
+
+    /**
      * LeadNote Model
      * Get lead notes created by the user.
      */

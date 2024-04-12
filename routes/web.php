@@ -172,6 +172,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     Route::get('/leads/count', [LeadController::class, 'getTotalLeadCount'])->name('leads.getTotalLeadCount');
     Route::delete('/leads/{id}/lead-front', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
     Route::delete('/leads/{id}/lead-note', [LeadController::class, 'deleteLeadNote'])->name('leads.deleteLeadNote');
+    Route::delete('/leads/{id}/lead-duplicate', [LeadController::class, 'destroyDuplicate'])->name('leads.destroyDuplicate');
     Route::resource('/leads', LeadController::class);
 
     /*

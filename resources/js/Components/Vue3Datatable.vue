@@ -139,8 +139,17 @@ const getDuplicatedData = async () => {
     try {
         loading.value = true;
         
-        const data = await axios.get(props.getDuplicatesURL);
-        rows.value = await data.data;
+        const data = await axios.get(props.getDuplicatesURL, {
+            method: 'GET',
+            body: JSON.stringify(params),
+            params: {
+                page: 1,
+                limit: 10,
+            }
+        });
+
+        unprocessedData.value = await data.data;
+        rows.value = processRows(unprocessedData.value);
         total_rows.value = data.data.length;
         isDuplicate.value = true;
 
@@ -189,14 +198,26 @@ const getFilteredData = async (checkedFilters) => {
     try {
         loading.value = true;
         
-        const data = await axios.get(props.targetApi, {
-            method: 'GET',
-            params: {
-                checkedFilters: checkedFilters,
-            }
-        });
-        rows.value = await data.data;
-        total_rows.value = data.data.length;
+        if (isDuplicate.value) {
+            const data = await axios.get(props.getDuplicatesURL, {
+                method: 'GET',
+                params: {
+                    checkedFilters: checkedFilters,
+                }
+            });
+            rows.value = await data.data;
+            total_rows.value = data.data.length;
+            
+        } else {
+            const data = await axios.get(props.targetApi, {
+                method: 'GET',
+                params: {
+                    checkedFilters: checkedFilters,
+                }
+            });
+            rows.value = await data.data;
+            total_rows.value = data.data.length;
+        }
 
     } catch (error) {
         console.error("Error fetching data:", error);
@@ -246,7 +267,13 @@ const clearColumnFiltersInts = () => {
 const reset = () => {
     clearColumnFiltersInts();
     params.search = '';
-    getData();
+
+    if (isDuplicate.value) {
+        getDuplicatedData();
+    } else {
+        getData();
+    }
+
     Object.keys(checkedFilters).forEach(key => {
         checkedFilters[key] = [];
     });
@@ -263,6 +290,7 @@ const closeRowModal = () => {
 // Shows popup modal of the individual lead's details
 const rowShowDetails = (data) => {
     selectedRowData.value = data;
+    Object.assign(selectedRowData.value, {isDuplicate: isDuplicate.value});
     isRowModalOpen.value = true;
 };
 
@@ -283,7 +311,7 @@ const closeDeleteModal = () => {
 };
 
 const deleteLead = () => {
-    router.delete(route(props.detailsLink + '.destroy', rowDataId.value), {
+    router.delete(route(props.detailsLink + (isDuplicate ? '.destroyDuplicate' : '.destroy'), rowDataId.value), {
             preserveState : false,
             onSuccess: () => closeDeleteModal(),
         });
@@ -401,7 +429,7 @@ watch(() => categories.value, (newVal) => {
 <template>
     <div class="p-6 bg-white rounded-xl shadow-md dark:bg-dark-eval-1">
         <div class="flex flex-row justify-between pb-6">
-            <p class="text-xl pl-8 dark:text-gray-300 font-semibold text-center">{{ isDuplicate ? 'Duplicates' : '' }}</p>
+            <p class="text-xl dark:text-gray-300 font-semibold text-center">{{ isDuplicate ? 'Duplicates' : '' }}</p>
             <div class="flex flex-row">
                 <div class="rounded-md shadow-lg border border-gray-500 flex justify-end">
                     <Button 
@@ -802,13 +830,14 @@ watch(() => categories.value, (newVal) => {
                     >
                         <EyeIcon class="flex-shrink-0 w-5 h-5 cursor-pointer text-cyan-500" aria-hidden="true" />
                     </Button>
-                    <div class="border border-gray-500/80 h-5 self-center"></div>
+                    <div class="border border-gray-500/80 h-5 self-center" v-if="!isDuplicate"></div>
                     <Button 
                         :type="'button'"
                         :variant="'transparent'"
                         :size="'xs'"
                         class="justify-center h-full" 
                         @click="rowShowEdit(rows.value)"
+                        v-if="!isDuplicate"
                     >
                         <PageEditIcon class="flex-shrink-0 w-5 h-5 cursor-pointer text-blue-500" aria-hidden="true" />
                     </Button>
@@ -830,11 +859,11 @@ watch(() => categories.value, (newVal) => {
 
                         <div class="modal">
                             <p class="text-gray-200 text-2xl bg-red-500 p-4 rounded-md font-bold">
-                                Delete {{ convertToHumanReadable(props.detailsLink) }} Confirmation.
+                                Delete {{ convertToHumanReadable(props.detailsLink) }}{{ isDuplicate ? ' Duplicate' : '' }} Confirmation.
                             </p>
                             <p class="text-gray-200 text-lg p-4">
                                 Are you sure that you want to <span class="font-bold">delete</span> this 
-                                {{ convertToHumanReadable(props.detailsLink).toLowerCase().slice(0, props.detailsLink.length - 1) }}?
+                                {{ convertToHumanReadable(props.detailsLink).toLowerCase().slice(0, props.detailsLink.length - 1) }}{{ isDuplicate ? ' duplicate' : '' }}?
                             </p>
                         </div>
                         <div class="flex flex-row justify-end p-9">
@@ -976,6 +1005,7 @@ watch(() => categories.value, (newVal) => {
             <component 
                 :is="modalComponent" 
                 :selectedRowData="selectedRowData"
+                :isDuplicate="isDuplicate"
                 @closeModal="closeRowModal"
                 @rowEdit="rowShowEdit"
             />

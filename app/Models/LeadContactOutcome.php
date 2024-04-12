@@ -26,4 +26,12 @@ class LeadContactOutcome extends Model
     {
         return $this->hasMany(Lead::class, 'contact_outcome_id');
     }
+
+    /**
+     * Get the duplicated leads for the lead contact outcome.
+     */
+    public function duplicatedLeads(): HasMany
+    {
+        return $this->hasMany(LeadDuplicated::class, 'contact_outcome_id');
+    }
 }

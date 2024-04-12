@@ -72,7 +72,7 @@ use Maatwebsite\Excel\Imports\HeadingRowFormatter;
 //     // return 'column-' . $key; 
 // });
 
-class LeadsImport implements ToModel, WithValidation, SkipsOnFailure //, WithHeadingRow
+class LeadsImport implements ToModel, WithValidation, SkipsOnFailure, WithHeadingRow
 {
     use Importable, SkipsFailures;
 
@@ -126,199 +126,162 @@ class LeadsImport implements ToModel, WithValidation, SkipsOnFailure //, WithHea
     public function model(array $row)
     {
         // Check for duplicates based on email and phone number
-        if (Lead::where('email', $row['8'])->orWhere('phone_number', $row['12'])->exists()) {
+        if (Lead::where('first_name', $row['first_name'])
+                    ->where('last_name', $row['last_name'])
+                    ->where('email', $row['email'])
+                    ->where('phone_number', $row['phone_number'])
+                    ->exists()
+            ) 
+        {
             // If a duplicate is found, insert the data into the duplicated_leads table
-
-            // dd($this->convertExcelTimestampToLocalTimezone($row[0]), $this->convertExcelTimestampToLocalTimezone($row[20]));
-            // dd([
-            //     'date' => $row[0] ? $this->convertExcelTimestampToLocalTimezone($row[0]) : '',
-            //     'first_name' => $row[1] ?? '',
-            //     'last_name' => $row[2] ?? '',
-            //     'country' => $row[3] ?? '',
-            //     'date_of_birth' => $row[4] ?? '',
-            //     'occupation' => $row[5] ?? '',
-            //     'vc' => $row[6] ?? '',
-            //     'sdm' => $row[7] ?? '',
-            //     'email' => $row[8] ?? '',
-            //     'email_alt_1' => $row[9] ?? '',
-            //     'email_alt_2' => $row[10] ?? '',
-            //     'email_alt_3' => $row[11] ?? '',
-            //     'phone_number' => $row[12] ?? '',
-            //     'phone_number_alt_1' => $row[13] ?? '',
-            //     'phone_number_alt_2' => $row[14] ?? '',
-            //     'phone_number_alt_3' => $row[15] ?? '',
-            //     'attachment' => $row[16] ?? '',
-            //     'private_remark' => $row[17] ?? '',
-            //     'remark' => $row[18] ?? '',
-            //     'data_source' => $row[19] ?? '',
-            //     'appointment_start_at' => $row[20] ? $this->convertExcelTimestampToLocalTimezone($row[20]) : '',
-            //     'appointment_end_at' => $row[21] ? $this->convertExcelTimestampToLocalTimezone($row[21]) : '',
-            //     'contacted_at' => $row[22] ? $this->convertExcelTimestampToLocalTimezone($row[22]) : '',
-            //     'assignee_read_at' => $row[23] ? $this->convertExcelTimestampToLocalTimezone($row[23]) : '',
-            //     'edited_at' => (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
-            //     'created_at' => (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
-            //     'appointment_label_id' => $row[26] ? $this->getAppointmentLabelId($row[26]) : '',
-            //     'assignee_id' => $row[27] ? $this->getAssigneeId($row[27]) : '',
-            //     'contact_outcome_id' => $row[28] ? $this->getContactOutcomeId($row[28]) : '',
-            //     'created_by_id' => $row[29] ? $this->getCreatedById($row[29]) : '',
-            //     'stage_id' => $row[30] ? $this->getStageId($row[30]) : '',
-            //     'give_up_at' => $row[31] ? $this->convertExcelTimestampToLocalTimezone($row[31]) : '',
-            //     'account_manager' => $row[32] ?? '',
-            //     'address' => $row[33] ?? '',
-            //     'agents_book' => $row[34] ?? '',
-            //     'campaign_product' => $row[35] ?? '',
-            //     'data_code' => $row[36] ?? '',
-            //     'data_type' => $row[37] ?? '',
-            //     'deleted_at' =>$row[38] ? $this->convertExcelTimestampToLocalTimezone($row[38]) : '',
-            //     'deleted_note' => $row[39] ?? '',
-            //     'sort_id' => $this->generateLeadSortUuid(),
-            // ]);
-            LeadDuplicated::create([
-                'date' => $row[0] ? $this->convertExcelTimestampToLocalTimezone($row[0]) : '',
-                'first_name' => $row[1] ?? '',
-                'last_name' => $row[2] ?? '',
-                'country' => $row[3] ?? '',
-                'date_of_birth' => $row[4] ?? '',
-                'occupation' => $row[5] ?? '',
-                'vc' => $row[6] ?? '',
-                'sdm' => $row[7] ?? '',
-                'email' => $row[8] ?? '',
-                'email_alt_1' => $row[9] ?? '',
-                'email_alt_2' => $row[10] ?? '',
-                'email_alt_3' => $row[11] ?? '',
-                'phone_number' => $row[12] ?? '',
-                'phone_number_alt_1' => $row[13] ?? '',
-                'phone_number_alt_2' => $row[14] ?? '',
-                'phone_number_alt_3' => $row[15] ?? '',
-                'attachment' => $row[16] ?? '',
-                'private_remark' => $row[17] ?? '',
-                'remark' => $row[18] ?? '',
-                'data_source' => $row[19] ?? '',
-                'appointment_start_at' => $row[20] ? $this->convertExcelTimestampToLocalTimezone($row[20]) : '',
-                'appointment_end_at' => $row[21] ? $this->convertExcelTimestampToLocalTimezone($row[21]) : '',
-                'contacted_at' => $row[22] ? $this->convertExcelTimestampToLocalTimezone($row[22]) : '',
-                'assignee_read_at' => $row[23] ? $this->convertExcelTimestampToLocalTimezone($row[23]) : '',
-                'edited_at' => (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
-                'created_at' => (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
-                'appointment_label_id' => $row[26] ? $this->getAppointmentLabelId($row[26]) : '',
-                'assignee_id' => $row[27] ? $this->getAssigneeId($row[27]) : '',
-                'contact_outcome_id' => $row[28] ? $this->getContactOutcomeId($row[28]) : '',
-                'created_by_id' => $row[29] ? $this->getCreatedById($row[29]) : '',
-                'stage_id' => $row[30] ? $this->getStageId($row[30]) : '',
-                'give_up_at' => $row[31] ? $this->convertExcelTimestampToLocalTimezone($row[31]) : '',
-                'account_manager' => $row[32] ?? '',
-                'address' => $row[33] ?? '',
-                'agents_book' => $row[34] ?? '',
-                'campaign_product' => $row[35] ?? '',
-                'data_code' => $row[36] ?? '',
-                'data_type' => $row[37] ?? '',
-                'deleted_at' =>$row[38] ? $this->convertExcelTimestampToLocalTimezone($row[38]) : '',
-                'deleted_note' => $row[39] ?? '',
-                'sort_id' => $this->generateLeadSortUuid(),
+            return new LeadDuplicated([
+                'date' => $row['date'] ? $this->convertExcelTimestampToLocalTimezone($row['date']) : '',
+                'first_name' => $row['first_name'] ?? '',
+                'last_name' => $row['last_name'] ?? '',
+                'country' => $row['country'] ?? '',
+                'date_of_birth' => $row['date_of_birth'] ?? '',
+                'occupation' => $row['occupation'] ?? '',
+                'vc' => $row['vc'] ?? '',
+                'sdm' => $row['sdm'] ?? '',
+                'email' => $row['email'] ?? '',
+                'email_alt_1' => $row['email_alt_1'] ?? '',
+                'email_alt_2' => $row['email_alt_2'] ?? '',
+                'email_alt_3' => $row['email_alt_3'] ?? '',
+                'phone_number' => $row['phone_number'] ?? '',
+                'phone_number_alt_1' => $row['phone_number_alt_1'] ?? '',
+                'phone_number_alt_2' => $row['phone_number_alt_2'] ?? '',
+                'phone_number_alt_3' => $row['phone_number_alt_3'] ?? '',
+                'attachment' => $row['attachment'] ?? '',
+                'private_remark' => $row['private_remark'] ?? '',
+                'remark' => $row['remark'] ?? '',
+                'data_source' => $row['data_source'] ?? '',
+                'appointment_start_at' => $row['appointment_start_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['appointment_start_at'])) : null,
+                'appointment_end_at' => $row['appointment_end_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['appointment_end_at'])) : null,
+                'contacted_at' => $row['contacted_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['contacted_at'])) : null,
+                'assignee_read_at' => $row['assignee_read_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['assignee_read_at'])) : null,
+                'edited_at' => $row['edited_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['edited_at'])) : (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
+                'created_at' => $row['created_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['created_at'])) : (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
+                'appointment_label_id' => $row['appointment_label_id'] ? $this->getAppointmentLabelId($row['appointment_label_id']) : null,
+                'assignee_id' => $row['assignee_id'] ? $this->getAssigneeId($row['assignee_id']) : null,
+                'contact_outcome_id' => $row['contact_outcome_id'] ? $this->getContactOutcomeId($row['contact_outcome_id']) : null,
+                'created_by_id' => $row['created_by_id'] ? $this->getCreatedById($row['created_by_id']) : '',
+                'stage_id' => $row['stage_id'] ? $this->getStageId($row['stage_id']) : null,
+                'give_up_at' => $row['give_up_at'] ? $this->convertExcelTimestampToLocalTimezone($row['give_up_at']) : null,
+                'account_manager' => $row['account_manager'] ?? '',
+                'address' => $row['address'] ?? '',
+                'agents_book' => $row['agents_book'] ?? '',
+                'campaign_product' => $row['campaign_product'] ?? '',
+                'data_code' => $row['data_code'] ?? '',
+                'data_type' => $row['data_type'] ?? '',
+                'deleted_at' =>$row['deleted_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['deleted_at'])) : null,
+                'deleted_note' => (string)$row['deleted_note'] ?? '',
+                'sort_id' => $row['sort_id'] ? $row['sort_id'] : $this->generateLeadSortUuid(),
             ]);
-            return null;
         }
 
-        $string ='why la bro';
-        $subTxt = substr($string, 0, strpos($string, 'bro'));
-
-        // dd($row);
+        // $string ='why la bro';
+        // $subTxt = substr($string, 0, strpos($string, 'bro'));
 
         return new Lead([
-            'date' => $row[0] ? $this->convertExcelTimestampToLocalTimezone($row[0]) : '',
-            'first_name' => $row[1] ?? '',
-            'last_name' => $row[2] ?? '',
-            'country' => $row[3] ?? '',
-            'date_of_birth' => $row[4] ?? '',
-            'occupation' => $row[5] ?? '',
-            'vc' => $row[6] ?? '',
-            'sdm' => $row[7] ?? '',
-            'email' => $row[8] ?? '',
-            'email_alt_1' => $row[9] ?? '',
-            'email_alt_2' => $row[10] ?? '',
-            'email_alt_3' => $row[11] ?? '',
-            'phone_number' => $row[12] ?? '',
-            'phone_number_alt_1' => $row[13] ?? '',
-            'phone_number_alt_2' => $row[14] ?? '',
-            'phone_number_alt_3' => $row[15] ?? '',
-            'attachment' => $row[16] ?? '',
-            'private_remark' => $row[17] ?? '',
-            'remark' => $row[18] ?? '',
-            'data_source' => $row[19] ?? '',
-            'appointment_start_at' => $this->convertExcelTimestampToLocalTimezone($row[20]),
-            'appointment_end_at' => $this->convertExcelTimestampToLocalTimezone($row[21]),
-            'contacted_at' => $this->convertExcelTimestampToLocalTimezone($row[22]),
-            'assignee_read_at' => $this->convertExcelTimestampToLocalTimezone($row[23]),
-            'edited_at' => (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
-            'created_at' => (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
-            'appointment_label_id' => $row[26] ? $this->getAppointmentLabelId($row[26]) : '',
-            'assignee_id' => $row[27] ? $this->getAssigneeId($row[27]) : '',
-            'contact_outcome_id' => $row[28] ? $this->getContactOutcomeId($row[28]) : '',
-            'created_by_id' => $row[29] ? $this->getCreatedById($row[29]) : '',
-            'stage_id' => $row[30] ? $this->getStageId($row[30]) : '',
-            'give_up_at' => $this->convertExcelTimestampToLocalTimezone($row[31]),
-            'account_manager' => $row[32] ?? '',
-            'address' => $row[33] ?? '',
-            'agents_book' => $row[34] ?? '',
-            'campaign_product' => $row[35] ?? '',
-            'data_code' => $row[36] ?? '',
-            'data_type' => $row[37] ?? '',
-            'deleted_at' =>$this->convertExcelTimestampToLocalTimezone($row[38]),
-            'deleted_note' => $row[39] ?? '',
-            'sort_id' => $this->generateLeadSortUuid(),
+            'date' => $row['date'] ? $this->convertExcelTimestampToLocalTimezone($row['date']) : '',
+            'first_name' => $row['first_name'] ?? '',
+            'last_name' => $row['last_name'] ?? '',
+            'country' => $row['country'] ?? '',
+            'date_of_birth' => $row['date_of_birth'] ?? '',
+            'occupation' => $row['occupation'] ?? '',
+            'vc' => $row['vc'] ?? '',
+            'sdm' => $row['sdm'] ?? '',
+            'email' => $row['email'] ?? '',
+            'email_alt_1' => $row['email_alt_1'] ?? '',
+            'email_alt_2' => $row['email_alt_2'] ?? '',
+            'email_alt_3' => $row['email_alt_3'] ?? '',
+            'phone_number' => $row['phone_number'] ?? '',
+            'phone_number_alt_1' => $row['phone_number_alt_1'] ?? '',
+            'phone_number_alt_2' => $row['phone_number_alt_2'] ?? '',
+            'phone_number_alt_3' => $row['phone_number_alt_3'] ?? '',
+            'attachment' => $row['attachment'] ?? '',
+            'private_remark' => $row['private_remark'] ?? '',
+            'remark' => $row['remark'] ?? '',
+            'data_source' => $row['data_source'] ?? '',
+            'appointment_start_at' => $row['appointment_start_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['appointment_start_at'])) : null,
+            'appointment_end_at' => $row['appointment_end_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['appointment_end_at'])) : null,
+            'contacted_at' => $row['contacted_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['contacted_at'])) : null,
+            'assignee_read_at' => $row['assignee_read_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['assignee_read_at'])) : null,
+            'edited_at' => $row['edited_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['edited_at'])) : (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
+            'created_at' => $row['created_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['created_at'])) : (new DateTime("now", new DateTimeZone('Asia/Kuala_Lumpur')))->format('Y-m-d H:i:s.u') . "+08",
+            'appointment_label_id' => $row['appointment_label_id'] ? $this->getAppointmentLabelId($row['appointment_label_id']) : null,
+            'assignee_id' => $row['assignee_id'] ? $this->getAssigneeId($row['assignee_id']) : null,
+            'contact_outcome_id' => $row['contact_outcome_id'] ? $this->getContactOutcomeId($row['contact_outcome_id']) : null,
+            'created_by_id' => $row['created_by_id'] ? $this->getCreatedById($row['created_by_id']) : '',
+            'stage_id' => $row['stage_id'] ? $this->getStageId($row['stage_id']) : null,
+            'give_up_at' => $row['give_up_at'] ? $this->convertExcelTimestampToLocalTimezone($row['give_up_at']) : null,
+            'account_manager' => $row['account_manager'] ?? '',
+            'address' => $row['address'] ?? '',
+            'agents_book' => $row['agents_book'] ?? '',
+            'campaign_product' => $row['campaign_product'] ?? '',
+            'data_code' => $row['data_code'] ?? '',
+            'data_type' => $row['data_type'] ?? '',
+            'deleted_at' =>$row['deleted_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $this->convertExcelTimestampToLocalTimezone($row['deleted_at'])) : null,
+            'deleted_note' => (string)$row['deleted_note'] ?? '',
+            'sort_id' => $row['sort_id'] ? $row['sort_id'] : $this->generateLeadSortUuid(),
         ]);
     }
 
-    // public function headingRow(): int
-    // {
-    //     return 1;
-    // }
+    public function headingRow(): int
+    {
+        return 1;
+    }
 
     public function rules(): array
     {
-        return [
-            // 'date' => 'required|string|max:250', //date_format:Y-m-d H:i:s
-            // 'first_name' => 'required|string|max:250',
-            // 'last_name' => 'required|string|max:250',
-            // 'country' => 'required|string|max:250',
-            // 'date_of_birth' => 'required|string|max:250', //date_format:Y-m-d
-            // 'occupation' => 'required|string|max:250', 
-            // 'vc' => 'required|string|max:250',
-            // 'sdm' => 'required|string|max:250',
-            // 'email' => 'required|email:rfc,dns',
-            // // 'email_alt_1' => 'required|email:rfc,dns|unique:core_lead|max:254',
-            // // 'email_alt_2' => 'required|email:rfc,dns|unique:core_lead|max:254',
-            // // 'email_alt_3' => 'required|email:rfc,dns|unique:core_lead|max:254',
-            // 'phone_number' => 'required|string|unique:core_lead|max:250',
-            // // 'phone_number_alt_1' => 'required|string|unique:core_lead|max:250',
-            // // 'phone_number_alt_2' => 'required|string|unique:core_lead|max:250',
-            // // 'phone_number_alt_3' => 'required|string|unique:core_lead|max:250',
-            // // 'attachment' => 'required|string|max:250', 
-            // 'private_remark' => 'required|string', 
-            // 'remark' => 'required|string', 
-            // 'data_source' => 'required|string|max:250',
-            // // 'appointment_start_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
-            // // 'appointment_end_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
-            // 'contacted_at' => 'required|date_format:Y-m-d H:i:s.uO',
-            // // 'assignee_read_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
-            // 'edited_at' => 'required|date_format:Y-m-d H:i:s.uO',
-            // 'created_at' => 'required|date_format:Y-m-d H:i:s.uO',
-            // 'appointment_label_id' => 'nullable|integer',
-            // 'assignee_id' => 'nullable|integer', 
-            // 'contact_outcome_id' => 'nullable|integer', 
-            // 'created_by_id' => 'required|integer', 
-            // 'stage_id' => 'nullable|integer', 
-            // // 'give_up_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
-            // 'account_manager' => 'required|string|max:250', 
-            // 'address' => 'required|string', 
-            // 'agents_book' => 'required|string|max:250', 
-            // 'campaign_product' => 'required|string|max:250', 
-            // 'data_code' => 'required|string|max:250',
-            // 'data_type' => 'required|string|max:250',
-            // // 'deleted_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
-            // 'deleted_note' => 'required|string|max:250',
-            // 'sort_id' => 'required',
+        $rules = [
+            'date' => 'required|string|max:250', //date_format:Y-m-d H:i:s
+            'first_name' => 'required|string|max:250',
+            'last_name' => 'required|string|max:250',
+            'country' => 'required|string|max:250',
+            'date_of_birth' => 'required|string|max:250', //date_format:Y-m-d
+            'occupation' => 'required|string|max:250', 
+            'vc' => 'required|string|max:250',
+            'sdm' => 'required|string|max:250',
+            'email' => 'required|email:rfc,dns',
+            // 'email_alt_1' => 'required|email:rfc,dns|max:254',
+            // 'email_alt_2' => 'required|email:rfc,dns|max:254',
+            // 'email_alt_3' => 'required|email:rfc,dns|max:254',
+            'phone_number' => 'required|string|max:250',
+            // 'phone_number_alt_1' => 'required|string|max:250',
+            // 'phone_number_alt_2' => 'required|string|max:250',
+            // 'phone_number_alt_3' => 'required|string|max:250',
+            // 'attachment' => 'required|string|max:250', 
+            'private_remark' => 'required|string', 
+            'remark' => 'required|string', 
+            'data_source' => 'required|string|max:250',
+            'appointment_start_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
+            'appointment_end_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
+            'contacted_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
+            'assignee_read_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
+            'edited_at' => 'required|date_format:Y-m-d H:i:s.uO',
+            'created_at' => 'required|date_format:Y-m-d H:i:s.uO',
+            'appointment_label_id' => 'nullable',
+            'assignee_id' => 'nullable', 
+            'contact_outcome_id' => 'nullable', 
+            'created_by_id' => 'required', 
+            'stage_id' => 'nullable', 
+            'give_up_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
+            'account_manager' => 'required|string|max:250', 
+            'address' => 'required|string', 
+            'agents_book' => 'required|string|max:250', 
+            'campaign_product' => 'required|string|max:250', 
+            'data_code' => 'required|string|max:250',
+            'data_type' => 'required|string|max:250',
+            'deleted_at' => 'nullable|date_format:Y-m-d H:i:s.uO',
+            'deleted_note' => [
+                'required_with:deleted_at',
+                'max:250',
+            ],
+            'sort_id' => 'nullable',
         ];
+
+        return $rules;
     }
 
     public function customValidationAttributes()
@@ -346,13 +309,13 @@ class LeadsImport implements ToModel, WithValidation, SkipsOnFailure //, WithHea
             'data_source' => 'Data Source',
             'appointment_start_at' => 'Appointment Start',
             'appointment_end_at' => 'Appointment End',
-            'contacted_at' => 'Last Called',
+            'contacted_at' => 'Contacted At',
             'assignee_read_at' => 'Assignee Read At',
-            'appointment_label_id' => 'Appointment Label', 
-            'assignee_id' => 'Assignee', 
-            'contact_outcome_id' => 'Contact Outcome', 
-            'created_by_id' => 'Created By', 
-            'stage_id' => 'Stage', 
+            'appointment_label' => 'Appointment Label', 
+            'assignee' => 'Assignee', 
+            'contact_outcome' => 'Contact Outcome', 
+            'created_by' => 'Created By', 
+            'stage' => 'Stage', 
             'give_up_at' => 'Give Up?',
             'account_manager' => 'Account Manager', 
             'address' => 'Address', 
@@ -368,7 +331,38 @@ class LeadsImport implements ToModel, WithValidation, SkipsOnFailure //, WithHea
 
     public function prepareForValidation($data, $index)
     {
-        
+        $data['date'] = (string)$data['date'];
+        // $data['deleted_note'] = $data['deleted_note'] ?? '';
+
+        // Format nullable datetime fields
+        $nullableDateTimeFieldsArr = [
+            'appointment_start_at',
+            'appointment_end_at',
+            'contacted_at',
+            'assignee_read_at',
+            'give_up_at',
+            'deleted_at',
+        ];
+    
+        foreach ($nullableDateTimeFieldsArr as $field) {
+            $data[$field] = $data[$field]
+                                ? $this->convertExcelTimestampToLocalTimezone($data[$field])
+                                : null;
+        }
+
+        // Format required datetime fields
+        $requiredDateTimeFieldsArr = [
+            'edited_at',
+            'created_at',
+        ];
+    
+        foreach ($requiredDateTimeFieldsArr as $field) {
+            $data[$field] = $data[$field]
+                                ? $this->convertExcelTimestampToLocalTimezone($data[$field])
+                                : '';
+        }
+
+        // dd($data);
         // $data['contacted_at'] = ($data['contacted_at'] !== '' && $data['contacted_at'] !== null) ? date('Y-m-d H:i:s', strtotime($data['contacted_at'])) : $data['contacted_at'];
         // $data['date_of_birth'] = ($data['date_of_birth'] !== '' && $data['date_of_birth'] !== null) ? date('Y-m-d', strtotime($data['date_of_birth'])) : $data['date_of_birth'];
         // $data['date'] = ($data['date'] !== '' && $data['date'] !== null) ? date('Y-m-d H:i:s', strtotime($data['date'])) : $data['date'];
@@ -395,14 +389,18 @@ class LeadsImport implements ToModel, WithValidation, SkipsOnFailure //, WithHea
      */
     function convertExcelTimestampToLocalTimezone($excelTimestamp): string 
     {
-        if (gettype($excelTimestamp) === 'string' || str_contains($excelTimestamp, '+08')) {
-            return $excelTimestamp;
+        
+        if (gettype($excelTimestamp) === 'string' && str_contains($excelTimestamp, '+08')) {
+            
+            return  (new DateTime($excelTimestamp))->format('Y-m-d H:i:s.uO');
         }
-
+        
         if ($excelTimestamp === null || $excelTimestamp === '') {
             return null;
         }
-
+        
+        $excelTimestamp = (float)$excelTimestamp;
+        
         // Set timezone
         $timezone = new DateTimeZone(auth()->user()->timezone);
         $baseTimezone = new DateTimeZone('UTC');
@@ -421,7 +419,7 @@ class LeadsImport implements ToModel, WithValidation, SkipsOnFailure //, WithHea
         $timestamp += $offsetDifferences;
 
         // Set and format the converted date time with timezone
-        $newDate = (new DateTime('@' . $timestamp))->format('Y-m-d H:i:s.uO') . "+08";
+        $newDate = (new DateTime('@' . $timestamp))->format('Y-m-d H:i:s.u') . "+08";
 
         return $newDate;
     }

@@ -22,6 +22,7 @@ use App\Models\LeadFront;
 use App\Models\LeadNote;
 use App\Models\Lead;
 use App\Models\LeadChangelog;
+use App\Models\LeadDuplicated;
 use App\Models\User;
 use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
@@ -785,6 +786,26 @@ class LeadController extends Controller
         return redirect(route('leads.edit', $linkedLead));
     }
 
+    /**
+     * Delete lead duplicate.
+     */
+    public function destroyDuplicate(string $id)
+    {
+        $existingLeadDuplicate = LeadDuplicated::find($id);
+        $existingLeadDuplicate->delete();
+
+        $errorMsgTitle = "You have successfully deleted the lead duplicate.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('leads.index')
+                        ->with('errorMsg', $errorMsg);
+    }
+
     public function getLeads(Request $request)
     {
         if ($request['checkedFilters']) {
@@ -867,8 +888,70 @@ class LeadController extends Controller
 
     public function getDuplicatedLeads(Request $request)
     {
-        // Fetch all duplicated leads
-        $data = DB::table('duplicated_leads')->whereNull('deleted_at')->get();
+        if ($request['checkedFilters']) {
+            $query = LeadDuplicated::query();
+
+            foreach ($request['checkedFilters'] as $category => $options) {
+                if (is_array($options) && count($options) > 0) {
+                    $tempArray = [];
+                    foreach ($options as $value) {
+                        array_push($tempArray, (int)$value);
+                    }
+                    $query->whereIn($category, $tempArray);
+
+                } elseif (is_string($options) && $options !== '') {
+                    switch($options) {
+                        case('Today'):
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                            break;
+                        case('Past 7 days'):
+                            $query->whereBetween($category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()]);
+                            break;
+                        case('This month'):
+                            $query->whereMonth($category, Carbon::today()->month);
+                            break;
+                        case('This year'):
+                            $query->whereYear($category, Carbon::today()->year);
+                            break;
+                        case('No date'):
+                            $query->whereNull($category);
+                            break;
+                        case('Has date'):
+                            $query->whereNotNull($category);
+                            break;
+                        default:
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                    }
+                }
+            }
+            $data = $query->with([
+                                'leadCreator:id,username,site_id', 
+                                'leadCreator.site:id,name', 
+                                'assignee:id,username,site_id', 
+                                'assignee.site:id,name', 
+                                'contactOutcome:id,title',
+                                'stage:id,title',
+                                'appointmentLabel:id,title'
+                            ])
+                            ->limit(10)
+                            ->orderByDesc('id')
+                            ->get();
+
+            return response()->json($data);
+        }
+
+        $data = LeadDuplicated::with([
+                                    'leadCreator:id,username,site_id', 
+                                    'leadCreator.site:id,name', 
+                                    'assignee:id,username,site_id', 
+                                    'assignee.site:id,name', 
+                                    'contactOutcome:id,title',
+                                    'stage:id,title',
+                                    'appointmentLabel:id,title'
+                                ])
+                                ->limit(100)
+                                ->orderByDesc('id')
+                                ->get();
 
         return response()->json($data);
     }

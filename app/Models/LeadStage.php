@@ -28,4 +28,12 @@ class LeadStage extends Model
     {
         return $this->hasMany(Lead::class, 'stage_id');
     }
+
+    /**
+     * Get the duplicated leads for the lead stage.
+     */
+    public function duplicatedLeads(): HasMany
+    {
+        return $this->hasMany(LeadDuplicated::class, 'stage_id');
+    }
 }

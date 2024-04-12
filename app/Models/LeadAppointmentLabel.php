@@ -20,10 +20,10 @@ class LeadAppointmentLabel extends Model
     ];
 
     /**
-     * Get the leads for the lead appointment label.
+     * Get the duplicated leads for the lead appointment label.
      */
-    public function leads(): HasMany
+    public function duplicatedLeads(): HasMany
     {
-        return $this->hasMany(Lead::class, 'appointment_label_id');
+        return $this->hasMany(LeadDuplicated::class, 'appointment_label_id');
     }
 }

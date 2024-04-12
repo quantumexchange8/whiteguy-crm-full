@@ -55,7 +55,7 @@ const typeClass = computed(() => {
         </div>
         <Disclosure v-slot="{ open }" v-if="rowErrorMsg">
             <DisclosureButton 
-                class="py-2 bg-purple-700 px-6 rounded-lg text-sm mt-10 font-semibold"
+                class="py-2 bg-purple-700 px-6 rounded-lg text-sm mt-10 font-semibold mb-2"
             >
                 <span>Read Details</span>
                 <ChevronUpIcon
@@ -72,7 +72,7 @@ const typeClass = computed(() => {
                 leave-to-class="transform scale-95 opacity-0"
             >
                 <DisclosurePanel 
-                    class="text-gray-500 p-2 w-full"
+                    class="text-gray-500 w-full max-h-[300px] overflow-auto"
                 >
                     <table class="table-auto w-full rounded-lg bg-gray-700">
                         <thead>
@@ -81,7 +81,7 @@ const typeClass = computed(() => {
                                 <th class="px-4 py-3">Error Message</th>
                             </tr>
                         </thead>
-                        <tbody class="overflow-auto">
+                        <tbody>
                             <tr class="text-gray-300 bg-gray-800" v-for="error in props.errors">
                                 <td class="px-4 py-3 text-sm font-semibold border-r border-gray-500">{{ error.row }}</td>
                                 <td class="px-4 py-3 text-sm font-semibold">{{ error.errors[0].replace('/[ | ]/g', '') }}</td>

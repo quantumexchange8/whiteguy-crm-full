@@ -42,8 +42,10 @@ const user = computed(() => page.props.auth.user)
 
 onMounted(async () => {
   try {
-    const leadFrontResponse = await axios.get(route('leads.getLeadFront', props.selectedRowData.id));
-    leadFrontData.value = leadFrontResponse.data;
+    if (!props.selectedRowData.isDuplicate) {
+        const leadFrontResponse = await axios.get(route('leads.getLeadFront', props.selectedRowData.id));
+        leadFrontData.value = leadFrontResponse.data;
+    }
 
     // if (leadFrontData.value) {
     //     leadFrontData.value.sdm = (leadFrontData.value.sdm) ? 'Yes' : 'No';
@@ -121,7 +123,7 @@ onMounted(async () => {
                     </div>
                 </div>
                 <div class="input-group">
-                    <p class="dark:text-gray-300 font-semibold text-xl pb-2">Lead Details</p>
+                    <p class="dark:text-gray-300 font-semibold text-xl pb-2">Lead {{ props.selectedRowData.isDuplicate ? 'Duplicate ' : '' }}Details</p>
                     <div class="w-full p-2 sm:px-0">
                         <TabGroup>
                             <TabList class="flex space-x-1 rounded-xl bg-blue-600/30 p-1 flex-wrap md:flex-nowrap">
@@ -350,7 +352,7 @@ onMounted(async () => {
                         </TabGroup>
                     </div>
                 </div>
-                <div class="input-group">
+                <div class="input-group" v-if="!props.selectedRowData.isDuplicate">
                     <p class="dark:text-gray-300 font-semibold text-xl pb-2">Lead Front Details</p>
                     <div class="w-full p-2 sm:px-0">
                         <TabGroup>
@@ -508,6 +510,7 @@ onMounted(async () => {
                 <LeadChangelogsModalSection
                     :selectedRowData="props.selectedRowData"
                     class="w-full"
+                    v-if="!props.selectedRowData.isDuplicate"
                 />
             </div>
         </div>
@@ -528,6 +531,7 @@ onMounted(async () => {
                         :size="'base'" 
                         class="justify-center gap-2 px-6 py-2 form-actions"
                         @click="emit('rowEdit', props.selectedRowData)"
+                        v-if="!props.selectedRowData.isDuplicate"
                     >
                         <span>Edit</span>
                     </Button>
