@@ -1,18 +1,18 @@
 <script setup>
-import { cl, back, setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone } from '@/Composables'
+import dayjs from 'dayjs';
 import { ref, onMounted, computed } from 'vue'
 import { Link, useForm, usePage } from '@inertiajs/vue3'
-import { PlusIcon } from '@/Components/Icons/solid'
-import { TrashIcon } from '@/Components/Icons/outline'
+import { cl, back, setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone } from '@/Composables'
+import Modal from '@/Components/Modal.vue'
 import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
 import Checkbox from '@/Components/Checkbox.vue'
+import { PlusIcon } from '@/Components/Icons/solid'
+import { TrashIcon } from '@/Components/Icons/outline'
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 import CustomTextInputField from '@/Components/CustomTextInputField.vue'
 import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
 import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue'
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
-import Modal from '@/Components/Modal.vue'
-import dayjs from 'dayjs';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -23,7 +23,6 @@ const props = defineProps({
     },
 })
 
-
 const page = usePage();
 const user = computed(() => page.props.auth.user)
 
@@ -31,8 +30,6 @@ const selectedAssigneeError = ref()
 const assigneeArray  = ref(
 	[ "125", "124", "123", "122", "121", "120" ]
 );
-// const leadFrontEditedAt = ref('-');
-// const leadFrontCreatedAt = ref('-');
 
 onMounted(() => {
 });

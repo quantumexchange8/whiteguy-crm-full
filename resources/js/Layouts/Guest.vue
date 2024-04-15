@@ -33,7 +33,7 @@ defineProps({
 
         <PageFooter />
 
-        <div class="fixed right-10 top-10">
+        <!-- <div class="fixed right-10 top-10">
             <Button
                 iconOnly
                 variant="secondary"
@@ -54,6 +54,6 @@ defineProps({
                     :class="iconSizeClasses"
                 />
             </Button>
-        </div>
+        </div> -->
     </div>
 </template>

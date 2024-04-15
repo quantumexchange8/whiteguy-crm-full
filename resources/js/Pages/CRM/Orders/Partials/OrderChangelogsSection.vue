@@ -1,16 +1,15 @@
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
-import { cl, back, convertToHumanReadable } from '@/Composables'
-import { 
-    Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot 
-} from '@headlessui/vue'
-import { ThreeDotsVertical } from '@/Components/Icons/solid';
-import { ChevronUpIcon } from '@heroicons/vue/solid'
-import Dropdown from '@/Components/Dropdown.vue'
-import Button from '@/Components/Button.vue'
-import Label from '@/Components/Label.vue'
 import axios from "axios";
 import dayjs from 'dayjs';
+import { usePage } from '@inertiajs/vue3'
+import { ref, onMounted, reactive, computed } from 'vue'
+import { ChevronUpIcon } from '@heroicons/vue/solid'
+import { Disclosure, DisclosureButton, DisclosurePanel, TransitionRoot } from '@headlessui/vue'
+import { cl, back, convertToHumanReadable } from '@/Composables'
+import Label from '@/Components/Label.vue'
+import Button from '@/Components/Button.vue'
+import Dropdown from '@/Components/Dropdown.vue'
+import { ThreeDotsVertical } from '@/Components/Icons/solid';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -20,27 +19,16 @@ const props = defineProps({
     },
 })
 
-const orderChangelogsData = reactive({});
-let originalOrderChangelogsData = null;
+const page = usePage();
+const user = computed(() => page.props.auth.user)
+const orderLogEntriesData = reactive({});
+let originalLogEntriesData = null;
 
 onMounted(async () => {
   try {
-    const orderChangelogsResponse = await axios.get(route('orders.getOrderChangelogs', props.selectedRowData.id));
-    orderChangelogsData.value = orderChangelogsResponse.data;
-
-    let orderLogsArray = [];
-    for (let key in orderChangelogsData.value) {
-        orderLogsArray.push(orderChangelogsData.value[key]);
-    }
-
-    orderLogsArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    Object.keys(orderChangelogsData.value).forEach((col, index) => {
-        orderChangelogsData.value[col].created_at = dayjs(orderChangelogsData.value[col].created_at).format('DD MMMM YYYY, hh:mm A');;
-    });
-    
-    orderChangelogsData.value = orderLogsArray;
-    originalOrderChangelogsData = orderChangelogsData.value;
+    const orderLogEntriesResponse = await axios.get(route('orders.getOrderLogEntries', props.selectedRowData.id));
+    orderLogEntriesData.value = orderLogEntriesResponse.data;
+    originalLogEntriesData = orderLogEntriesData.value;
 
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -49,42 +37,54 @@ onMounted(async () => {
 
 const filterByToday = () => {
   const today = dayjs();
-  orderChangelogsData.value = originalOrderChangelogsData.filter((log) =>
+  orderLogEntriesData.value = originalLogEntriesData.filter((log) =>
     dayjs(log.created_at).isSame(today, 'day')
   );
 };
 
 const filterByPast7Days = () => {
   const sevenDaysAgo = dayjs().subtract(7, 'day');
-  orderChangelogsData.value = originalOrderChangelogsData.filter((log) =>
+  orderLogEntriesData.value = originalLogEntriesData.filter((log) =>
     dayjs(log.created_at).isAfter(sevenDaysAgo)
   );
 };
 
 const filterByThisMonth = () => {
   const startOfMonth = dayjs().startOf('month');
-  orderChangelogsData.value = originalOrderChangelogsData.filter((log) =>
+  orderLogEntriesData.value = originalLogEntriesData.filter((log) =>
     dayjs(log.created_at).isAfter(startOfMonth)
   );
 };
 
 const filterByThisYear = () => {
   const startOfYear = dayjs().startOf('year');
-  orderChangelogsData.value = originalOrderChangelogsData.filter((log) =>
+  orderLogEntriesData.value = originalLogEntriesData.filter((log) =>
     dayjs(log.created_at).isAfter(startOfYear)
   );
 };
 
 const showAll = () => {
-  orderChangelogsData.value = originalOrderChangelogsData;
+  orderLogEntriesData.value = originalLogEntriesData;
 };
+
+const formatLogChanges = (value) => {
+    const pattern = /^(?:(?:19|20|21)\d{2})-(?:(?:0[1-9])|(?:1[0-2]))-(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01]))\s(?:[01][0-9]|2[0-3]):(?:[0-5][0-9]):(?:[0-5][0-9])\.(?:\d{6})/;
+    
+    //Check if the value is a valid date format
+    if (pattern.test(value)) {
+        // Format the date value
+        return dayjs(value + '+00').tz(page.props.auth.user.timezone).format('YYYY-MM-DD HH:mm:ss');
+    } else {
+        return value;
+    }
+}
 
 </script>
 
 <template>
     <div class="input-group p-8 rounded-xl">
         <div class="flex justify-between">
-            <p class="dark:text-gray-300 font-semibold text-xl pb-2">User Client Changelog</p>
+            <p class="dark:text-gray-300 font-semibold text-xl pb-2">History</p>
             <Dropdown 
                 :align="'right'" 
                 :width="50" 
@@ -150,10 +150,10 @@ const showAll = () => {
             </Dropdown>
         </div>
         <div class="container hidden-scrollable max-h-[500px] pt-2">
-            <div class="w-full flex justify-center" v-if="!orderChangelogsData.value || orderChangelogsData.value.length === 0">
+            <div class="w-full flex justify-center" v-if="!orderLogEntriesData.value || orderLogEntriesData.value.length === 0">
                 <h3 class="font-semibold text-gray-200"> No records found for this order currently. </h3>
             </div>
-            <div v-for="(log, index) in orderChangelogsData.value" :key="index">
+            <div v-for="(log, index) in orderLogEntriesData.value" :key="index">
                 <div class="flex flex-col md:grid grid-cols-12">
                     <div class="flex md:contents">
                         <div class="col-start-1 col-end-2 mr-10 md:mx-auto relative">
@@ -164,17 +164,17 @@ const showAll = () => {
                         </div>
                         <div class="bg-gray-700 dark:bg-gray-700/70 col-start-2 col-end-13 p-4 rounded-xl mb-4 mr-auto shadow-md w-full">
                             <h3 class="font-semibold text-gray-200">
-                                [System]: {{ log.description }}
+                                [System]: {{ log.action === 0 ? 'Newly created' : 'Updated' }}
                             </h3>
                             <span class="text-xs text-gray-400">
-                                {{ log.created_at }}
+                                {{ dayjs(log.timestamp).tz(user.timezone).format('DD MMMM YYYY, hh:mm A') }}
                             </span>
                             <div v-if="log.changes && Object.keys(log.changes).length > 0">
                                 <Disclosure v-slot="{ open }">
                                     <DisclosureButton 
                                         class="bg-gray-700 dark:bg-gray-800/50 rounded-xl text-gray-300 p-2 mt-2 flex items-center w-full mb-1 text-sm font-bold"
                                     >
-                                        Order Changelogs 
+                                        Order Log Entries 
                                         <span class="text-xs font-thin pl-4">
                                             ( {{ log.id }} )
                                         </span>
@@ -197,26 +197,18 @@ const showAll = () => {
                                         <DisclosurePanel 
                                             class="bg-gray-700 dark:bg-gray-900/60 rounded-xl text-gray-500 p-4 text-xs flex flex-col gap-3 max-h-52 overflow-auto"
                                         >
-                                            <div v-for="(value, ix) in log.changes" :key="ix">
+                                            <div v-for="(value, ix) in JSON.parse(log.changes)" :key="ix">
                                                 <Label
                                                     :inputId="'orderChangelogColumn'+ix"
                                                     class="font-semibold !text-gray-200/75 text-xs col-span-1 pb-1"
                                                 >
-                                                    ◉ [ Order ID: {{ log.id }} ]: [{{ (ix === 'New') ? 'New Order' : convertToHumanReadable(ix) }}] 
+                                                    ◉ [{{ (ix === 'New') ? 'New Order' : convertToHumanReadable(ix) }}] 
                                                 </Label>
                                                 <Label
                                                     :inputId="'orderChangelog'+ix"
                                                     class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                    v-if="ix === 'New' || ix === 'Delete'"
                                                 >
-                                                    ➤ {{ value.description }}.
-                                                </Label>
-                                                <Label
-                                                    :inputId="'orderChangelog'+ix"
-                                                    class="font-semibold !text-gray-200/75 text-xs col-span-4 pl-4"
-                                                    v-else
-                                                >
-                                                    ➤ {{ convertToHumanReadable(ix) }} has been {{ (value.old !== null) ? 'changed from "' + value.old : 'set' }}" to "{{ value.new }}".
+                                                    ➤ {{ convertToHumanReadable(ix) }} has been {{ (value[0] !== null && value[0] !== 'None') ? 'changed from "' + formatLogChanges(value[0]) : 'set from "' + formatLogChanges(value[0]) }}" to "{{ formatLogChanges(value[1]) }}".
                                                 </Label>
                                             </div>
                                         </DisclosurePanel>

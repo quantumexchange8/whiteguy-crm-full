@@ -1,18 +1,15 @@
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
-import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty } from '@/Composables'
-import { AtSymbolIcon } from '@heroicons/vue/outline'
-import { 
-    TabGroup, TabList, Tab, TabPanels, TabPanel
-} from '@headlessui/vue'
-import { 
-    PhoneIcon, MapIcon, FlagIcon, CalendarIcon 
-} from '@heroicons/vue/solid'
-import OrderChangelogsSection from './OrderChangelogsSection.vue'
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
-import Button from '@/Components/Button.vue'
 import axios from "axios";
 import dayjs from 'dayjs';
+import { usePage } from '@inertiajs/vue3'
+import { ref, onMounted, reactive, computed } from 'vue'
+import { AtSymbolIcon } from '@heroicons/vue/outline'
+import { PhoneIcon, MapIcon, FlagIcon, CalendarIcon } from '@heroicons/vue/solid'
+import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
+import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty, formatToUserTimezone } from '@/Composables'
+import OrderChangelogsSection from './OrderChangelogsSection.vue'
+import Button from '@/Components/Button.vue'
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -23,10 +20,14 @@ const props = defineProps({
 })
 
 const categories = ref([
-    'Details', 'Stock & Price', 'Client & Status', 'Notification'
+    'Details', 'Stock & Price', 'Status'
 ])
 
 const emit = defineEmits(['closeModal', 'rowEdit']);
+
+const page = usePage();
+
+const user = computed(() => page.props.auth.user)
 
 onMounted(() => {
     replaceHyphensWithEmpty(props.selectedRowData);
@@ -40,7 +41,7 @@ onMounted(() => {
             <div class="col-span-2 flex flex-col gap-6 mb-8 lg:mb-0">
                 <div class="input-group grid grid-cols-1 lg:grid-cols-12 lg:gap-4">
                     <p class="dark:text-gray-300 lg:col-span-6 font-semibold text-2xl pb-2">
-                        {{ props.selectedRowData?.user?.full_legal_name ?? '' }}
+                        {{ props.selectedRowData?.user?.full_name ?? '' }}
                         <span class="text-xs font-thin pl-4">
                             ( {{ props.selectedRowData?.user?.id ?? '' }} )
                         </span>
@@ -133,7 +134,7 @@ onMounted(() => {
                                         <CustomLabelGroup
                                             :inputId="'date'"
                                             :labelValue="'Date:'"
-                                            :dataValue="props.selectedRowData?.date ?? '-'"
+                                            :dataValue="props.selectedRowData?.date ? formatToUserTimezone(props.selectedRowData.date, user.timezone) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'action_type'"
@@ -172,7 +173,7 @@ onMounted(() => {
                                         <CustomLabelGroup
                                             :inputId="'total_price'"
                                             :labelValue="'Total Price:'"
-                                            :dataValue="parseFloat(props.selectedRowData?.total_price ?? 0).toFixed(2)"
+                                            :dataValue="parseFloat((props.selectedRowData.unit_price * props.selectedRowData.quantity) ?? 0).toFixed(2)"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'current_price'"
@@ -194,16 +195,6 @@ onMounted(() => {
                                 >
                                     <div class="grid grid-cols-1 sm:grid-cols-3">
                                         <CustomLabelGroup
-                                            :inputId="'client'"
-                                            :labelValue="'Client:'"
-                                            :dataValue="props.selectedRowData?.client ?? '-'"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'client_full_name'"
-                                            :labelValue="'Client Full Name:'"
-                                            :dataValue="props.selectedRowData?.client_full_name ?? '-'"
-                                        />
-                                        <CustomLabelGroup
                                             :inputId="'status'"
                                             :labelValue="'Status:'"
                                             :dataValue="props.selectedRowData?.status ?? '-'"
@@ -211,16 +202,16 @@ onMounted(() => {
                                         <CustomLabelGroup
                                             :inputId="'limb_stage'"
                                             :labelValue="'Limb Stage:'"
-                                            :dataValue="props.selectedRowData?.limb_stage ?? '-'"
+                                            :dataValue="props.selectedRowData.limb_stage ? props.selectedRowData.limb_stage : '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'confirmation_at'"
+                                            :inputId="'confirmed_at'"
                                             :labelValue="'Confirmated At:'"
-                                            :dataValue="props.selectedRowData?.confirmation_at ?? '-'"
+                                            :dataValue="props.selectedRowData?.confirmed_at ? formatToUserTimezone(props.selectedRowData.confirmed_at, user.timezone, true) : '-'"
                                         />
                                     </div>
                                 </TabPanel>
-                                <TabPanel
+                                <!-- <TabPanel
                                     :class="[
                                         'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
                                         'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
@@ -243,7 +234,7 @@ onMounted(() => {
                                             :dataValue="props.selectedRowData?.notification_description || '-'"
                                         />
                                     </div>
-                                </TabPanel>
+                                </TabPanel> -->
                             </TabPanels>
                         </TabGroup>
                     </div>

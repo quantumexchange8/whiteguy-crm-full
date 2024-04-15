@@ -88,6 +88,7 @@ onMounted(() => {
 				:detailsLink="'orders'"
 				:categoryFilters="'/data/orders/categories'"
 				:modalComponent="OrderDetailsModal"
+				:customDelete="true"
 				:exportRoute="'orders.export'"
 			></Vue3Datatable>
 		</div>

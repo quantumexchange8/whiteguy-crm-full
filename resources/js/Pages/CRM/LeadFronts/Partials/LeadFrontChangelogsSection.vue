@@ -28,6 +28,8 @@ onMounted(async () => {
   try {
     const leadFrontLogEntriesResponse = await axios.get(route('lead-fronts.getLeadFrontLogEntries', props.selectedRowData.id));
     leadFrontLogEntriesData.value = leadFrontLogEntriesResponse.data;
+    originalLeadFrontLogEntriesData = leadFrontLogEntriesData.value;
+
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -36,28 +38,28 @@ onMounted(async () => {
 const filterByToday = () => {
   const today = dayjs();
   leadFrontLogEntriesData.value = originalLeadFrontLogEntriesData.filter((log) =>
-    dayjs(log.created_at).isSame(today, 'day')
+    dayjs(log.timestamp).isSame(today, 'day')
   );
 };
 
 const filterByPast7Days = () => {
   const sevenDaysAgo = dayjs().subtract(7, 'day');
   leadFrontLogEntriesData.value = originalLeadFrontLogEntriesData.filter((log) =>
-    dayjs(log.created_at).isAfter(sevenDaysAgo)
+    dayjs(log.timestamp).isAfter(sevenDaysAgo)
   );
 };
 
 const filterByThisMonth = () => {
   const startOfMonth = dayjs().startOf('month');
   leadFrontLogEntriesData.value = originalLeadFrontLogEntriesData.filter((log) =>
-    dayjs(log.created_at).isAfter(startOfMonth)
+    dayjs(log.timestamp).isAfter(startOfMonth)
   );
 };
 
 const filterByThisYear = () => {
   const startOfYear = dayjs().startOf('year');
   leadFrontLogEntriesData.value = originalLeadFrontLogEntriesData.filter((log) =>
-    dayjs(log.created_at).isAfter(startOfYear)
+    dayjs(log.timestamp).isAfter(startOfYear)
   );
 };
 
@@ -75,7 +77,7 @@ const formatLogChanges = (value) => {
     } else {
         return value;
     }
-}
+};
 
 </script>
 

@@ -189,9 +189,13 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     */
         Route::get('/orders/export/{selectedRowsData}', [OrderController::class, 'exportToExcel'])->name('orders.export');
         Route::get('/orders/generate-trade-id', [OrderController::class, 'generateTradeId'])->name('orders.generateTradeId');
-        Route::get('/orders/{id}/orders-changelogs', [OrderController::class, 'getOrderChangelogs'])->name('orders.getOrderChangelogs');
+        Route::get('/orders/{id}/order-log-entries', [OrderController::class, 'getOrderLogEntries'])->name('orders.getOrderLogEntries');
+        // Route::get('/orders/{id}/orders-changelogs', [OrderController::class, 'getOrderChangelogs'])->name('orders.getOrderChangelogs');
         Route::get('/orders/count', [OrderController::class, 'getTotalOrderCount'])->name('orders.getTotalOrderCount');
-        Route::resource('/orders', OrderController::class);
+        Route::put('/orders/{id}/destroy', [OrderController::class, 'destroy'])->name('orders.destroy');
+        Route::resource('/orders', OrderController::class)->except([
+            'destroy'
+        ]);
         
     /*
     |--------------------------------------------------------------------------

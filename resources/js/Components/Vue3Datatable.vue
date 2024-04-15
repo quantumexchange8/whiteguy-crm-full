@@ -69,6 +69,10 @@ const props = defineProps({
         type: String,
         default: '',
     },
+    customDelete: {
+        type: Boolean,
+        default: false,
+    },
     hasImport: {
         type: Boolean,
         default: false,
@@ -97,6 +101,8 @@ onMounted(() => {
         params.search = '';
         getData();
         getCategoryFilters();
+
+        cl(isDuplicate.value);
 });
 
 const getData = async () => {
@@ -310,11 +316,20 @@ const closeDeleteModal = () => {
     showDeleteModal.value = false;
 };
 
-const deleteLead = () => {
-    router.delete(route(props.detailsLink + (isDuplicate ? '.destroyDuplicate' : '.destroy'), rowDataId.value), {
-            preserveState : false,
-            onSuccess: () => closeDeleteModal(),
-        });
+// Issue: unable to contruct conditional update/delete
+const deleteRow = () => {
+    // if (props.customDelete) {
+    //     router.put(route(props.detailsLink + '.destroy', rowDataId.value), {
+    //         preserveState : true,
+    //         onSuccess: () => closeDeleteModal(),
+    //     });
+
+    // } else {
+    //     router.delete(route(props.detailsLink + ((isDuplicate.value) ? '.destroyDuplicate' : '.destroy'), rowDataId.value), {
+    //         preserveState : true,
+    //         onSuccess: () => closeDeleteModal(),
+    //     });
+    // }
 };
 
 const form = useForm({
@@ -472,22 +487,22 @@ watch(() => categories.value, (newVal) => {
                 </Dropdown>
             </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-5">
-            <div class="col-span-2 md:w-full">
-                <div class="lg:col-start-1 grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-5">
+            <div class="col-span-4 md:w-full">
+                <div class="grid grid-cols-1 md:col-start-1 md:grid-cols-2 xl:grid-cols-12 gap-5">
                     <Input 
                         v-model="params.search"
                         ref="searchInput"
                         type="text"
                         placeholder="Search..."
-                        class="w-full"
+                        class="w-full xl:col-span-11 2xl:col-span-10"
                     />
                 </div>
             </div>
 
-            <div class="gap-4 col-span-2">
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
-                    <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2">
+            <div class="gap-4 col-span-8">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2">
                         <Dropdown 
                             :contentClasses="'dark:bg-dark-eval-3 bg-gray-200'"
                             class="cursor-pointer"
@@ -610,7 +625,7 @@ watch(() => categories.value, (newVal) => {
                             </div>
                         </Modal>
                     </div>
-                    <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
+                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500">
                         <Button 
                             :variant="'secondary'"
 							:size="'sm'"
@@ -620,7 +635,7 @@ watch(() => categories.value, (newVal) => {
                             Reset
                         </Button>
                     </div>
-                    <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500">
+                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500">
                         <Button 
                             :type="'button'"
                             :variant="'secondary'"
@@ -699,7 +714,7 @@ watch(() => categories.value, (newVal) => {
                             </div>
                         </Modal>
                     </div>
-                    <div class="relative col-span-1 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2">
+                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2">
                         <Dropdown 
                             :contentClasses="'dark:bg-dark-eval-3'"
                             class="cursor-pointer"
@@ -882,7 +897,7 @@ watch(() => categories.value, (newVal) => {
                                     :variant="'danger'" 
                                     :size="'sm'" 
                                     class="justify-center px-6 py-2"
-                                    @click="deleteLead"
+                                    @click="deleteRow"
                                 >
                                     <span>Confirm</span>
                                 </Button>

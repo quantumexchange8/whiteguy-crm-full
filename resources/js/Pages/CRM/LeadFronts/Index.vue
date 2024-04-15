@@ -86,7 +86,6 @@ onMounted(() => {
 				:detailsLink="'lead-fronts'"
 				:categoryFilters="'/data/lead-fronts/categories'"
 				:modalComponent="LeadFrontDetailsModal"
-				:getDuplicatesURL="'/data/leads/duplicates'"
 				:exportRoute="'lead-fronts.export'"
 			></Vue3Datatable>
 		</div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContentType;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use App\Models\Order;
@@ -53,23 +54,24 @@ class OrderController extends Controller
      */
     public function store(OrderRequest $request)
     {
-        if ($request->send_notification) {
-            $request->validate([
-                'send_notification' => 'required|boolean',
-                'notification_title' => 'required|string|max:200',
-                'notification_description' => 'required|string|max:1000',
-            ]);
-        } else {
-            $request->validate([
-                'send_notification' => 'nullable|boolean',
-                'notification_title' => 'nullable|string|max:200',
-                'notification_description' => 'nullable|string|max:1000',
-            ]);
-        }
+        // if ($request->send_notification) {
+        //     $request->validate([
+        //         'send_notification' => 'required|boolean',
+        //         'notification_title' => 'required|string|max:200',
+        //         'notification_description' => 'required|string|max:1000',
+        //     ]);
+        // } else {
+        //     $request->validate([
+        //         'send_notification' => 'nullable|boolean',
+        //         'notification_title' => 'nullable|string|max:200',
+        //         'notification_description' => 'nullable|string|max:1000',
+        //     ]);
+        // }
         
         $data = $request->all();
 
-        $orderChanges = [];
+        // dd($data);
+        // $orderChanges = [];
 
         // Insert into orders table
         $existingOrder = Order::create([
@@ -80,36 +82,35 @@ class OrderController extends Controller
             'stock' => $data['stock'],
             'unit_price' => $data['unit_price'],
             'quantity' => $data['quantity'],
-            'total_price' => $data['unit_price'] * $data['quantity'],
-            'current_price' => $data['current_price'],
+            'current_unit_price' => $data['current_unit_price'],
             'profit' => $data['profit'],
             'status' => $data['status'],
-            'confirmed_at' => $data['confirmed_at'],
-            'confirmation_name' => $data['confirmation_name'],
+            'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+            'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['created_at']),
+            'user_id' => $data['user_id'],
+            'is_deleted' => $data['is_deleted'],
             'limb_stage' => $data['limb_stage'],
-            'users_id' => $data['user_link'],
-            'send_notification' => $data['send_notification'],
-            'notification_title' => $data['notification_title'],
-            'notification_description' => $data['notification_description'],
+            'confirmation_name' => $data['confirmation_name'],
+            'confirmed_at' => $data['confirmed_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['confirmed_at']) : $data['confirmed_at'],
         ]);
 
         $existingOrder->save();
 
         // Add the change to the user changes array
-        $orderChanges['New'] = [
-            'description' => 'A new order has been created',
-        ];
+        // $orderChanges['New'] = [
+        //     'description' => 'A new order has been created',
+        // ];
 
-        if (count($orderChanges) > 0) {
-            $newOrderChangelog = new OrderChangelog;
+        // if (count($orderChanges) > 0) {
+        //     $newOrderChangelog = new OrderChangelog;
 
-            $newOrderChangelog->orders_id = $existingOrder->id;
-            $newOrderChangelog->column_name = 'orders';
-            $newOrderChangelog->changes = $orderChanges;
-            $newOrderChangelog->description = 'The order has been successfully created';
+        //     $newOrderChangelog->orders_id = $existingOrder->id;
+        //     $newOrderChangelog->column_name = 'orders';
+        //     $newOrderChangelog->changes = $orderChanges;
+        //     $newOrderChangelog->description = 'The order has been successfully created';
 
-            $newOrderChangelog->save();
-        }
+        //     $newOrderChangelog->save();
+        // }
         
         $errorMsgTitle = "You have successfully created a new order.";
         $errorMsgType = "success";
@@ -136,7 +137,8 @@ class OrderController extends Controller
      */
     public function edit(string $id)
     {
-        $data = Order::find($id);
+        $data = Order::with('user:id')
+                        ->find($id);
 
         return Inertia::render('CRM/Orders/Edit', [
             'data' => $data,
@@ -148,66 +150,68 @@ class OrderController extends Controller
      */
     public function update(OrderRequest $request, string $id)
     {
-        if ($request->send_notification) {
-            $request->validate([
-                'send_notification' => 'required|boolean',
-                'notification_title' => 'required|string|max:200',
-                'notification_description' => 'required|string|max:1000',
-            ]);
-        } else {
-            $request->validate([
-                'send_notification' => 'nullable|boolean',
-                'notification_title' => 'nullable|string|max:200',
-                'notification_description' => 'nullable|string|max:1000',
-            ]);
-        }
+        // if ($request->send_notification) {
+        //     $request->validate([
+        //         'send_notification' => 'required|boolean',
+        //         'notification_title' => 'required|string|max:200',
+        //         'notification_description' => 'required|string|max:1000',
+        //     ]);
+        // } else {
+        //     $request->validate([
+        //         'send_notification' => 'nullable|boolean',
+        //         'notification_title' => 'nullable|string|max:200',
+        //         'notification_description' => 'nullable|string|max:1000',
+        //     ]);
+        // }
         
         $data = $request->all();
 
-        $orderChanges = [];
+        // dd($data);
+
+        // $orderChanges = [];
         $existingOrder = Order::find($id);
 
-        if (isset($existingOrder)) {
-            foreach ($existingOrder->toArray() as $key => $oldValue) {
-                if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at') {
-                    continue;
-                }
+        // if (isset($existingOrder)) {
+        //     foreach ($existingOrder->toArray() as $key => $oldValue) {
+        //         if ($key === 'created_at' || $key === 'updated_at' || $key === 'deleted_at') {
+        //             continue;
+        //         }
 
-                // if ($key === 'send_notification') {
-                //     $oldValue = boolval($oldValue);
-                // }
+        //         // if ($key === 'send_notification') {
+        //         //     $oldValue = boolval($oldValue);
+        //         // }
 
-                switch($key) {
-                    case('unit_price'):
-                    case('quantity'):
-                    case('total_price'):
-                    case('current_price'):
-                    case('profit'):
-                        $oldValue = number_format($oldValue, 2);
-                        $newValue = number_format($data[$key], 2) ?? null;
-                        break;
-                    case('send_notification'):
-                        $oldValue = boolval($oldValue);
-                        $newValue = $data[$key] ?? null;
-                        break;
-                    case('users_id'):
-                        $newValue = $data['user_link'] ?? null;
-                        break;
-                    default:
-                        $newValue = $data[$key] ?? null;
-                }
+        //         switch($key) {
+        //             case('unit_price'):
+        //             case('quantity'):
+        //             case('total_price'):
+        //             case('current_price'):
+        //             case('profit'):
+        //                 $oldValue = number_format($oldValue, 2);
+        //                 $newValue = number_format($data[$key], 2) ?? null;
+        //                 break;
+        //             case('send_notification'):
+        //                 $oldValue = boolval($oldValue);
+        //                 $newValue = $data[$key] ?? null;
+        //                 break;
+        //             case('users_id'):
+        //                 $newValue = $data['user_link'] ?? null;
+        //                 break;
+        //             default:
+        //                 $newValue = $data[$key] ?? null;
+        //         }
                 
-                // $newValue = $data[$key] ?? null;
+        //         // $newValue = $data[$key] ?? null;
 
-                // Check if the value has changed
-                if ($newValue !== $oldValue) {
-                    $orderChanges[$key] = [
-                        'old' => $oldValue,
-                        'new' => $newValue,
-                    ];
-                }
-            }
-        }
+        //         // Check if the value has changed
+        //         if ($newValue !== $oldValue) {
+        //             $orderChanges[$key] = [
+        //                 'old' => $oldValue,
+        //                 'new' => $newValue,
+        //             ];
+        //         }
+        //     }
+        // }
 
         // dd($orderChanges);
 
@@ -220,31 +224,29 @@ class OrderController extends Controller
             'stock' => $data['stock'],
             'unit_price' => $data['unit_price'],
             'quantity' => $data['quantity'],
-            'total_price' => $data['unit_price'] * $data['quantity'],
-            'current_price' => $data['current_price'],
+            'current_unit_price' => $data['current_unit_price'],
             'profit' => $data['profit'],
             'status' => $data['status'],
-            'confirmed_at' => $data['confirmed_at'],
-            'confirmation_name' => $data['confirmation_name'],
+            'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+            'user_id' => $data['user_id'],
+            'is_deleted' => $data['is_deleted'],
             'limb_stage' => $data['limb_stage'],
-            'users_id' => $data['user_link'],
-            'send_notification' => $data['send_notification'],
-            'notification_title' => $data['notification_title'],
-            'notification_description' => $data['notification_description'],
+            'confirmation_name' => $data['confirmation_name'],
+            'confirmed_at' => $data['confirmed_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['confirmed_at']) : $data['confirmed_at'],
         ]);
 
         $existingOrder->save();
 
-        if (count($orderChanges) > 0) {
-            $newOrderChangelog = new OrderChangelog;
+        // if (count($orderChanges) > 0) {
+        //     $newOrderChangelog = new OrderChangelog;
 
-            $newOrderChangelog->orders_id = $id;
-            $newOrderChangelog->column_name = 'orders';
-            $newOrderChangelog->changes = $orderChanges;
-            $newOrderChangelog->description = 'The order has been successfully updated';
+        //     $newOrderChangelog->orders_id = $id;
+        //     $newOrderChangelog->column_name = 'orders';
+        //     $newOrderChangelog->changes = $orderChanges;
+        //     $newOrderChangelog->description = 'The order has been successfully updated';
 
-            $newOrderChangelog->save();
-        }
+        //     $newOrderChangelog->save();
+        // }
         
         $errorMsgTitle = "You have successfully updated the order.";
         $errorMsgType = "success";
@@ -264,25 +266,30 @@ class OrderController extends Controller
     public function destroy(string $id)
     {
         $existingOrder = Order::find($id);
-        $existingOrder->delete();
-
-        $orderChanges = [];
         
-        $orderChanges['Delete'] = [
-            'id' => $id,
-            'description' => 'This order has been deleted',
-        ];
+        $existingOrder->update([
+            'is_deleted' => false,
+        ]);
 
-        $newOrderChangelog = new OrderChangelog;
+        $existingOrder->save();
 
-        $newOrderChangelog->orders_id = $id;
-        $newOrderChangelog->column_name = 'orders';
-        $newOrderChangelog->changes = $orderChanges;
-        $newOrderChangelog->description = 'The user has been successfully deleted';
+        // $orderChanges = [];
+        
+        // $orderChanges['Delete'] = [
+        //     'id' => $id,
+        //     'description' => 'This order has been deleted',
+        // ];
 
-        $newOrderChangelog->save();
+        // $newOrderChangelog = new OrderChangelog;
 
-        $errorMsgTitle = "You have successfully deleted the user.";
+        // $newOrderChangelog->orders_id = $id;
+        // $newOrderChangelog->column_name = 'orders';
+        // $newOrderChangelog->changes = $orderChanges;
+        // $newOrderChangelog->description = 'The user has been successfully deleted';
+
+        // $newOrderChangelog->save();
+
+        $errorMsgTitle = "You have successfully deleted the order.";
         $errorMsgType = "success";
 
         $errorMsg = [
@@ -293,6 +300,43 @@ class OrderController extends Controller
         return Redirect::route('orders.index')
                         ->with('errorMsg', $errorMsg);
     }
+
+    // /**
+    //  * Remove the specified resource from storage.
+    //  */
+    // public function destroy(string $id)
+    // {
+    //     $existingOrder = Order::find($id);
+
+    //     $existingOrder->delete();
+
+    //     // $orderChanges = [];
+        
+    //     // $orderChanges['Delete'] = [
+    //     //     'id' => $id,
+    //     //     'description' => 'This order has been deleted',
+    //     // ];
+
+    //     // $newOrderChangelog = new OrderChangelog;
+
+    //     // $newOrderChangelog->orders_id = $id;
+    //     // $newOrderChangelog->column_name = 'orders';
+    //     // $newOrderChangelog->changes = $orderChanges;
+    //     // $newOrderChangelog->description = 'The user has been successfully deleted';
+
+    //     // $newOrderChangelog->save();
+
+    //     $errorMsgTitle = "You have successfully deleted the user.";
+    //     $errorMsgType = "success";
+
+    //     $errorMsg = [
+    //         'title' => $errorMsgTitle,
+    //         'type' => $errorMsgType,
+    //     ];
+
+    //     return Redirect::route('orders.index')
+    //                     ->with('errorMsg', $errorMsg);
+    // }
 
     public function getOrders(Request $request)
     {   
@@ -348,11 +392,17 @@ class OrderController extends Controller
                                 'user:id,full_name,username,phone_number,email,country,address,site_id',
                                 'user.site:id,name'
                             ])
+                            ->where('is_deleted', false)
                             ->orderByDesc('id')
                             ->get();
 
-            $statusArray = [ "Pending", "In progress", "Active", "Cancelled", "Cancelled (approved)", "Cancelled (non-authorized)"];
-            $limbStageArray  = [ "ALLO", "Allo + docs", "TT", "CLEARED", "Cancelled", "Cancelled - bank block", "Cancelled - HTR", 
+            $statusArray = [ 
+                "Pending", "In progress", "Active", "Cancelled", "Cancelled (approved)", "Cancelled (non-authorized)", 
+                "Pending allocation", "Pending payment", "Pending clearance", "Cleared", "Trade confirmation required" 
+            ];
+
+            $limbStageArray  = [ 
+                "ALLO", "Allo + docs", "TT", "CLEARED", "Cancelled", "Cancelled - bank block", "Cancelled - HTR", 
                 "Cancelled - order drop", "Cancelled refuse trade", "Kicked", "Carry over", "Free switch" 
             ];
 
@@ -372,9 +422,10 @@ class OrderController extends Controller
             return response()->json($data);
         }
         $data = Order::with([
-                                'user:id,full_name,username,phone_number,email,country,address,site_id',
-                                'user.site:id,name'
-                            ])
+                            'user:id,full_name,username,phone_number,email,country,address,site_id',
+                            'user.site:id,name'
+                        ])
+                        // ->where('is_deleted', false)
                         ->orderByDesc('id')
                         ->get();
 
@@ -521,17 +572,36 @@ class OrderController extends Controller
         return false;
     }
 
-    public function getOrderChangelogs(string $id)
+    // public function getOrderChangelogs(string $id)
+    // {
+    //     // $existingOrderChangelogs = OrderChangelog::where('orders_id', $id)
+    //     //                                         ->orderBy('created_at', 'desc')
+    //     //                                         ->get();
+    //     $existingOrderChangelogs = Order::find($id)
+    //                                     ->orderChangelogs()
+    //                                     ->where('orders_id', $id)
+    //                                     ->orderBy('created_at', 'desc')
+    //                                     ->get();
+
+    //     return response()->json($existingOrderChangelogs);
+    // }
+    
+    public function getOrderLogEntries(string $id)
     {
-        // $existingOrderChangelogs = OrderChangelog::where('orders_id', $id)
-        //                                         ->orderBy('created_at', 'desc')
-        //                                         ->get();
-        $existingOrderChangelogs = Order::find($id)
-                                        ->orderChangelogs()
-                                        ->where('orders_id', $id)
-                                        ->orderBy('created_at', 'desc')
+        $contentTypeId = ContentType::with('auditLogEntries')
+                                        ->where('app_label', 'core')
+                                        ->where('model', 'order')
+                                        ->select('id')
                                         ->get();
 
-        return response()->json($existingOrderChangelogs);
+        $leadFrontLogEntries = [];
+
+        foreach ($contentTypeId[0]->auditLogEntries as $key => $value) {
+            if ((string)$value->object_id === $id){
+                array_push($leadFrontLogEntries, $value);
+            }
+        }
+
+        return response()->json($leadFrontLogEntries);
     }
 }

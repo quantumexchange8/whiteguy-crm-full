@@ -99,10 +99,10 @@ const clearDateValue = () => {
                 focus:ring-offset-white dark:focus:ring-offset-dark-eval-1" 
         >
         <template #hours="{ text, value }">
-            {{ dayjs(props.modelValue).tz(user.timezone).hour() }}
+            {{ props.modelValue ? dayjs(props.modelValue).tz(user.timezone).hour() : value }}
         </template>
         <template #minutes="{ text, value }">
-            {{ dayjs(props.modelValue).tz(user.timezone).minute() }}
+            {{ props.modelValue ? dayjs(props.modelValue).tz(user.timezone).minute() : value }}
         </template>
         <template #action-extra="{ selectCurrentDate }">
             <Button 

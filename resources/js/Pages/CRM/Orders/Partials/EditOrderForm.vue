@@ -1,17 +1,25 @@
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
-import { cl, back, populateArrayFromResponse } from '@/Composables';
-import { useForm } from '@inertiajs/vue3';
-import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
-import CustomTextInputField from '@/Components/CustomTextInputField.vue';
-import CollapsibleSection from '@/Components/CollapsibleSection.vue';
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue';
-import Checkbox2 from '@/Components/Checkbox2.vue';
-import Button from '@/Components/Button.vue';
-import Label from '@/Components/Label.vue';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+import { useForm, usePage } from '@inertiajs/vue3';
+import { ref, onMounted, reactive, computed } from 'vue';
+import { 
+    cl, back, populateArrayFromResponse, convertToIndexedValueObject, 
+    setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone 
+} from '@/Composables';
+import Label from '@/Components/Label.vue';
+import Button from '@/Components/Button.vue';
+import Checkbox2 from '@/Components/Checkbox2.vue';
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue';
+import CollapsibleSection from '@/Components/CollapsibleSection.vue';
 import PasswordInputField from '@/Components/PasswordInputField.vue';
+import CustomTextInputField from '@/Components/CustomTextInputField.vue';
+import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
 import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Get the errors thats passed back from controller if there are any error after backend validations
 const props = defineProps({
@@ -22,25 +30,55 @@ const props = defineProps({
     },
 })
 
+const page = usePage();
+const user = computed(() => page.props.auth.user)
 const allUsers = reactive({});
 
-const actionTypeArray = ref(
-	[ "Buy", "Sell" ]
-);
-const stockTypeArray = ref(
-	[ "Bonds", "Shares", "ISAs", "Funds", "Digital Assets", "Mutual Fund", "Commodity", "Forex", "Unknown" ]
-);
-const statusArray = ref(
+const actionTypeArray = ref({
+    'BUY': {
+        value: "Buy",
+    },
+    'SELL': {
+        value: "Sell"
+    },
+});
+const stockTypeArray = ref({
+    'BOND': {
+        value: "Bonds",
+    },
+    'SHARE': {
+        value: "Shares",
+    },
+    'ISA': {
+        value: "ISAs",
+    },
+    'FUND': {
+        value: "Funds",
+    },
+    'DIGITAL_ASSET': {
+        value: "Digital Assets",
+    },
+    'MUTUAL_FUND': {
+        value: "Mutual Fund",
+    },
+    'COMMODITY': {
+        value: "Commodity",
+    },
+    'FOREX': {
+        value: "Forex",
+    },
+    'UNKNOWN': {
+        value: "Unknown"
+    },
+});
+const statusArray = ref(convertToIndexedValueObject(
 	[ "Pending", "In progress", "Active", "Cancelled", "Cancelled (approved)", "Cancelled (non-authorized)", 
     "Pending allocation", "Pending payment", "Pending clearance", "Cleared", "Trade confirmation required" ]
-);
-const limbStageArray  = ref(
+));
+const limbStageArray  = ref(convertToIndexedValueObject(
 	[ "ALLO", "Allo + docs", "TT", "CLEARED", "Cancelled", "Cancelled - bank block", "Cancelled - HTR", 
     "Cancelled - order drop", "Cancelled refuse trade", "Kicked", "Carry over", "Free switch" ]
-);
-const clientArray  = ref(
-	[ "Normal", "VIP" ]
-);
+));
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
@@ -49,17 +87,19 @@ const form = useForm({
 	date: props.data.date,
 	action_type: props.data.action_type,
 	stock_type: props.data.stock_type,
-	stock: props.data?.stock ?? 0.00,
+	stock: props.data?.stock ?? '',
 	unit_price: props.data?.unit_price ?? 0.00,
 	quantity: props.data?.quantity ?? 0.00,
-	total_price: props.data?.total_price ?? 0.00,
-	current_price: props.data?.current_price ?? 0.00,
+	current_unit_price: props.data?.current_unit_price ?? 0.00,
 	profit: props.data?.profit ?? 0.00,
 	status: props.data.status,
-	confirmed_at: props.data.confirmed_at,
-	confirmation_name: props.data.confirmation_name,
+	edited_at: props.data.edited_at,
+	created_at: `${props.data.created_at}00`,
+	user_id: props.data.user_id,
+	is_deleted: props.data.is_deleted,
 	limb_stage: props.data.limb_stage,
-	user_link: props.data.users_id,
+	confirmation_name: props.data.confirmation_name,
+	confirmed_at: props.data.confirmed_at,
 	send_notification: Boolean(props.data?.send_notification) ?? false,
 	notification_title: props.data.notification_title,
 	notification_description: props.data.notification_description,
@@ -72,7 +112,7 @@ onMounted(async () => {
     // Iterate over the data and populate the allUsers array
     usersResponse.data.forEach(key => {
         allUsers[key.id] = {
-            value: key.username + ' (' + key.site + ')',
+            value: key.username + ' (' + key.site.name + ')',
         };
     });
 
@@ -83,13 +123,20 @@ onMounted(async () => {
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
+    form.unit_price = isValidNumber(form.unit_price) ? parseFloat(form.unit_price) : 0;
+    form.quantity = isValidNumber(form.quantity) ? parseFloat(form.quantity) : 0;
+    form.current_unit_price = isValidNumber(form.current_unit_price) ? parseFloat(form.current_unit_price) : 0;
+    form.profit = isValidNumber(form.profit) ? parseFloat(form.profit) : 0;
+    form.date = form.date ? setFormattedDateTimeWithOffset(form.date) : form.date;
+    form.confirmed_at = form.confirmed_at ? setFormattedDateTimeWithOffset(form.confirmed_at, true) : form.confirmed_at;
+    form.edited_at = setDateTimeWithOffset(true);
+    
     form.put(route('orders.update', props.data.id), {
         preserveScroll: true,
         onSuccess: () => form.reset(),
     
     })
 };
-
 
 // Check and allows only the following keypressed
 const isNumber = (e, withDot = true) => {
@@ -104,6 +151,10 @@ const isNumber = (e, withDot = true) => {
     }
 };
 
+// Check if the value is not empty and is a valid number
+const isValidNumber = (value) => {
+    return value !== '' && !isNaN(parseFloat(value)) && isFinite(value);
+};
 </script>
 
 <template>
@@ -172,6 +223,7 @@ const isNumber = (e, withDot = true) => {
                                     :inputId="'action_type'"
                                     :labelValue="'Action Type'"
                                     :dataValue="props.data.action_type"
+                                    :customValue="true"
                                     :errorMessage="form?.errors?.action_type ?? ''"
                                     class="lg:col-start-1 col-span-full lg:col-span-6"
                                     v-model="form.action_type"
@@ -181,6 +233,7 @@ const isNumber = (e, withDot = true) => {
                                     :inputId="'stock_type'"
                                     :labelValue="'Stock Type'"
                                     :dataValue="props.data.stock_type"
+                                    :customValue="true"
                                     :errorMessage="form?.errors?.stock_type ?? ''"
                                     class="col-span-full lg:col-span-6"
                                     v-model="form.stock_type"
@@ -203,13 +256,13 @@ const isNumber = (e, withDot = true) => {
                             <div class="input-group grid grid-cols-1 lg:grid-cols-12 gap-6">
                                 <CustomSelectInputField
                                     :inputArray="allUsers"
-                                    :inputId="'user_link'"
+                                    :inputId="'user_id'"
                                     :labelValue="'Client'"
                                     :customValue="true"
-                                    :dataValue="props.data.users_id"
-                                    :errorMessage="form?.errors?.user_link ?? ''"
+                                    :dataValue="props.data.user.id"
+                                    :errorMessage="form?.errors?.user_id ?? ''"
                                     class="col-span-full lg:col-span-6"
-                                    v-model="form.user_link"
+                                    v-model="form.user_id"
                                 />
                                 <CustomTextInputField
                                     :labelValue="'Client Full Name'"
@@ -227,6 +280,7 @@ const isNumber = (e, withDot = true) => {
                                     :inputId="'status'"
                                     :labelValue="'Status'"
                                     :dataValue="props.data.status"
+                                    :customValue="true"
                                     :errorMessage="form?.errors?.status ?? ''"
                                     class="lg:col-start-1 col-span-full lg:col-span-6"
                                     v-model="form.status"
@@ -236,6 +290,7 @@ const isNumber = (e, withDot = true) => {
                                     :inputId="'limb_stage'"
                                     :labelValue="'Limb Stage'"
                                     :dataValue="props.data.limb_stage"
+                                    :customValue="true"
                                     :errorMessage="form?.errors?.limb_stage ?? ''"
                                     class="col-span-full lg:col-span-6"
                                     v-model="form.limb_stage"
@@ -302,20 +357,20 @@ const isNumber = (e, withDot = true) => {
                                 <CustomLabelGroup
                                     :inputId="'total_price'"
                                     :labelValue="'Total Price'"
-                                    :dataValue="parseFloat(form.total_price).toFixed(2)"
+                                    :dataValue="parseFloat(props.data.quantity * props.data.unit_price).toFixed(2)"
                                     class="col-span-full lg:col-span-6"
                                 />
                                 <CustomTextInputField
                                     :inputType="'number'"
-                                    :inputId="'current_price'"
+                                    :inputId="'current_unit_price'"
                                     :labelValue="'Current Price'"
-                                    :dataValue="parseFloat(props.data.current_price).toFixed(2)"
+                                    :dataValue="parseFloat(props.data.current_unit_price).toFixed(2)"
                                     :decimalOption="true"
                                     :step="0.01"
-                                    :errorMessage="form?.errors?.current_price ?? '' "
+                                    :errorMessage="form?.errors?.current_unit_price ?? '' "
                                     @keypress="isNumber($event)"
                                     class="lg:col-start-1 col-span-full lg:col-span-6"
-                                    v-model="form.current_price"
+                                    v-model="form.current_unit_price"
                                 />
                                 <CustomTextInputField
                                     :inputType="'number'"
