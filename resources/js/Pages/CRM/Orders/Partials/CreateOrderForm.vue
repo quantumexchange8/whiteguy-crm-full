@@ -1,21 +1,22 @@
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
-import { cl, back, convertToIndexedValueObject, 
-    setDateTimeWithOffset, setFormattedDateTimeWithOffset } from '@/Composables';
-import { useForm } from '@inertiajs/vue3';
-import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
-import CustomTextInputField from '@/Components/CustomTextInputField.vue';
-import CollapsibleSection from '@/Components/CollapsibleSection.vue';
-import CustomLabelGroup from '@/Components/CustomLabelGroup.vue';
-import Checkbox2 from '@/Components/Checkbox2.vue';
-import Button from '@/Components/Button.vue';
-import Label from '@/Components/Label.vue';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { ref, onMounted, reactive } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import { cl, back, convertToIndexedValueObject, 
+    setDateTimeWithOffset, setFormattedDateTimeWithOffset 
+} from '@/Composables';
+import Label from '@/Components/Label.vue';
+import Button from '@/Components/Button.vue';
+import Checkbox2 from '@/Components/Checkbox2.vue';
+import CustomLabelGroup from '@/Components/CustomLabelGroup.vue';
+import CollapsibleSection from '@/Components/CollapsibleSection.vue';
 import PasswordInputField from '@/Components/PasswordInputField.vue';
+import CustomTextInputField from '@/Components/CustomTextInputField.vue';
+import CustomSelectInputField from '@/Components/CustomSelectInputField.vue'
 import CustomDateTimeInputField from '@/Components/CustomDateTimeInputField.vue';
 
 // Get the errors thats passed back from controller if there are any error after backend validations
@@ -383,7 +384,7 @@ const isValidNumber = (value) => {
                     <div class="form-input-section dark:bg-dark-eval-1">
                         <div class="flex justify-between items-center mb-2">
                             <Label 
-                                :value="'Client & Status'" 
+                                :value="'Notification'" 
                                 class="mt-4 !text-2xl !font-bold pl-2" 
                             >
                             </Label>

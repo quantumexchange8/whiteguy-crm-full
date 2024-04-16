@@ -59,52 +59,57 @@ const closeUserOrdersModal = () => {
     <div class="p-6">
         <div class="p-3 rounded-lg grid grid-cols-1 lg:grid-cols-3 lg:gap-6">
             <div class="col-span-2 flex flex-col gap-6 mb-8 lg:mb-0">
-                <div class="input-group grid grid-cols-1 lg:grid-cols-12 lg:gap-4">
-                    <p class="dark:text-gray-300 lg:col-span-6 font-semibold text-2xl pb-2">
-                        {{ props.selectedRowData?.full_name || '' }}
+                <div class="input-group flex flex-col">
+                    <p class="dark:text-gray-300 font-semibold text-xl pb-2">
+                        User Details
                         <span class="text-xs font-thin pl-4">
                             ( {{ props.selectedRowData?.id || '' }} )
                         </span>
                     </p>
-                    <div class="flex flex-col max-w-full lg:col-span-6 gap-5 bg-gray-100 dark:bg-gray-900/60 p-3 rounded-lg">
-                        <div class="grid grid-cols-1 lg:grid-cols-12">
-                            <p class="dark:text-gray-400 text-sm pr-2 lg:col-span-4">
-                                <span class="text-xs font-thin">
-                                    <PhoneIcon
-                                        class="h-4 w-4 text-purple-400 inline-block"
-                                    />
-                                </span>
-                                | {{ props.selectedRowData?.phone_number || '' }}
-                            </p>
-                            <span class="text-gray-800 dark:text-gray-500 text-sm leading-tight lg:col-span-1">•</span>
-                            <p class="dark:text-gray-400 text-sm px-2 lg:col-span-7">
-                                <span class="text-xs font-thin">
-                                    <AtSymbolIcon
-                                        class="h-4 w-4 text-purple-400 inline-block"
-                                    />
-                                </span>
-                                | {{ props.selectedRowData?.email || '' }}
-                            </p>
-                        </div>
-                        <div class="flex">
-                            <p class="dark:text-gray-400 text-sm pr-2">
-                                <span class="text-xs font-thin">
-                                    <FlagIcon
-                                        class="h-4 w-4 text-purple-400 inline-block"
-                                    />
-                                </span>
-                                | {{ props.selectedRowData?.country || '' }}
-                            </p>
-                        </div>
-                        <div class="flex">
-                            <p class="dark:text-gray-400 text-sm">
-                                <span class="text-xs font-thin">
-                                    <MapIcon
-                                        class="h-4 w-4 text-purple-400 inline-block"
-                                    />
-                                </span>
-                                | {{ props.selectedRowData?.address || '' }}
-                            </p>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-4">
+                        <p class="dark:text-gray-300 lg:col-span-6 font-semibold text-2xl pb-2">
+                            {{ props.selectedRowData?.full_name || '' }}
+                        </p>
+                        <div class="flex flex-col max-w-full lg:col-span-6 gap-5 bg-gray-100 dark:bg-gray-900/60 p-3 rounded-lg">
+                            <div class="grid grid-cols-1 lg:grid-cols-12">
+                                <p class="dark:text-gray-400 text-sm pr-2 lg:col-span-4">
+                                    <span class="text-xs font-thin">
+                                        <PhoneIcon
+                                            class="h-4 w-4 text-purple-400 inline-block"
+                                        />
+                                    </span>
+                                    | {{ props.selectedRowData?.phone_number || '' }}
+                                </p>
+                                <span class="text-gray-800 dark:text-gray-500 text-sm leading-tight lg:col-span-1">•</span>
+                                <p class="dark:text-gray-400 text-sm px-2 lg:col-span-7">
+                                    <span class="text-xs font-thin">
+                                        <AtSymbolIcon
+                                            class="h-4 w-4 text-purple-400 inline-block"
+                                        />
+                                    </span>
+                                    | {{ props.selectedRowData?.email || '' }}
+                                </p>
+                            </div>
+                            <div class="flex">
+                                <p class="dark:text-gray-400 text-sm pr-2">
+                                    <span class="text-xs font-thin">
+                                        <FlagIcon
+                                            class="h-4 w-4 text-purple-400 inline-block"
+                                        />
+                                    </span>
+                                    | {{ props.selectedRowData?.country || '' }}
+                                </p>
+                            </div>
+                            <div class="flex">
+                                <p class="dark:text-gray-400 text-sm">
+                                    <span class="text-xs font-thin">
+                                        <MapIcon
+                                            class="h-4 w-4 text-purple-400 inline-block"
+                                        />
+                                    </span>
+                                    | {{ props.selectedRowData?.address || '' }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

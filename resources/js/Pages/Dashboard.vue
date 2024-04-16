@@ -1,16 +1,14 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { Link } from '@inertiajs/vue3';
 import "vue-toastification/dist/index.css";
 import { usePermission } from '@/Composables'
 import { useToast } from "vue-toastification";
-import CoreCard from '@/Components/CoreCard.vue'
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
 import DashboardDatatable from '@/Components/DashboardDatatable.vue'
 import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
-import LeadFrontDetailsModal from '@/Pages/CRM/LeadFronts/Partials/LeadFrontDetailsModal.vue';
-import CustomToastification from '@/Components/CustomToastification.vue';
 import { ShoppingCartIcon, ViewListIcon, ClipboardListIcon, DocumentIcon, DocumentTextIcon, DocumentReportIcon } from '@heroicons/vue/outline';
-import { Link } from '@inertiajs/vue3';
+import CustomToastification from '@/Components/CustomToastification.vue';
 
 const props = defineProps({
     errors:Object,

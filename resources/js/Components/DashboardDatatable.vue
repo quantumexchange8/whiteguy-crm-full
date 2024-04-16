@@ -345,6 +345,9 @@ const showAll = () => {
                 <div class="min-w-max" v-else-if="rows.value.status === 2">
                     <span class="bg-green-600/80 rounded-md p-1 text-gray-900 text-xs font-bold">Approved</span>
                 </div>
+                <div class="min-w-max" v-else-if="rows.value.status === 3">
+                    <span class="bg-red-600/80 rounded-md p-1 text-gray-900 text-xs font-bold">Cancelled</span>
+                </div>
             </template>
             <template #liquid="rows">
                 <CheckCircleFillIcon 

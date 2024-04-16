@@ -102,7 +102,7 @@ onMounted(() => {
         getData();
         getCategoryFilters();
 
-        cl(isDuplicate.value);
+        // cl(isDuplicate.value);
 });
 
 const getData = async () => {
@@ -318,17 +318,46 @@ const closeDeleteModal = () => {
 
 // Issue: unable to contruct conditional update/delete
 const deleteRow = () => {
-    // if (props.customDelete) {
-    //     router.put(route(props.detailsLink + '.destroy', rowDataId.value), {
-    //         preserveState : true,
-    //         onSuccess: () => closeDeleteModal(),
-    //     });
+    router.delete(route(props.detailsLink + ((isDuplicate.value) ? '.destroyDuplicate' : '.destroy'), rowDataId.value), {
+        preserveState : false,
+        onSuccess: () => closeDeleteModal(),
+    });
+};
 
-    // } else {
-    //     router.delete(route(props.detailsLink + ((isDuplicate.value) ? '.destroyDuplicate' : '.destroy'), rowDataId.value), {
-    //         preserveState : true,
-    //         onSuccess: () => closeDeleteModal(),
-    //     });
+const deleteForm = useForm({
+	id: rowDataId.value,
+});
+
+const customDeleteRow = async () => {
+    deleteForm.post(route(props.detailsLink + '.delete', rowDataId.value), {
+        preserveState : false,
+        onSuccess: () => closeDeleteModal(),
+    });
+    // try {
+        // let formData = new FormData();
+        // formData.append('id', rowDataId.value);
+
+        // axios.post('orders/' + rowDataId.value + '/delete')
+        //     .then(response => {
+        //         // this.item2 = ! this.item2;
+        //         closeDeleteModal();
+
+        //         console.log(response);
+        //     })
+        //     .catch(errors => {
+        //         console.log('not');
+        //         // if (errors.response == 401) {
+        //         //     window.location = '/login';
+        //         // }
+        //     }
+        // );
+        // axios({
+        //     method: 'post',
+        //     url: 'orders/' + rowDataId.value + '/delete',
+        // })
+        // console.log('success');
+    // } catch (error) {
+    //     console.error('Error fetching data:', error);
     // }
 };
 
@@ -599,7 +628,24 @@ watch(() => categories.value, (newVal) => {
                                                 v-model="form.leadExcelFile"
                                                 @change="checkIfHasFile"
                                             />
-                                            <div class="flex justify-end px-9">
+                                            <!-- <hr class="border-b rounded-md border-gray-600 w-full">
+                                            <div class="flex justify-between gap-2 mb-6">
+                                                <Label
+                                                    :inputId="'leadUploadTemplate'"
+                                                >
+                                                    Lead Upload Template:
+                                                </Label>
+                                                <Button 
+                                                    :type="'button'"
+                                                    :variant="'info'"
+                                                    :size="'sm'"
+                                                    class="justify-center px-6 py-2 border border-cyan-500" 
+                                                    @click=""
+                                                >
+                                                    Download
+                                                </Button>
+                                            </div> -->
+                                            <div class="flex justify-end">
                                                 <div class="rounded-md shadow-lg flex flex-row gap-2">
                                                     <Button 
                                                         :type="'button'"
@@ -897,7 +943,18 @@ watch(() => categories.value, (newVal) => {
                                     :variant="'danger'" 
                                     :size="'sm'" 
                                     class="justify-center px-6 py-2"
+                                    @click="customDeleteRow"
+                                    v-if="props.customDelete"
+                                >
+                                    <span>Confirm</span>
+                                </Button>
+                                <Button 
+                                    :type="'button'"
+                                    :variant="'danger'" 
+                                    :size="'sm'" 
+                                    class="justify-center px-6 py-2"
                                     @click="deleteRow"
+                                    v-else
                                 >
                                     <span>Confirm</span>
                                 </Button>
@@ -926,6 +983,9 @@ watch(() => categories.value, (newVal) => {
             </template>
             <template #order_date="rows">
                 <div class="min-w-max">{{ (rows.value.date && rows.value.date !== '-') ? formatToUserTimezone(rows.value.date, user.timezone) : '-' }}</div>
+            </template>
+            <template #notification_created_at="rows">
+                <div class="min-w-max">{{ (rows.value.created_at && rows.value.created_at !== '-') ? formatToUserTimezone(rows.value.created_at, user.timezone, true) : '-' }}</div>
             </template>
             <template #order_confirmed_at="rows">
                 <TimesCircleIcon 
@@ -1007,8 +1067,21 @@ watch(() => categories.value, (newVal) => {
                     v-else-if="!Boolean(rows.value.has_leads_access)"
                 />
             </template>
+            <template #is_read="rows">
+                <CheckCircleFillIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-if="Boolean(rows.value.is_read)" 
+                />
+                <TimesCircleIcon 
+                    class="flex-shrink-0 w-5 h-5"
+                    v-else-if="!Boolean(rows.value.is_read)"
+                />
+            </template>
             <template #client_stage="rows">
                 {{ rows.value.client_stage || '-' }}
+            </template>
+            <template #payment_method_id="rows">
+                {{ rows.value.payment_method.title || '-' }}
             </template>
         </vue3-datatable>
         <Modal 

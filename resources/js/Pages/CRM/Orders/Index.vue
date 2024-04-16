@@ -1,12 +1,12 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { useToast } from "vue-toastification";
-import CustomToastification from '@/Components/CustomToastification.vue';
-import OrderDetailsModal from './Partials/OrderDetailsModal.vue'
-import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
-import Vue3Datatable from '@/Components/Vue3Datatable.vue'
-import Breadcrumbs from '@/Components/Breadcrumbs.vue'
 import "vue-toastification/dist/index.css";
+import { useToast } from "vue-toastification";
+import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
+import OrderDetailsModal from './Partials/OrderDetailsModal.vue'
+import Breadcrumbs from '@/Components/Breadcrumbs.vue'
+import Vue3Datatable from '@/Components/Vue3Datatable.vue'
+import CustomToastification from '@/Components/CustomToastification.vue';
 
 const props = defineProps({
     errors:Object,

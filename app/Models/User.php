@@ -183,4 +183,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(AuditlogLogentry::class, 'actor_id');
     }
+
+    /**
+     * Notification Model
+     * Get user's notifications.
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class, 'user_id');
+    }
 }

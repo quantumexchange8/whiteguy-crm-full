@@ -392,7 +392,7 @@ const isValidNumber = (value) => {
                     <div class="form-input-section dark:bg-dark-eval-1">
                         <div class="flex justify-between items-center mb-2">
                             <Label 
-                                :value="'Client & Status'" 
+                                :value="'Notification'" 
                                 class="mt-4 !text-2xl !font-bold pl-2" 
                             >
                             </Label>

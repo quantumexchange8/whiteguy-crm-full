@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContentType;
+use App\Models\PaymentMethod;
+use Carbon\Carbon;
 use App\Models\PaymentSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Support\Facades\Redirect;
 
 class PaymentSubmissionController extends Controller
 {
@@ -83,16 +88,130 @@ class PaymentSubmissionController extends Controller
 
     public function getPaymentSubmissions(Request $request)
     {
-        $data = PaymentSubmission::with(['user', 'paymentMethod:id,title', 'user.site'])->get();
+        if ($request['checkedFilters']) {
+            $query = PaymentSubmission::query();
 
-        // dd($data);
-        // foreach ($data as $payment) {
-        //     // Handle client_stage attribute
-        //     if (!is_null($payment->client_stage) && $payment->client_stage !== '') {
-        //         $payment->client_stage = $client_stages[$payment->client_stage - 1];
-        //     }
-        // }
+            foreach ($request['checkedFilters'] as $category => $options) {
+                if (is_array($options) && count($options) > 0) {
+                    $tempArray = [];
+                    foreach ($options as $value) {
+                        array_push($tempArray, (int)$value);
+                    }
+                    $query->whereIn($category, $tempArray);
 
+                } elseif (is_string($options) && $options !== '') {
+                    switch($options) {
+                        case('Today'):
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                            break;
+                        case('Past 7 days'):
+                            $query->whereBetween($category, [Carbon::today()->subDays(7)->toDateTimeString(), Carbon::today()->toDateTimeString()]);
+                            break;
+                        case('This month'):
+                            $query->whereMonth($category, Carbon::today()->month);
+                            break;
+                        case('This year'):
+                            $query->whereYear($category, Carbon::today()->year);
+                            break;
+                        case('No date'):
+                            $query->whereNull($category);
+                            break;
+                        case('Has date'):
+                            $query->whereNotNull($category);
+                            break;
+                        default:
+                            $query->whereBetween($category, [Carbon::today()->toDateTimeString(), Carbon::today()->addHours(24)->toDateTimeString()]);
+                    }
+                }
+            }
+
+            $data = $query->with([
+                                'user:id,full_name,username,phone_number,email,country,address,site_id',
+                                'user.site:id,name',
+                                'paymentMethod:id,title'
+                            ])
+                            ->orderByDesc('id')
+                            ->get();
+
+            $statusArray = [ 
+                "Pending", "Approved", "Cancelled"
+            ];
+            
+            foreach ($data as $paymentSubmission) {
+                if (!is_null($paymentSubmission->status) && $paymentSubmission->status !== '') {
+                    $paymentSubmission->status = $statusArray[$paymentSubmission->status - 1];
+                }
+            }
+            
+            return response()->json($data);
+        }
+        $data = PaymentSubmission::with([
+                                'user:id,full_name,username,phone_number,email,country,address,site_id',
+                                'user.site:id,name',
+                                'paymentMethod:id,title'
+                            ])
+                            ->orderByDesc('id')
+                            ->get();
+
+        $statusArray = [ 
+            "Pending", "Approved", "Cancelled"
+        ];
+        
+        foreach ($data as $paymentSubmission) {
+            if (!is_null($paymentSubmission->status) && $paymentSubmission->status !== '') {
+                $paymentSubmission->status = $statusArray[$paymentSubmission->status - 1];
+            }
+        }
+    
         return response()->json($data);
+    }
+
+    public function getCategories(Request $request)
+    {
+        $date = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+
+        $status = [ 
+            ['id' => 1, 'title' => "Pending"],
+            ['id' => 2, 'title' => "Approved"],
+            ['id' => 3, 'title' => "Cancelled"]
+        ];
+
+        $payment_method_id = PaymentMethod::select('id','title')
+                        ->orderBy('id')
+                        ->groupBy('id')
+                        ->get()
+                        ->map(function ($paymentMethod) {
+                            return [
+                                'id' => $paymentMethod->id,
+                                'title' => $paymentMethod->title,
+                            ];
+                        });
+
+        $data = [
+            'date' => $date,
+            'status' => $status,
+            'payment_method_id' => $payment_method_id,
+        ];
+        
+        return response()->json($data);
+    }
+    
+    public function getPaymentSubmissionLogEntries(string $id)
+    {
+        $contentTypeId = ContentType::with('auditLogEntries')
+                                        ->where('app_label', 'core')
+                                        ->where('model', 'paymentsubmission')
+                                        ->select('id')
+                                        ->get();
+
+        $paymentSubmissionLogEntries = [];
+
+        foreach ($contentTypeId[0]->auditLogEntries as $key => $value) {
+            if ((string)$value->object_id === $id){
+                array_push($paymentSubmissionLogEntries, $value);
+            }
+        }
+
+        return response()->json($paymentSubmissionLogEntries);
     }
 }

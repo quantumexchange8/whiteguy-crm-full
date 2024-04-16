@@ -7,7 +7,7 @@ import { AtSymbolIcon } from '@heroicons/vue/outline'
 import { PhoneIcon, MapIcon, FlagIcon, CalendarIcon } from '@heroicons/vue/solid'
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty, formatToUserTimezone } from '@/Composables'
-import OrderChangelogsSection from './OrderChangelogsSection.vue'
+import PaymentSubmissionChangelogsSection from './PaymentSubmissionChangelogsSection.vue'
 import Button from '@/Components/Button.vue'
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue'
 
@@ -20,13 +20,12 @@ const props = defineProps({
 })
 
 const categories = ref([
-    'Details', 'Stock & Price', 'Status'
+    'Memo & Remark', 'Crypto & USD', 'System'
 ])
 
 const emit = defineEmits(['closeModal', 'rowEdit']);
 
 const page = usePage();
-
 const user = computed(() => page.props.auth.user)
 
 onMounted(() => {
@@ -77,7 +76,7 @@ onMounted(() => {
                                             class="h-4 w-4 text-purple-400 inline-block"
                                         />
                                     </span>
-                                    | {{ props.selectedRowData?.user?.country_of_citizenship ?? '' }}
+                                    | {{ props.selectedRowData?.user?.country ?? '' }}
                                 </p>
                             </div>
                             <div class="flex">
@@ -95,7 +94,7 @@ onMounted(() => {
                 </div>
                 <div class="input-group">
                     <p class="dark:text-gray-300 font-semibold text-xl pb-2">
-                        Order Details
+                        Payment Submission Details
                         <span class="text-xs font-thin pl-4">
                             ( {{ props.selectedRowData?.id ?? '' }} )
                         </span>
@@ -132,24 +131,24 @@ onMounted(() => {
                                 >
                                     <div class="grid grid-cols-1 sm:grid-cols-3">
                                         <CustomLabelGroup
-                                            :inputId="'trade_id'"
-                                            :labelValue="'Trade ID:'"
-                                            :dataValue="props.selectedRowData?.trade_id ?? '-'"
-                                        />
-                                        <CustomLabelGroup
                                             :inputId="'date'"
                                             :labelValue="'Date:'"
-                                            :dataValue="props.selectedRowData?.date ? formatToUserTimezone(props.selectedRowData.date, user.timezone) : '-'"
+                                            :dataValue="props.selectedRowData?.date ? formatToUserTimezone(props.selectedRowData.date, user.timezone, true) : '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'action_type'"
-                                            :labelValue="'Action Type:'"
-                                            :dataValue="props.selectedRowData?.action_type ?? '-'"
+                                            :inputId="'user_memo'"
+                                            :labelValue="'Memo:'"
+                                            :dataValue="props.selectedRowData?.user_memo ?? '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'stock_type'"
-                                            :labelValue="'Stock Type:'"
-                                            :dataValue="props.selectedRowData?.stock_type ?? '-'"
+                                            :inputId="'admin_memo'"
+                                            :labelValue="'Admin Memo:'"
+                                            :dataValue="props.selectedRowData?.admin_memo ?? '-'"
+                                        />
+                                        <CustomLabelGroup
+                                            :inputId="'admin_remark'"
+                                            :labelValue="'Admin Remark:'"
+                                            :dataValue="props.selectedRowData?.admin_remark ?? '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -161,62 +160,33 @@ onMounted(() => {
                                 >
                                     <div class="grid grid-cols-1 sm:grid-cols-3">
                                         <CustomLabelGroup
-                                            :inputId="'stock'"
-                                            :labelValue="'Stock:'"
-                                            :dataValue="props.selectedRowData?.stock ?? '-'"
+                                            :inputId="'payment_method'"
+                                            :labelValue="'Payment Method:'"
+                                            :dataValue="props.selectedRowData?.payment_method.title ?? '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'unit_price'"
-                                            :labelValue="'Unit Price:'"
-                                            :dataValue="parseFloat(props.selectedRowData?.unit_price ?? 0).toFixed(2)"
+                                            :inputId="'amount'"
+                                            :labelValue="'Crypto Amount:'"
+                                            :dataValue="parseFloat(props.selectedRowData?.amount).toFixed(2) ?? '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'quantity'"
-                                            :labelValue="'Quantity:'"
-                                            :dataValue="parseFloat(props.selectedRowData?.quantity ?? 0).toFixed(2)"
+                                            :inputId="'converted_amount'"
+                                            :labelValue="'Converted USD Amount:'"
+                                            :dataValue=" props.selectedRowData.converted_amount ? parseFloat(props.selectedRowData.converted_amount).toFixed(2) : '-'"
                                         />
-                                        <CustomLabelGroup
-                                            :inputId="'total_price'"
-                                            :labelValue="'Total Price:'"
-                                            :dataValue="parseFloat((props.selectedRowData.unit_price * props.selectedRowData.quantity) ?? 0).toFixed(2)"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'current_price'"
-                                            :labelValue="'Current Price:'"
-                                            :dataValue="parseFloat(props.selectedRowData?.current_price ?? 0).toFixed(2)"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'profit'"
-                                            :labelValue="'Profit:'"
-                                            :dataValue="parseFloat(props.selectedRowData?.profit ?? 0).toFixed(2)"
-                                        />
-                                    </div>
-                                </TabPanel>
-                                <TabPanel
-                                    :class="[
-                                        'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
-                                        'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                                    ]"
-                                >
-                                    <div class="grid grid-cols-1 sm:grid-cols-3">
                                         <CustomLabelGroup
                                             :inputId="'status'"
                                             :labelValue="'Status:'"
                                             :dataValue="props.selectedRowData?.status ?? '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'limb_stage'"
-                                            :labelValue="'Limb Stage:'"
-                                            :dataValue="props.selectedRowData.limb_stage ? props.selectedRowData.limb_stage : '-'"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'confirmed_at'"
-                                            :labelValue="'Confirmated At:'"
-                                            :dataValue="props.selectedRowData?.confirmed_at ? formatToUserTimezone(props.selectedRowData.confirmed_at, user.timezone, true) : '-'"
+                                            :inputId="'approved_at'"
+                                            :labelValue="'Approved At:'"
+                                            :dataValue="props.selectedRowData?.approved_at ? formatToUserTimezone(props.selectedRowData.approved_at, user.timezone, true) : '-'"
                                         />
                                     </div>
                                 </TabPanel>
-                                <!-- <TabPanel
+                                <TabPanel
                                     :class="[
                                         'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
                                         'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
@@ -224,29 +194,24 @@ onMounted(() => {
                                 >
                                     <div class="grid grid-cols-1 sm:grid-cols-3">
                                         <CustomLabelGroup
-                                            :inputId="'send_notification'"
-                                            :labelValue="'Send notification:'"
-                                            :dataValue="Boolean(props.selectedRowData?.send_notification) ? 'Yes' : 'No'"
+                                            :inputId="'edited_at'"
+                                            :labelValue="'Edited At:'"
+                                            :dataValue="props.selectedRowData?.edited_at ? formatToUserTimezone(props.selectedRowData.edited_at, user.timezone, true) : '-'"
                                         />
                                         <CustomLabelGroup
-                                            :inputId="'notification_title'"
-                                            :labelValue="'Notification Title:'"
-                                            :dataValue="props.selectedRowData?.notification_title || '-'"
-                                        />
-                                        <CustomLabelGroup
-                                            :inputId="'notification_description'"
-                                            :labelValue="'Notification Description:'"
-                                            :dataValue="props.selectedRowData?.notification_description || '-'"
+                                            :inputId="'created_at'"
+                                            :labelValue="'Created At:'"
+                                            :dataValue="props.selectedRowData?.created_at ? formatToUserTimezone(props.selectedRowData.created_at, user.timezone, true) : '-'"
                                         />
                                     </div>
-                                </TabPanel> -->
+                                </TabPanel>
                             </TabPanels>
                         </TabGroup>
                     </div>
                 </div>
             </div>
             <div class="col-span-1">
-                <OrderChangelogsSection
+                <PaymentSubmissionChangelogsSection
                     :selectedRowData="props.selectedRowData"
                     class="w-full"
                 />

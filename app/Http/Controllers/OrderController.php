@@ -8,9 +8,11 @@ use Inertia\Inertia;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Exports\OrdersExport;
+use App\Http\Requests\NotificationRequest;
 use App\Models\OrderChangelog;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\OrderRequest;
+use App\Models\Notification;
 use App\Models\Site;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -54,21 +56,14 @@ class OrderController extends Controller
      */
     public function store(OrderRequest $request)
     {
-        // if ($request->send_notification) {
-        //     $request->validate([
-        //         'send_notification' => 'required|boolean',
-        //         'notification_title' => 'required|string|max:200',
-        //         'notification_description' => 'required|string|max:1000',
-        //     ]);
-        // } else {
-        //     $request->validate([
-        //         'send_notification' => 'nullable|boolean',
-        //         'notification_title' => 'nullable|string|max:200',
-        //         'notification_description' => 'nullable|string|max:1000',
-        //     ]);
-        // }
-        
         $data = $request->all();
+        
+        if ($data['send_notification']) {
+            $request->validate([
+                'notification_title' => 'required|string|max:250',
+                'notification_description' => 'required|string',
+            ]);
+        }
 
         // dd($data);
         // $orderChanges = [];
@@ -95,6 +90,20 @@ class OrderController extends Controller
         ]);
 
         $existingOrder->save();
+
+        if ($data['send_notification']) {
+            $newNotification = Notification::create([
+                'title' => $data['notification_title'],
+                'description' => $data['notification_description'],
+                'notification_type' => 'PRIVATE_MESSAGE',
+                'attachment' => '',
+                'is_read' => false,
+                'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+                'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['created_at']),
+                'user_id' => $data['user_id'],
+            ]);
+            $newNotification->save();
+        }
 
         // Add the change to the user changes array
         // $orderChanges['New'] = [
@@ -150,21 +159,20 @@ class OrderController extends Controller
      */
     public function update(OrderRequest $request, string $id)
     {
-        // if ($request->send_notification) {
-        //     $request->validate([
-        //         'send_notification' => 'required|boolean',
-        //         'notification_title' => 'required|string|max:200',
-        //         'notification_description' => 'required|string|max:1000',
-        //     ]);
-        // } else {
-        //     $request->validate([
-        //         'send_notification' => 'nullable|boolean',
-        //         'notification_title' => 'nullable|string|max:200',
-        //         'notification_description' => 'nullable|string|max:1000',
-        //     ]);
-        // }
-        
         $data = $request->all();
+
+        if ($data['send_notification']) {
+            $request->validate([
+                'notification_title' => 'required|string|max:250',
+                'notification_description' => 'required|string',
+            ]);
+        }
+        
+        // Additional validation based on user selection (Lead Front | Lead Notes)
+        // if ($data['send_notification']) {
+        //     $notificationRequest = new NotificationRequest();
+        //     $request->validate($notificationRequest->rules());
+        // }
 
         // dd($data);
 
@@ -237,6 +245,20 @@ class OrderController extends Controller
 
         $existingOrder->save();
 
+        if ($data['send_notification']) {
+            $newNotification = Notification::create([
+                'title' => $data['notification_title'],
+                'description' => $data['notification_description'],
+                'notification_type' => 'PRIVATE_MESSAGE',
+                'attachment' => '',
+                'is_read' => false,
+                'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+                'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+                'user_id' => $data['user_id'],
+            ]);
+            $newNotification->save();
+        }
+
         // if (count($orderChanges) > 0) {
         //     $newOrderChangelog = new OrderChangelog;
 
@@ -263,15 +285,15 @@ class OrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function delete(Request $request, string $id)
     {
         $existingOrder = Order::find($id);
         
         $existingOrder->update([
-            'is_deleted' => false,
+            'is_deleted' => true,
         ]);
 
-        $existingOrder->save();
+        // $existingOrder->save();
 
         // $orderChanges = [];
         
@@ -425,7 +447,7 @@ class OrderController extends Controller
                             'user:id,full_name,username,phone_number,email,country,address,site_id',
                             'user.site:id,name'
                         ])
-                        // ->where('is_deleted', false)
+                        ->where('is_deleted', false)
                         ->orderByDesc('id')
                         ->get();
 

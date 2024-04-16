@@ -74,10 +74,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/lead-fronts', [LeadFrontController::class, 'getAllLeadFronts']);
     Route::get('/data/lead-uploads', [LeadUploadsController::class, 'getLeadUploads']);
     Route::get('/data/notifications', [NotificationController::class, 'getNotifications']);
+    Route::get('/data/notifications/categories', [NotificationController::class, 'getCategories']);
     Route::get('/data/orders', [OrderController::class, 'getOrders']);
     Route::get('/data/orders/categories', [OrderController::class, 'getCategories']);
     Route::get('/data/payment-methods', [PaymentMethodController::class, 'getPaymentMethods']);
     Route::get('/data/payment-submissions', [PaymentSubmissionController::class, 'getPaymentSubmissions']);
+    Route::get('/data/payment-submissions/categories', [PaymentSubmissionController::class, 'getCategories']);
     Route::get('/data/sale-orders', [SaleOrderController::class, 'getSaleOrders']);
     Route::get('/data/users-clients', [UserClientController::class, 'getUsersClients']);
     Route::get('/data/users-clients/categories', [UserClientController::class, 'getCategories']);
@@ -179,9 +181,9 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Notifications Routes
     */
-        Route::get('/notifications', function () {
-            return Inertia::render('CRM/Notifications/Index');
-        })->name('crm.notifications');
+        Route::get('/notifications/export/{selectedRowsData}', [NotificationController::class, 'exportToExcel'])->name('notifications.export');
+        Route::get('/notifications/{id}/notification-log-entries', [NotificationController::class, 'getNotificationLogEntries'])->name('notifications.getNotificationLogEntries');
+        Route::resource('/notifications', NotificationController::class);
 
     /*
     |--------------------------------------------------------------------------
@@ -192,7 +194,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
         Route::get('/orders/{id}/order-log-entries', [OrderController::class, 'getOrderLogEntries'])->name('orders.getOrderLogEntries');
         // Route::get('/orders/{id}/orders-changelogs', [OrderController::class, 'getOrderChangelogs'])->name('orders.getOrderChangelogs');
         Route::get('/orders/count', [OrderController::class, 'getTotalOrderCount'])->name('orders.getTotalOrderCount');
-        Route::put('/orders/{id}/destroy', [OrderController::class, 'destroy'])->name('orders.destroy');
+        Route::post('/orders/{id}/delete', [OrderController::class, 'delete'])->name('orders.delete');
         Route::resource('/orders', OrderController::class)->except([
             'destroy'
         ]);
@@ -209,6 +211,8 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Payment Submissions Routes
     */
+        Route::get('/payment-submissions/export/{selectedRowsData}', [PaymentSubmissionController::class, 'exportToExcel'])->name('payment-submissions.export');
+        Route::get('/payment-submissions/{id}/payment-submission-log-entries', [PaymentSubmissionController::class, 'getPaymentSubmissionLogEntries'])->name('payment-submissions.getPaymentSubmissionLogEntries');
         Route::get('/payment-submissions/count', [PaymentSubmissionController::class, 'getTotalPaymentSubmissionCount'])->name('payment-submissions.getTotalPaymentSubmissionCount');
         Route::resource('/payment-submissions', PaymentSubmissionController::class);
 
