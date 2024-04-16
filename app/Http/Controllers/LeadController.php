@@ -857,7 +857,7 @@ class LeadController extends Controller
                                 'stage:id,title',
                                 'appointmentLabel:id,title'
                             ])
-                            ->limit(10)
+                            ->limit(9000)
                             ->orderByDesc('id')
                             ->get();
 
@@ -879,7 +879,7 @@ class LeadController extends Controller
                             'stage:id,title',
                             'appointmentLabel:id,title'
                         ])
-                        ->limit(100)
+                        ->limit(9000)
                         ->orderByDesc('id')
                         ->get();
 
@@ -933,7 +933,7 @@ class LeadController extends Controller
                                 'stage:id,title',
                                 'appointmentLabel:id,title'
                             ])
-                            ->limit(10)
+                            ->limit(9000)
                             ->orderByDesc('id')
                             ->get();
 
@@ -949,7 +949,7 @@ class LeadController extends Controller
                                     'stage:id,title',
                                     'appointmentLabel:id,title'
                                 ])
-                                ->limit(100)
+                                ->limit(9000)
                                 ->orderByDesc('id')
                                 ->get();
 
