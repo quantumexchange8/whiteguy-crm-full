@@ -5,7 +5,7 @@ import { ref, onMounted, reactive, watch, computed } from "vue";
 import { EyeIcon } from '@heroicons/vue/outline'
 import "@bhplugin/vue3-datatable/dist/style.css";
 import Vue3Datatable from "@bhplugin/vue3-datatable";
-import { convertToHumanReadable, cl, formatToUserTimezone } from '@/Composables';
+import { convertToHumanReadable, cl, formatToUserTimezone, usePermission } from '@/Composables';
 import Label from '@/Components/Label.vue'
 import Input from '@/Components/Input.vue';
 import Modal from '@/Components/Modal.vue';
@@ -15,6 +15,7 @@ import { TrashIcon, PageEditIcon } from '@/Components/Icons/outline';
 import CustomFileInputField from '@/Components/CustomFileInputField.vue';
 import { ThreeDotsVertical, CheckCircleFillIcon, TimesCircleIcon } from '@/Components/Icons/solid';
 
+const { has } = usePermission();
 const page = usePage();
 const categories = ref([]);
 const filterDateColumns = reactive([]);
@@ -38,9 +39,6 @@ const selectedRowsLength = ref(0);
 const filteredRowsLength = ref(0);
 const isImportable = ref(true);
 const isDuplicate = ref(false);
-const clientArray  = ref(
-	[ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ]
-);
 
 const user = computed(() => page.props.auth.user)
 
@@ -93,19 +91,12 @@ const params = reactive({
 });
 
 onMounted(() => {
-    // loading.value = true;
-    
-    // setTimeout(() => {
-        // loading.value = false;
-    // }, 500);
-        params.search = '';
-        getData();
-        getCategoryFilters();
-
-        // cl(isDuplicate.value);
+    params.search = '';
+    getData(params);
+    getCategoryFilters();
 });
 
-const getData = async () => {
+const getData = async (params) => {
     try {
         loading.value = true;
         
@@ -113,14 +104,13 @@ const getData = async () => {
             method: 'GET',
             body: JSON.stringify(params),
             params: {
-                page: 1,
-                limit: 10,
-            }
+                params: params,
+            },
         });
 
-        unprocessedData.value = await data.data;
+        unprocessedData.value = await data.data.data.data;
         rows.value = processRows(unprocessedData.value);
-        total_rows.value = data.data.length;
+        total_rows.value = data.data.total_rows;
         isDuplicate.value = false;
 
     } catch (error) {
@@ -149,14 +139,13 @@ const getDuplicatedData = async () => {
             method: 'GET',
             body: JSON.stringify(params),
             params: {
-                page: 1,
-                limit: 10,
+                params: params,
             }
         });
 
-        unprocessedData.value = await data.data;
+        unprocessedData.value = await data.data.data.data;
         rows.value = processRows(unprocessedData.value);
-        total_rows.value = data.data.length;
+        total_rows.value = data.data.total_rows;
         isDuplicate.value = true;
 
     } catch (error) {
@@ -172,12 +161,62 @@ const toggleLeadsData = () => {
       if (isDuplicate.value) {
         getDuplicatedData();
       } else {
-        getData();
+        getData(params);
       }
 };
 
 const changePage = (data) => {
+    // loading.value = true;
+    params.page = data.current_page;
+    params.pagesize = data.pagesize;
+    params.search = data.search;
+    params.sort_column = data.sort_column;
+    params.sort_direction = data.sort_direction;
+    params.column_filters = data.column_filters;
+
+    let arrCount = 0;
+
+    Object.keys(checkedFilters).forEach(key => {
+        if (checkedFilters[key].constructor === Array) {
+            if (checkedFilters[key].length > 0 ) {
+                arrCount++;
+            }
+        } else {
+            if (checkedFilters[key] !== '') {
+                arrCount++;
+            }
+        }
+    });
+
+    if (arrCount > 0) {
+        getFilteredData(checkedFilters);
+    } else {
+        if (isDuplicate.value) {
+            getDuplicatedData();
+        } else {
+            cl(params);
+            getData(params);
+        }
+    }
+    
+    // setTimeout(() => {
+    //     loading.value = false;
+    // }, 200);
+};
+
+const changePageSize = (data) => {
     loading.value = true;
+    params.pagesize = data; 
+    // cl(data);
+    
+    setTimeout(() => {
+        loading.value = false;
+    }, 200);
+};
+const changeFilter = (data) => {
+    loading.value = true;
+    // params.search = data.search;
+    cl(data);
     
     setTimeout(() => {
         loading.value = false;
@@ -209,20 +248,22 @@ const getFilteredData = async (checkedFilters) => {
                 method: 'GET',
                 params: {
                     checkedFilters: checkedFilters,
+                    params: params,
                 }
             });
-            rows.value = await data.data;
-            total_rows.value = data.data.length;
+            rows.value = await data.data.data.data;
+            total_rows.value = data.data.total_rows;
             
         } else {
             const data = await axios.get(props.targetApi, {
                 method: 'GET',
                 params: {
                     checkedFilters: checkedFilters,
+                    params: params,
                 }
             });
-            rows.value = await data.data;
-            total_rows.value = data.data.length;
+            rows.value = await data.data.data.data;
+            total_rows.value = data.data.total_rows;
         }
 
     } catch (error) {
@@ -273,11 +314,13 @@ const clearColumnFiltersInts = () => {
 const reset = () => {
     clearColumnFiltersInts();
     params.search = '';
+    params.page = 1;
+    params.pagesize = 10;
 
     if (isDuplicate.value) {
         getDuplicatedData();
     } else {
-        getData();
+        getData(params);
     }
 
     Object.keys(checkedFilters).forEach(key => {
@@ -562,7 +605,7 @@ watch(() => categories.value, (newVal) => {
                                 <div class="p-2 w-full">
                                     <p class="text-base p-2 dark:text-gray-300 text-center">Actions</p>
                                     <hr class="border-b rounded-md border-gray-600 mb-2 w-11/12 mx-auto">
-                                    <div v-if="hasImport">
+                                    <div v-if="hasImport && has('is_staff', 'is_superuser')">
                                         <p class="text-sm p-2 dark:text-gray-300 text-center font-bold pb-4">Import Excel</p>
                                         <div class="px-6 pb-6">
                                             <Button 
@@ -704,7 +747,6 @@ watch(() => categories.value, (newVal) => {
                                         <p class="dark:text-gray-300">By {{ convertToHumanReadable(key) }}</p>
                                         <div class="flex flex-row flex-wrap gap-2 p-2">
                                             <div v-for="(item, index) in value" :key="index">
-                                                <!-- {{ cl(value + ":-" + index + ":" + item) }} -->
                                                 <input 
                                                     :id="key + index" 
                                                     type="radio" 
@@ -817,6 +859,7 @@ watch(() => categories.value, (newVal) => {
             skin="bh-table-compact"
             :rows="rows" 
             :columns="props.cols" 
+            :isServerMode="true"
             :sortable="true" 
             :loading="loading"
             :rowClass="'odd:bg-gray-200 even:bg-gray-300 dark:odd:bg-gray-600 dark:even:bg-gray-700 dark:text-gray-200'" 
@@ -829,7 +872,7 @@ watch(() => categories.value, (newVal) => {
             :totalRows="total_rows"
             :stickyFirstColumn="true"
             :stickyHeader="true"
-            @pageChange="changePage"
+            @change="changePage"
         >
             <template #id="rows">
                 <strong><span class="text-purple-300">#{{ rows.value.id }}</span></strong>
@@ -844,7 +887,7 @@ watch(() => categories.value, (newVal) => {
                 <Link
                     :href="route('users-clients.edit', rows.value.assignee.id)"
                     class="font-medium"
-                    v-if="rows.value.assignee_id !== '-'"
+                    v-if="rows.value.assignee_id !== '-' && rows.value.assignee_id !== null"
                 >
                     <strong><span class="text-purple-300 hover:text-purple-400">{{ rows.value.assignee.username }} ({{ rows.value.assignee.site.name }})</span></strong>
                 </Link>

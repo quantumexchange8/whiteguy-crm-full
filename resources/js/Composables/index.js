@@ -76,10 +76,11 @@ export function convertToHumanReadable(str) {
 
 // Check whether currently logged-in user has the role/permission assigned to them
 export function usePermission() {
-    const is = (name) => usePage().props.auth.user.roles.includes(name);
+    const has = (name) => usePage().props.auth.user.permissions[name];
+    // const is = (name) => usePage().props.auth.user.roles.includes(name);
     const can = (name) => usePage().props.auth.user.permissions.includes(name);
 
-    return { is, can };
+    return { has, can };
 }
 
 // Replace hyphens (-) from object passed to details modal from datatable

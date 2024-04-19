@@ -27,7 +27,7 @@ const colArray = ref([
     { field: "contacted_at", title: "LAST CALLED", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
     { field: "give_up_at", title: "GIVE UP?", headerClass: "dark:text-gray-300 text-sm w-max", type: 'date'  },
     { field: "date", title: "DATE OPP'D IN", headerClass: "dark:text-gray-300 text-sm", type: 'date'  },
-    { field: "phone_number", title: "PHONE NUMBER", headerClass: "dark:text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "phone_number", title: "PHONE NUMBER", headerClass: "dark:text-gray-300 text-sm w-max"  },
     { field: "email", title: "EMAIL", headerClass: "dark:text-gray-300 text-sm w-max"  },
     { field: "country", title: "COUNTRY", headerClass: "dark:text-gray-300 text-sm w-max"  },
     { field: "vc", title: "VC", headerClass: "dark:text-gray-300 text-sm w-max"  },

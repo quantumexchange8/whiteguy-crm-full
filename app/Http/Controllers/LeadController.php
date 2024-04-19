@@ -844,6 +844,84 @@ class LeadController extends Controller
                     }
                 }
             }
+            
+            // Column-specific searches
+            if (isset($request['params']['column_filters'])) {
+                foreach ($request['params']['column_filters'] as $filter) {
+                    if (!empty($filter['field'])) {
+                        if ($filter['field'] === 'lead_assignee') {
+                            if (isset($filter['value'])) {
+                                $leadAssigneeId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
+                                                        ->select('id')
+                                                        ->get();
+
+                                $assigneeIdArr = [];
+                                foreach ($leadAssigneeId as $key => $value) {
+                                    array_push($assigneeIdArr, $value->id);
+                                }
+                            }
+                            
+                            // $query->where('assignee_id', $leadAssigneeId->id);
+                            if ($filter['condition'] === 'not_contain' && isset($leadAssigneeId)) {
+                                $query->where('assignee_id', 'NOT LIKE', '%' . $leadAssigneeId->id . '%');
+                            } elseif ($filter['condition'] === 'equal' && isset($leadAssigneeId)) {
+                                $query->where('assignee_id', $leadAssigneeId->id);
+                            } elseif ($filter['condition'] === 'not_equal' && isset($leadAssigneeId)) {
+                                $query->whereNot('assignee_id', $leadAssigneeId->id);
+                            } elseif ($filter['condition'] === 'start_with' && isset($leadAssigneeId)) {
+                                $query->where('assignee_id', 'LIKE', $leadAssigneeId->id . '%');
+                            } elseif ($filter['condition'] === 'end_with' && isset($leadAssigneeId)) {
+                                $query->where('assignee_id', 'LIKE', '%' . $leadAssigneeId->id);
+                            } elseif ($filter['condition'] === 'is_null') {
+                                $query->whereNull('assignee_id');
+                            } elseif ($filter['condition'] === 'is_not_null') {
+                                $query->whereNotNull('assignee_id');
+                            } elseif ($filter['condition'] === 'contain' && isset($leadAssigneeId)) {
+                                $query->whereIn('assignee_id', $assigneeIdArr);
+                            }
+                        } else {
+                            // dd($request['params']);
+                            if ($filter['condition'] === 'not_contain' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+                            } elseif ($filter['condition'] === 'equal' && isset($filter['value'])) {
+                                $query->where($filter['field'], $filter['value']);
+                            } elseif ($filter['condition'] === 'not_equal' && isset($filter['value'])) {
+                                $query->whereNot($filter['field'], $filter['value']);
+                            } elseif ($filter['condition'] === 'start_with' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'LIKE', $filter['value'] . '%');
+                            } elseif ($filter['condition'] === 'end_with' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'LIKE', '%' . $filter['value']);
+                            } elseif ($filter['condition'] === 'greater_than' && isset($filter['value'])) {
+                                $query->where($filter['field'], '>', $filter['value']);
+                            } elseif ($filter['condition'] === 'greater_than_equal' && isset($filter['value'])) {
+                                $query->where($filter['field'], '>=', $filter['value']);
+                            } elseif ($filter['condition'] === 'less_than' && isset($filter['value'])) {
+                                $query->where($filter['field'], '<', $filter['value']);
+                            } elseif ($filter['condition'] === 'less_than_equal' && isset($filter['value'])) {
+                                $query->where($filter['field'], '<=', $filter['value']);
+                            } elseif ($filter['condition'] === 'is_null') {
+                                $query->whereNull($filter['field']);
+                            } elseif ($filter['condition'] === 'is_not_null') {
+                                $query->whereNotNull($filter['field']);
+                            } elseif ($filter['condition'] === 'contain' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                            }
+                        }
+                    }
+                }
+            }
+                                    
+            $tableColumns = Schema::getColumnListing('core_lead');
+            $sort_column = '';
+    
+            if ($request['params']['sort_column'] === 'lead_assignee') {
+                $sort_column = 'assignee_id';
+            }
+    
+            if ($request['params']['sort_column'] === 'actions') {
+                $sort_column = 'id';
+            }
+
             // dd($query->toSql(), $query->getBindings());
             $data = $query->with([
                                 'leadCreator:id,username,site_id', 
@@ -857,15 +935,28 @@ class LeadController extends Controller
                                 'stage:id,title',
                                 'appointmentLabel:id,title'
                             ])
-                            ->limit(9000)
-                            ->orderByDesc('id')
-                            ->get();
+                            ->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
+                            ->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
+                            
+            $records = [
+                'data' => $data,
+                'total_rows' => $data->total(),
+            ];
+            
+            return response()->json($records);
+        }
+        
+        $tableColumns = Schema::getColumnListing('core_lead');
+        $sort_column = '';
 
-            // dd($data);
-
-            return response()->json($data);
+        if ($request['params']['sort_column'] === 'lead_assignee') {
+            $sort_column = 'assignee_id';
         }
 
+        if ($request['params']['sort_column'] === 'actions') {
+            $sort_column = 'id';
+        }
+        
         // Default fetch all on load
         $data = Lead::with([
                             'leadCreator:id,username,site_id', 
@@ -879,11 +970,95 @@ class LeadController extends Controller
                             'stage:id,title',
                             'appointmentLabel:id,title'
                         ])
-                        ->limit(9000)
-                        ->orderByDesc('id')
-                        ->get();
+                        ->where(function ($query) use ($tableColumns, $request) {
+                            // Global search
+                            $searchTerm = $request['params']['search'];
+                            if (!empty($searchTerm)) {
+                                $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
+                                    foreach ($tableColumns as $column) {
+                                        $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
+                                    }
+                                });
+                            }
+                            
+                            // Column-specific searches
+                            if (isset($request['params']['column_filters'])) {
+                                foreach ($request['params']['column_filters'] as $filter) {
+                                    if (!empty($filter['field'])) {
+                                        if ($filter['field'] === 'lead_assignee') {
+                                            if (isset($filter['value'])) {
+                                                $leadAssigneeId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
+                                                                        ->select('id')
+                                                                        ->get();
 
-        return response()->json($data);
+                                                $assigneeIdArr = [];
+                                                foreach ($leadAssigneeId as $key => $value) {
+                                                    array_push($assigneeIdArr, $value->id);
+                                                }
+                                            }
+                                            // $query->where('assignee_id', $leadAssigneeId->id);
+                                            if ($filter['condition'] === 'not_contain' && isset($leadAssigneeId)) {
+                                                $query->where('assignee_id', 'NOT LIKE', '%' . $leadAssigneeId->id . '%');
+                                            } elseif ($filter['condition'] === 'equal' && isset($leadAssigneeId)) {
+                                                $query->where('assignee_id', $leadAssigneeId->id);
+                                            } elseif ($filter['condition'] === 'not_equal' && isset($leadAssigneeId)) {
+                                                $query->whereNot('assignee_id', $leadAssigneeId->id);
+                                            } elseif ($filter['condition'] === 'start_with' && isset($leadAssigneeId)) {
+                                                $query->where('assignee_id', 'LIKE', $leadAssigneeId->id . '%');
+                                            } elseif ($filter['condition'] === 'end_with' && isset($leadAssigneeId)) {
+                                                $query->where('assignee_id', 'LIKE', '%' . $leadAssigneeId->id);
+                                            } elseif ($filter['condition'] === 'is_null') {
+                                                $query->whereNull('assignee_id');
+                                            } elseif ($filter['condition'] === 'is_not_null') {
+                                                $query->whereNotNull('assignee_id');
+                                            } elseif ($filter['condition'] === 'contain' && isset($leadAssigneeId)) {
+                                                $query->whereIn('assignee_id', $assigneeIdArr);
+                                            }
+                                            // dd($assigneeIdArr);
+                                        } else {
+                                            // dd($request['params']);
+                                            if ($filter['condition'] === 'not_contain' && isset($filter['value'])) {
+                                                $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+                                            } elseif ($filter['condition'] === 'equal' && isset($filter['value'])) {
+                                                $query->where($filter['field'], $filter['value']);
+                                            } elseif ($filter['condition'] === 'not_equal' && isset($filter['value'])) {
+                                                $query->whereNot($filter['field'], $filter['value']);
+                                            } elseif ($filter['condition'] === 'start_with' && isset($filter['value'])) {
+                                                $query->where($filter['field'], 'LIKE', $filter['value'] . '%');
+                                            } elseif ($filter['condition'] === 'end_with' && isset($filter['value'])) {
+                                                $query->where($filter['field'], 'LIKE', '%' . $filter['value']);
+                                            } elseif ($filter['condition'] === 'greater_than' && isset($filter['value'])) {
+                                                $query->where($filter['field'], '>', $filter['value']);
+                                            } elseif ($filter['condition'] === 'greater_than_equal' && isset($filter['value'])) {
+                                                $query->where($filter['field'], '>=', $filter['value']);
+                                            } elseif ($filter['condition'] === 'less_than' && isset($filter['value'])) {
+                                                $query->where($filter['field'], '<', $filter['value']);
+                                            } elseif ($filter['condition'] === 'less_than_equal' && isset($filter['value'])) {
+                                                $query->where($filter['field'], '<=', $filter['value']);
+                                            } elseif ($filter['condition'] === 'is_null') {
+                                                $query->whereNull($filter['field']);
+                                            } elseif ($filter['condition'] === 'is_not_null') {
+                                                $query->whereNotNull($filter['field']);
+                                            } elseif ($filter['condition'] === 'contain' && isset($filter['value'])) {
+                                                $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // dd($query->toSQL());
+                        })
+                        ->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
+                        // ->orderByDesc('id')
+                        ->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
+        
+
+        $records = [
+            'data' => $data,
+            'total_rows' => $data->total(),
+        ];
+
+        return response()->json($records);
     }
 
     public function getDuplicatedLeads(Request $request)
@@ -924,6 +1099,84 @@ class LeadController extends Controller
                     }
                 }
             }
+            
+            // Column-specific searches
+            if (isset($request['params']['column_filters'])) {
+                foreach ($request['params']['column_filters'] as $filter) {
+                    if (!empty($filter['field'])) {
+                        if ($filter['field'] === 'lead_assignee') {
+                            if (isset($filter['value'])) {
+                                $leadAssigneeId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
+                                                        ->select('id')
+                                                        ->get();
+
+                                $assigneeIdArr = [];
+                                foreach ($leadAssigneeId as $key => $value) {
+                                    array_push($assigneeIdArr, $value->id);
+                                }
+                            }
+                            
+                            // $query->where('assignee_id', $leadAssigneeId->id);
+                            if ($filter['condition'] === 'not_contain' && isset($leadAssigneeId)) {
+                                $query->where('assignee_id', 'NOT LIKE', '%' . $leadAssigneeId->id . '%');
+                            } elseif ($filter['condition'] === 'equal' && isset($leadAssigneeId)) {
+                                $query->where('assignee_id', $leadAssigneeId->id);
+                            } elseif ($filter['condition'] === 'not_equal' && isset($leadAssigneeId)) {
+                                $query->whereNot('assignee_id', $leadAssigneeId->id);
+                            } elseif ($filter['condition'] === 'start_with' && isset($leadAssigneeId)) {
+                                $query->where('assignee_id', 'LIKE', $leadAssigneeId->id . '%');
+                            } elseif ($filter['condition'] === 'end_with' && isset($leadAssigneeId)) {
+                                $query->where('assignee_id', 'LIKE', '%' . $leadAssigneeId->id);
+                            } elseif ($filter['condition'] === 'is_null') {
+                                $query->whereNull('assignee_id');
+                            } elseif ($filter['condition'] === 'is_not_null') {
+                                $query->whereNotNull('assignee_id');
+                            } elseif ($filter['condition'] === 'contain' && isset($leadAssigneeId)) {
+                                $query->whereIn('assignee_id', $assigneeIdArr);
+                            }
+                        } else {
+                            // dd($request['params']);
+                            if ($filter['condition'] === 'not_contain' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+                            } elseif ($filter['condition'] === 'equal' && isset($filter['value'])) {
+                                $query->where($filter['field'], $filter['value']);
+                            } elseif ($filter['condition'] === 'not_equal' && isset($filter['value'])) {
+                                $query->whereNot($filter['field'], $filter['value']);
+                            } elseif ($filter['condition'] === 'start_with' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'LIKE', $filter['value'] . '%');
+                            } elseif ($filter['condition'] === 'end_with' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'LIKE', '%' . $filter['value']);
+                            } elseif ($filter['condition'] === 'greater_than' && isset($filter['value'])) {
+                                $query->where($filter['field'], '>', $filter['value']);
+                            } elseif ($filter['condition'] === 'greater_than_equal' && isset($filter['value'])) {
+                                $query->where($filter['field'], '>=', $filter['value']);
+                            } elseif ($filter['condition'] === 'less_than' && isset($filter['value'])) {
+                                $query->where($filter['field'], '<', $filter['value']);
+                            } elseif ($filter['condition'] === 'less_than_equal' && isset($filter['value'])) {
+                                $query->where($filter['field'], '<=', $filter['value']);
+                            } elseif ($filter['condition'] === 'is_null') {
+                                $query->whereNull($filter['field']);
+                            } elseif ($filter['condition'] === 'is_not_null') {
+                                $query->whereNotNull($filter['field']);
+                            } elseif ($filter['condition'] === 'contain' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                            }
+                        }
+                    }
+                }
+            }
+                                    
+            $tableColumns = Schema::getColumnListing('core_lead');
+            $sort_column = '';
+    
+            if ($request['params']['sort_column'] === 'lead_assignee') {
+                $sort_column = 'assignee_id';
+            }
+    
+            if ($request['params']['sort_column'] === 'actions') {
+                $sort_column = 'id';
+            }
+
             $data = $query->with([
                                 'leadCreator:id,username,site_id', 
                                 'leadCreator.site:id,name', 
@@ -933,11 +1186,26 @@ class LeadController extends Controller
                                 'stage:id,title',
                                 'appointmentLabel:id,title'
                             ])
-                            ->limit(9000)
-                            ->orderByDesc('id')
-                            ->get();
+                            ->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
+                            ->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
 
-            return response()->json($data);
+            $records = [
+                'data' => $data,
+                'total_rows' => $data->total(),
+            ];
+            
+            return response()->json($records);
+        }
+        
+        $tableColumns = Schema::getColumnListing('core_lead');
+        $sort_column = '';
+
+        if ($request['params']['sort_column'] === 'lead_assignee') {
+            $sort_column = 'assignee_id';
+        }
+
+        if ($request['params']['sort_column'] === 'actions') {
+            $sort_column = 'id';
         }
 
         $data = LeadDuplicated::with([
@@ -949,11 +1217,95 @@ class LeadController extends Controller
                                     'stage:id,title',
                                     'appointmentLabel:id,title'
                                 ])
-                                ->limit(9000)
-                                ->orderByDesc('id')
-                                ->get();
+                                ->where(function ($query) use ($tableColumns, $request) {
+                                    // Global search
+                                    $searchTerm = $request['params']['search'];
+                                    if (!empty($searchTerm)) {
+                                        $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
+                                            foreach ($tableColumns as $column) {
+                                                $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
+                                            }
+                                        });
+                                    }
+                                    
+                                    // Column-specific searches
+                                    if (isset($request['params']['column_filters'])) {
+                                        foreach ($request['params']['column_filters'] as $filter) {
+                                            if (!empty($filter['field'])) {
+                                                if ($filter['field'] === 'lead_assignee') {
+                                                    if (isset($filter['value'])) {
+                                                        $leadAssigneeId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
+                                                                                ->select('id')
+                                                                                ->get();
+        
+                                                        $assigneeIdArr = [];
+                                                        foreach ($leadAssigneeId as $key => $value) {
+                                                            array_push($assigneeIdArr, $value->id);
+                                                        }
+                                                    }
+                                                    
+                                                    // $query->where('assignee_id', $leadAssigneeId->id);
+                                                    if ($filter['condition'] === 'not_contain' && isset($leadAssigneeId)) {
+                                                        $query->where('assignee_id', 'NOT LIKE', '%' . $leadAssigneeId->id . '%');
+                                                    } elseif ($filter['condition'] === 'equal' && isset($leadAssigneeId)) {
+                                                        $query->where('assignee_id', $leadAssigneeId->id);
+                                                    } elseif ($filter['condition'] === 'not_equal' && isset($leadAssigneeId)) {
+                                                        $query->whereNot('assignee_id', $leadAssigneeId->id);
+                                                    } elseif ($filter['condition'] === 'start_with' && isset($leadAssigneeId)) {
+                                                        $query->where('assignee_id', 'LIKE', $leadAssigneeId->id . '%');
+                                                    } elseif ($filter['condition'] === 'end_with' && isset($leadAssigneeId)) {
+                                                        $query->where('assignee_id', 'LIKE', '%' . $leadAssigneeId->id);
+                                                    } elseif ($filter['condition'] === 'is_null') {
+                                                        $query->whereNull('assignee_id');
+                                                    } elseif ($filter['condition'] === 'is_not_null') {
+                                                        $query->whereNotNull('assignee_id');
+                                                    } elseif ($filter['condition'] === 'contain' && isset($leadAssigneeId)) {
+                                                        $query->whereIn('assignee_id', $assigneeIdArr);
+                                                    }
+                                                } else {
+                                                    // dd($request['params']);
+                                                    if ($filter['condition'] === 'not_contain' && isset($filter['value'])) {
+                                                        $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+                                                    } elseif ($filter['condition'] === 'equal' && isset($filter['value'])) {
+                                                        $query->where($filter['field'], $filter['value']);
+                                                    } elseif ($filter['condition'] === 'not_equal' && isset($filter['value'])) {
+                                                        $query->whereNot($filter['field'], $filter['value']);
+                                                    } elseif ($filter['condition'] === 'start_with' && isset($filter['value'])) {
+                                                        $query->where($filter['field'], 'LIKE', $filter['value'] . '%');
+                                                    } elseif ($filter['condition'] === 'end_with' && isset($filter['value'])) {
+                                                        $query->where($filter['field'], 'LIKE', '%' . $filter['value']);
+                                                    } elseif ($filter['condition'] === 'greater_than' && isset($filter['value'])) {
+                                                        $query->where($filter['field'], '>', $filter['value']);
+                                                    } elseif ($filter['condition'] === 'greater_than_equal' && isset($filter['value'])) {
+                                                        $query->where($filter['field'], '>=', $filter['value']);
+                                                    } elseif ($filter['condition'] === 'less_than' && isset($filter['value'])) {
+                                                        $query->where($filter['field'], '<', $filter['value']);
+                                                    } elseif ($filter['condition'] === 'less_than_equal' && isset($filter['value'])) {
+                                                        $query->where($filter['field'], '<=', $filter['value']);
+                                                    } elseif ($filter['condition'] === 'is_null') {
+                                                        $query->whereNull($filter['field']);
+                                                    } elseif ($filter['condition'] === 'is_not_null') {
+                                                        $query->whereNotNull($filter['field']);
+                                                    } elseif ($filter['condition'] === 'contain' && isset($filter['value'])) {
+                                                        $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    // dd($query->toSQL());
+                                })
+                                ->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
+                                // ->orderByDesc('id')
+                                ->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
+                
+        
+        $records = [
+            'data' => $data,
+            'total_rows' => $data->total(),
+        ];
 
-        return response()->json($data);
+        return response()->json($records);
     }
 
     public function getCategories(Request $request)

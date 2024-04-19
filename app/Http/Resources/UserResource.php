@@ -14,6 +14,13 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $permissionsArr = [
+            'is_active' => $this->is_active,
+            'has_crm_access' => $this->has_crm_access,
+            'has_leads_access' => $this->has_leads_access,
+            'is_staff' => $this->is_staff,
+            'is_superuser' => $this->is_superuser,
+        ];
         return [
             'id' => $this->id,
             'site_id' => $this->site_id,
@@ -24,11 +31,7 @@ class UserResource extends JsonResource
             'phone_number' => $this->phone_number,
             'timezone' => $this->timezone,
             'account_manager_id' => $this->account_manager_id,
-            'is_active' => $this->is_active,
-            'has_crm_access' => $this->has_crm_access,
-            'has_leads_access' => $this->has_leads_access,
-            'is_staff' => $this->is_staff,
-            'is_superuser' => $this->is_superuser,
+            'permissions' => $permissionsArr,
             'last_login' => $this->last_login,
             // 'roles' => $this->getRoleNames(),
             // 'permissions' => $this->getPermissionNames(),

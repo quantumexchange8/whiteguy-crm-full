@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use App\Http\Requests\UserClientRequest;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rules\Password;
 
 class UserClientController extends Controller
@@ -411,9 +412,81 @@ class UserClientController extends Controller
                     }
                 }
             }
+            
+            // Column-specific searches
+            if (isset($request['params']['column_filters'])) {
+                foreach ($request['params']['column_filters'] as $filter) {
+                    if (!empty($filter['field'])) {
+                        if ($filter['field'] === 'client_stage' || $filter['field'] === 'rank' || $filter['field'] === 'kyc_status' || $filter['field'] === 'account_manager_id') {
+                            if (isset($filter['value'])) {
+                                $filteredId = User::where($filter['field'], 'LIKE', '%' . $filter['value'] . '%')
+                                                        ->select('id')
+                                                        ->get();
+
+                                $filteredIdArr = [];
+                                foreach ($filteredId as $key => $value) {
+                                    array_push($filteredIdArr, $value->id);
+                                }
+                            }
+
+                            if ($filter['condition'] === 'not_contain' && isset($filteredId)) {
+                                $query->where($filter['field'], 'NOT LIKE', '%' . $filteredId->id . '%');
+                            } elseif ($filter['condition'] === 'equal' && isset($filteredId)) {
+                                $query->where($filter['field'], $filteredId->id);
+                            } elseif ($filter['condition'] === 'not_equal' && isset($filteredId)) {
+                                $query->whereNot($filter['field'], $filteredId->id);
+                            } elseif ($filter['condition'] === 'start_with' && isset($filteredId)) {
+                                $query->where($filter['field'], 'LIKE', $filteredId->id . '%');
+                            } elseif ($filter['condition'] === 'end_with' && isset($filteredId)) {
+                                $query->where($filter['field'], 'LIKE', '%' . $filteredId->id);
+                            } elseif ($filter['condition'] === 'is_null') {
+                                $query->whereNull($filter['field']);
+                            } elseif ($filter['condition'] === 'is_not_null') {
+                                $query->whereNotNull($filter['field']);
+                            } elseif ($filter['condition'] === 'contain' && isset($filteredId)) {
+                                $query->whereIn($filter['field'], $filteredIdArr);
+                            }
+                        } else {
+                            if ($filter['condition'] === 'not_contain' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+                            } elseif ($filter['condition'] === 'equal' && isset($filter['value'])) {
+                                $query->where($filter['field'], $filter['value']);
+                            } elseif ($filter['condition'] === 'not_equal' && isset($filter['value'])) {
+                                $query->whereNot($filter['field'], $filter['value']);
+                            } elseif ($filter['condition'] === 'start_with' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'LIKE', $filter['value'] . '%');
+                            } elseif ($filter['condition'] === 'end_with' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'LIKE', '%' . $filter['value']);
+                            } elseif ($filter['condition'] === 'greater_than' && isset($filter['value'])) {
+                                $query->where($filter['field'], '>', $filter['value']);
+                            } elseif ($filter['condition'] === 'greater_than_equal' && isset($filter['value'])) {
+                                $query->where($filter['field'], '>=', $filter['value']);
+                            } elseif ($filter['condition'] === 'less_than' && isset($filter['value'])) {
+                                $query->where($filter['field'], '<', $filter['value']);
+                            } elseif ($filter['condition'] === 'less_than_equal' && isset($filter['value'])) {
+                                $query->where($filter['field'], '<=', $filter['value']);
+                            } elseif ($filter['condition'] === 'is_null') {
+                                $query->whereNull($filter['field']);
+                            } elseif ($filter['condition'] === 'is_not_null') {
+                                $query->whereNotNull($filter['field']);
+                            } elseif ($filter['condition'] === 'contain' && isset($filter['value'])) {
+                                $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                            }
+                        }
+                    }
+                }
+            }
+                                    
+            $tableColumns = Schema::getColumnListing('core_user');
+            $sort_column = '';
+    
+            if ($request['params']['sort_column'] === 'actions') {
+                $sort_column = 'id';
+            }
+
             $data = $query->with(['site', 'accountManager:id,username,site_id', 'accountManager.site:id,name'])
-                            ->orderByDesc('id')
-                            ->get();
+                            ->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
+                            ->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
         
             $ranks =[ "Normal", "VIP" ];
             $client_stages = [ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ];
@@ -448,14 +521,248 @@ class UserClientController extends Controller
                 }
             }
 
-            return response()->json($data);
+            $records = [
+                'data' => $data,
+                'total_rows' => $data->total(),
+            ];
+            
+            return response()->json($records);
+        }
+        
+        $tableColumns = Schema::getColumnListing('core_user');
+        $sort_column = '';
+
+        if ($request['params']['sort_column'] === 'actions') {
+            $sort_column = 'id';
         }
 
-        $data = User::with(['site', 'accountManager:id,username,site_id', 'accountManager.site:id,name'])
-                            // ->limit(10)
-                            ->orderByDesc('id')
-                        ->get();
+        $queries = User::query();
+        $queries->with(['site', 'accountManager:id,username,site_id', 'accountManager.site:id,name']);
+        $queries->where(function ($query) use ($tableColumns, $request) {
+                            // Global search
+                            $searchTerm = $request['params']['search'];
+                            if (!empty($searchTerm)) {
+                                $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
+                                    foreach ($tableColumns as $column) {
+                                        $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
+                                    }
+                                });
+                            }
+                            
+                            // Column-specific searches
+                            if (isset($request['params']['column_filters'])) {
+                                foreach ($request['params']['column_filters'] as $filter) {
+                                    // if (!empty($filter['field'])) {
+                                        // if ($filter['field'] === 'client_stage' || $filter['field'] === 'rank' || $filter['field'] === 'kyc_status' || $filter['field'] === 'account_manager_id') {
+                                            if (isset($filter['value'])) {
+                                                if ($filter['field'] === 'account_manager_id') {
+                                                    $filteredId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
+                                                                            ->select('id')
+                                                                            ->get();
+                                                }
+                                                
+                                                if ($filter['field'] === 'client_stage' || $filter['field'] === 'rank' || $filter['field'] === 'kyc_status') {
+                                                    $fieldValArr = [];
+                                                    switch ($filter['field']) {
+                                                        case 'rank':
+                                                            $fieldValArr = [ "Normal", "VIP" ];
+                                                            break;
+                                                        case 'client_stage':
+                                                            $fieldValArr = [ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ];
+                                                            break;
+                                                        case 'kyc_status':
+                                                            $fieldValArr = [ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ];
+                                                            break;
+                                                    }
+
+                                                    $filteredId = [];
+
+                                                    foreach ($fieldValArr as $index => $fieldVal) {
+                                                        if (str_contains($fieldVal, $filter['value']) !== false) {
+                                                            array_push($filteredId, $index + 1);    
+                                                        }
+                                                    }
+                                                    // dd($filteredId);
+                                                }
+                                                
+                                                if (isset($filteredId)) {
+                                                    $filteredIdArr = [];
+                                                    foreach ($filteredId as $key => $value) {
+                                                        array_push($filteredIdArr, ($filter['field'] === 'account_manager_id') ? $value->id : $value);
+                                                    }
+                                                }
+                                                // dd($filteredIdArr);
+
+                                                if ($filter['condition'] === 'not_contain') {
+                                                    if (isset($filteredId)) {
+                                                        $query->whereNotIn($filter['field'], $filteredIdArr);
+                                                    } else {
+                                                        $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+                                                    }
+                                                } elseif ($filter['condition'] === 'equal') {
+                                                    if (isset($filteredId)) {
+                                                        $tempArr = [];
+                                                        foreach ($fieldValArr as $index => $fieldVal) {
+                                                            if ($filter['value'] === $fieldVal) {
+                                                                array_push($tempArr, $index + 1);    
+                                                            }
+                                                        }
+                                                        $query->whereIn($filter['field'], $tempArr);
+                                                    } else {
+                                                        $query->where($filter['field'], $filter['value']);
+                                                    }
+                                                } elseif ($filter['condition'] === 'not_equal') {
+                                                    if (isset($filteredId)) {
+                                                        $tempArr = [];
+                                                        foreach ($fieldValArr as $index => $fieldVal) {
+                                                            if ($filter['value'] !== $fieldVal) {
+                                                                array_push($tempArr, $index + 1);    
+                                                            }
+                                                        }
+                                                        $query->whereIn($filter['field'], $tempArr);
+                                                    } else {
+                                                        $query->whereNot($filter['field'], $filter['value']);
+                                                    }
+                                                } elseif ($filter['condition'] === 'start_with') {
+                                                    if (isset($filteredId)) {
+                                                        $tempArr = [];
+                                                        foreach ($fieldValArr as $index => $fieldVal) {
+                                                            if (str_starts_with($fieldVal, $filter['value'])) {
+                                                                array_push($tempArr, $index + 1);
+                                                            }
+                                                        }
+                                                        $query->whereIn($filter['field'], $tempArr);
+                                                    } else {
+                                                        $query->where($filter['field'], 'LIKE', $filter['value'] . '%');
+                                                    }
+                                                } elseif ($filter['condition'] === 'end_with') {
+                                                    if (isset($filteredId)) {
+                                                        $tempArr = [];
+                                                        foreach ($fieldValArr as $index => $fieldVal) {
+                                                            if (str_ends_with($fieldVal, $filter['value'])) {
+                                                                array_push($tempArr, $index + 1);
+                                                            }
+                                                        }
+                                                        $query->whereIn($filter['field'], $tempArr);
+                                                    } else {
+                                                        $query->where($filter['field'], 'LIKE', '%' . $filter['value']);
+                                                    }
+                                                } elseif ($filter['condition'] === 'greater_than') {
+                                                    if (isset($filteredId)) {
+                                                        $tempArr = [];
+                                                        foreach ($fieldValArr as $index => $fieldVal) {
+                                                            if ($filter['value'] < $fieldVal) {
+                                                                array_push($tempArr, $index + 1);    
+                                                            }
+                                                        }
+                                                        $query->whereIn($filter['field'], $tempArr);
+                                                    } else {
+                                                        $query->where($filter['field'], '>', $filter['value']);
+                                                    }
+                                                } elseif ($filter['condition'] === 'greater_than_equal') {
+                                                    if (isset($filteredId)) {
+                                                        $tempArr = [];
+                                                        foreach ($fieldValArr as $index => $fieldVal) {
+                                                            if ($filter['value'] <= $fieldVal) {
+                                                                array_push($tempArr, $index + 1);    
+                                                            }
+                                                        }
+                                                        $query->whereIn($filter['field'], $tempArr);
+                                                    } else {
+                                                        $query->where($filter['field'], '>=', $filter['value']);
+                                                    }
+                                                } elseif ($filter['condition'] === 'less_than') {
+                                                    if (isset($filteredId)) {
+                                                        $tempArr = [];
+                                                        foreach ($fieldValArr as $index => $fieldVal) {
+                                                            if ($filter['value'] > $fieldVal) {
+                                                                array_push($tempArr, $index + 1);    
+                                                            }
+                                                        }
+                                                        $query->whereIn($filter['field'], $tempArr);
+                                                    } else {
+                                                        $query->where($filter['field'], '<', $filter['value']);
+                                                    }
+                                                } elseif ($filter['condition'] === 'less_than_equal') {
+                                                    if (isset($filteredId)) {
+                                                        $tempArr = [];
+                                                        foreach ($fieldValArr as $index => $fieldVal) {
+                                                            if ($filter['value'] >= $fieldVal) {
+                                                                array_push($tempArr, $index + 1);    
+                                                            }
+                                                        }
+                                                        $query->whereIn($filter['field'], $tempArr);
+                                                    } else {
+                                                        $query->where($filter['field'], '<=', $filter['value']);
+                                                    }
+                                                } elseif ($filter['condition'] === 'contain') {
+                                                    // dd($query->whereIn($filter['field'], $filteredIdArr)->paginate());
+                                                    if (isset($filteredId)) {
+                                                        $query->whereIn($filter['field'], $filteredIdArr);
+                                                    } else {
+                                                        $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                                                    }
+                                                }
+                                            }
+                
+
+                                            if ($filter['condition'] === 'is_null') {
+                                                $query->orWhereNull($filter['field']);
+                                            } elseif ($filter['condition'] === 'is_not_null') {
+                                                $query->orWhereNotNull($filter['field']);
+                                            }
+
+                                        // } else {
+                                        //     if ($filter['condition'] === 'not_contain' && isset($filter['value'])) {
+                                        //         $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+
+                                        //     } elseif ($filter['condition'] === 'equal' && isset($filter['value'])) {
+                                        //         $query->where($filter['field'], $filter['value']);
+
+                                        //     } elseif ($filter['condition'] === 'not_equal' && isset($filter['value'])) {
+                                        //         $query->whereNot($filter['field'], $filter['value']);
+
+                                        //     } elseif ($filter['condition'] === 'start_with' && isset($filter['value'])) {
+                                        //         $query->where($filter['field'], 'LIKE', $filter['value'] . '%');
+
+                                        //     } elseif ($filter['condition'] === 'end_with' && isset($filter['value'])) {
+                                        //         $query->where($filter['field'], 'LIKE', '%' . $filter['value']);
+
+                                        //     } elseif ($filter['condition'] === 'greater_than' && isset($filter['value'])) {
+                                        //         $query->where($filter['field'], '>', $filter['value']);
+
+                                        //     } elseif ($filter['condition'] === 'greater_than_equal' && isset($filter['value'])) {
+                                        //         $query->where($filter['field'], '>=', $filter['value']);
+                                        
+                                        //     } elseif ($filter['condition'] === 'less_than' && isset($filter['value'])) {
+                                        //         $query->where($filter['field'], '<', $filter['value']);
+
+                                        //     } elseif ($filter['condition'] === 'less_than_equal' && isset($filter['value'])) {
+                                        //         $query->where($filter['field'], '<=', $filter['value']);
+
+                                        //     } elseif ($filter['condition'] === 'is_null') {
+                                        //         $query->whereNull($filter['field']);
+
+                                        //     } elseif ($filter['condition'] === 'is_not_null') {
+                                        //         $query->whereNotNull($filter['field']);
+
+                                        //     } elseif ($filter['condition'] === 'contain' && isset($filter['value'])) {
+                                        //         $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                                        //     }
+                                        // }
+                                    // }
+                                }
+                                // dd($query->toSQL());
+                            }
+                        });
+        // dd($queries->toSQL());
+
+        $queries->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction']);
+        // ->orderByDesc('id')
+        $data = $queries->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
+        // dd($data);
         
+
         $ranks =[ "Normal", "VIP" ];
         $client_stages = [ "ALLO", "NO ALLO", "REMM", "TT", "CLEARED", "PENDING", "KICKED", "CARRIED OVER", "FREE SWITCH", "CXL", "CXL-CLIENT DROPPED" ];
         $kyc_statuses = [ "Not started", "Pending documents", "In progress", "Rejected", "Approved" ];
@@ -489,9 +796,12 @@ class UserClientController extends Controller
             }
         }
 
-        // dd($data);
+        $records = [
+            'data' => $data,
+            'total_rows' => $data->total(),
+        ];
 
-        return response()->json($data);
+        return response()->json($records);
     }
 
     // Generate random unique 12 characters account id (Checked against db)

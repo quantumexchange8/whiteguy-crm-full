@@ -7,7 +7,7 @@ import { useToast } from "vue-toastification";
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
 import DashboardDatatable from '@/Components/DashboardDatatable.vue'
 import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
-import { ShoppingCartIcon, ViewListIcon, ClipboardListIcon, DocumentIcon, DocumentTextIcon, DocumentReportIcon } from '@heroicons/vue/outline';
+import { ViewListIcon, ClipboardListIcon, DocumentTextIcon, DocumentReportIcon } from '@heroicons/vue/outline';
 import CustomToastification from '@/Components/CustomToastification.vue';
 
 const props = defineProps({
@@ -19,7 +19,7 @@ const props = defineProps({
 })
 
 const pageTitle = "Dashboard";
-const { is } = usePermission();
+const { has } = usePermission();
 const toast = useToast();
 const totalLeadCount = ref(0);
 const totalLeadFrontCount = ref(0);
@@ -132,7 +132,10 @@ onMounted(async () => {
 						{{ pageTitle }}
 					</h2>
 				</div>
-				<!-- <h2 v-if="is('staff') || is('crm_user')">{{ $page.props.auth.user.roles }}</h2> -->
+				<!-- <h2 v-if="has('is_superuser')">{{ 'You are seeing this which only superuser can see' }}</h2>
+				<h2 v-if="has('has_leads_access') || has('has_crm_access')">{{ 'You are seeing this which only those with leads or crm access can see' }}</h2>
+				<h2 v-if="has('is_staff')">{{ 'You are seeing this which all admins can see' }}</h2>
+				<h2 v-if="has('is_active')">{{ 'You are seeing this which all active users can see' }}</h2> -->
 				<Breadcrumbs 
 					:title="pageTitle"
 				/>
