@@ -212,7 +212,7 @@ onMounted(async () => {
 			<div class="w-full">
 				<DashboardDatatable 
 					:cols="leadFrontsColArray" 
-					:targetApi="'/data/lead-fronts'"
+					:targetApi="'/data/lead-fronts/latest'"
 					:createLink="route('lead-fronts.create')"
 					:detailsLink="'lead-fronts'"
 					:tableTitle="'Latest Lead Fronts'"
@@ -222,7 +222,7 @@ onMounted(async () => {
 				<div class="col-span-full lg:col-span-4">
 					<DashboardDatatable 
 						:cols="paymentSubmissionsColArray" 
-						:targetApi="'/data/payment-submissions'"
+						:targetApi="'/data/payment-submissions/latest'"
 						:createLink="route('payment-submissions.create')"
 						:detailsLink="'payment-submissions'"
 						:tableTitle="'Latest Payment Submissions'"
@@ -231,7 +231,7 @@ onMounted(async () => {
 				<div class="col-span-full lg:col-span-4">
 					<DashboardDatatable 
 						:cols="leadsColArray" 
-						:targetApi="'/data/leads'"
+						:targetApi="'/data/leads/latest'"
 						:createLink="route('leads.create')"
 						:detailsLink="'leads'"
 						:tableTitle="'Latest Leads'"
@@ -240,7 +240,7 @@ onMounted(async () => {
 				<div class="col-span-full lg:col-span-4">
 					<DashboardDatatable 
 						:cols="usersColArray" 
-						:targetApi="'/data/users-clients'"
+						:targetApi="'/data/users-clients/latest'"
 						:createLink="route('users-clients.create')"
 						:detailsLink="'users-clients'"
 						:tableTitle="'User Clients'"

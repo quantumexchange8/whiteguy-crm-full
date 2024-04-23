@@ -101,7 +101,7 @@ onMounted(async () => {
     const tradeIdResponse = await axios.get(route('orders.generateTradeId'));
     form.trade_id = tradeIdResponse.data.trade_id;
     
-    const usersResponse = await axios.get('/data/users-clients');
+    const usersResponse = await axios.get(route('orders.getAllUsers'));
     
     // Iterate over the data and populate the allUsers array
     usersResponse.data.forEach(key => {

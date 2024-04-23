@@ -6,12 +6,14 @@ use App\Exports\NotificationsExport;
 use App\Http\Requests\NotificationRequest;
 use App\Models\ContentType;
 use App\Models\Notification;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Schema;
 
 class NotificationController extends Controller
 {
@@ -151,10 +153,9 @@ class NotificationController extends Controller
                 if (is_array($options) && count($options) > 0) {
                     $tempArray = [];
                     foreach ($options as $value) {
-                        array_push($tempArray, (int)$value);
+                        array_push($tempArray, (($value === "true" || $value === "false") ? $value : (int)$value));
                     }
                     $query->whereIn($category, $tempArray);
-
                 } elseif (is_string($options) && $options !== '') {
                     switch($options) {
                         case('Today'):
@@ -181,21 +182,189 @@ class NotificationController extends Controller
                 }
             }
 
+            $tableColumns = Schema::getColumnListing('core_notification');
+            $sort_column = '';
+
+            // Global search
+            $searchTerm = $request['params']['search'];
+            if (!empty($searchTerm)) {
+                $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
+                    foreach ($tableColumns as $column) {
+                        $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
+                    }
+                });
+            }
+            
+            // Column-specific searches
+            if (isset($request['params']['column_filters'])) {
+                foreach ($request['params']['column_filters'] as $filter) {
+                    if (isset($filter['value'])) {
+                        if ($filter['field'] === 'user_id') {
+                            $filteredId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
+                                                    ->select('id', 'username')
+                                                    ->get()
+                                                    ->map(function ($user) {
+                                                        return [
+                                                            'id' => $user->id,
+                                                            'value' => $user->username,
+                                                        ];
+                                                    });
+                        }
+                        
+                        if ($filter['field'] === 'notification_type') {
+                            $fieldValArr = [
+                                [
+                                    'text' => 'Custom notification',
+                                    'value' => 'PRIVATE_MESSAGE',
+                                ],
+                                [
+                                    'text' => 'New announcement',
+                                    'value' => 'NEW_ANNOUNCEMENT',
+                                ]
+                            ];
+
+                            $filteredId = [];
+
+                            foreach ($fieldValArr as $index => $fieldVal) {
+                                if (str_contains($fieldVal['text'], $filter['value']) !== false) {
+                                    $filteredId[] = [
+                                        'id' => $fieldVal['value'],
+                                        'value' => $fieldVal['text'],
+                                    ];
+                                }
+                            }
+                        }
+                        
+                        if (isset($filteredId)) {
+                            $filteredIdArr = [];
+                            foreach ($filteredId as $key => $value) {
+                                $filteredIdArr[] = [
+                                    'id' => $value['id'],
+                                    'value' => $value['value'],
+                                ];
+                            }
+                        }
+
+                        $this->applyFilterCondition($query, $filter, isset($filteredId) ? $filteredIdArr : []);
+                    }
+
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
+                    }
+                }
+            }
+
             $data = $query->with([
                                 'user:id,full_name,username,phone_number,email,country,address,site_id',
                                 'user.site:id,name'
                             ])
-                            ->orderByDesc('id')
-                            ->get();
+                            ->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
+                            ->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
             
-            return response()->json($data);
+            foreach ($data as $notification) {
+                // Handle client_stage attribute
+                if (!is_null($notification->notification_type) && $notification->notification_type !== '') {
+                    if ($notification->notification_type === 'PRIVATE_MESSAGE') {
+                        $notification->notification_type = 'Custom notification';
+                    }
+                    if ($notification->notification_type === 'NEW_ANNOUNCEMENT') {
+                        $notification->notification_type = 'New announcement';
+                    }
+                }
+            }
+
+            $records = [
+                'data' => $data,
+                'total_rows' => $data->total(),
+            ];
+            
+            return response()->json($records);
         }
-        $data = Notification::with([
-                                'user:id,full_name,username,phone_number,email,country,address,site_id',
-                                'user.site:id,name'
-                            ])
-                            ->orderByDesc('id')
-                            ->get();
+        
+        $tableColumns = Schema::getColumnListing('core_notification');
+        $sort_column = '';
+
+        $queries = Notification::query();
+        $queries->with([
+            'user:id,full_name,username,phone_number,email,country,address,site_id',
+            'user.site:id,name'
+        ]);
+        $queries->where(function ($query) use ($tableColumns, $request) {
+            // Global search
+            $searchTerm = $request['params']['search'];
+            if (!empty($searchTerm)) {
+                $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
+                    foreach ($tableColumns as $column) {
+                        $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
+                    }
+                });
+            }
+            
+            // Column-specific searches
+            if (isset($request['params']['column_filters'])) {
+                foreach ($request['params']['column_filters'] as $filter) {
+                    if (isset($filter['value'])) {
+                        if ($filter['field'] === 'user_id') {
+                            $filteredId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
+                                                    ->select('id', 'username')
+                                                    ->get()
+                                                    ->map(function ($user) {
+                                                        return [
+                                                            'id' => $user->id,
+                                                            'value' => $user->username,
+                                                        ];
+                                                    });
+                        }
+                        
+                        if ($filter['field'] === 'notification_type') {
+                            $fieldValArr = [
+                                [
+                                    'text' => 'Custom notification',
+                                    'value' => 'PRIVATE_MESSAGE',
+                                ],
+                                [
+                                    'text' => 'New announcement',
+                                    'value' => 'NEW_ANNOUNCEMENT',
+                                ]
+                            ];
+
+                            $filteredId = [];
+
+                            foreach ($fieldValArr as $index => $fieldVal) {
+                                if (str_contains($fieldVal['text'], $filter['value']) !== false) {
+                                    $filteredId[] = [
+                                        'id' => $fieldVal['value'],
+                                        'value' => $fieldVal['text'],
+                                    ];
+                                }
+                            }
+                        }
+                        
+                        if (isset($filteredId)) {
+                            $filteredIdArr = [];
+                            foreach ($filteredId as $key => $value) {
+                                $filteredIdArr[] = [
+                                    'id' => $value['id'],
+                                    'value' => $value['value'],
+                                ];
+                            }
+                        }
+
+                        $this->applyFilterCondition($query, $filter, isset($filteredId) ? $filteredIdArr : []);
+                    }
+
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
+                    }
+                }
+            }
+        });
+        $queries->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction']);
+        $data = $queries->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
         
         foreach ($data as $notification) {
             // Handle client_stage attribute
@@ -209,6 +378,156 @@ class NotificationController extends Controller
             }
         }
     
+        $records = [
+            'data' => $data,
+            'total_rows' => $data->total(),
+        ];
+
+        return response()->json($records);
+    }
+
+    public function applyFilterCondition($query, $filter, $filteredIdArr) {
+        switch ($filter['condition']) {
+            case 'not_contain':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        array_push($tempArr, $value['id']);   
+                    }
+                    $query->whereNotIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+                }
+                break;
+            case 'equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] === $value['value']) {
+                            array_push($tempArr, $value['id']);     
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    if ($filter['field'] === 'user_id') {
+                        $query->where($filter['field'], 0);
+                    } else {
+                        $query->where($filter['field'], $filter['value']);
+                    }
+                }
+                break;
+            case 'not_equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] !== $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    if ($filter['field'] === 'user_id') {
+                        $query->whereNot($filter['field'], 0);
+                    } else {
+                        $query->whereNot($filter['field'], $filter['value']);
+                    }
+                }
+                break;
+            case 'start_with':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if (str_starts_with($value['value'], $filter['value'])) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', $filter['value'] . '%');
+                }
+                break;
+            case 'end_with':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if (str_ends_with($value['value'], $filter['value'])) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', '%' . $filter['value']);
+                }
+                break;
+            case 'greater_than':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] < $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<', $filter['value']);
+                }
+                break;
+            case 'greater_than_equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] <= $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<=', $filter['value']);
+                }
+                break;
+            case 'less_than':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] > $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>', $filter['value']);
+                }
+                break;
+            case 'less_than_equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] >= $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>=', $filter['value']);
+                }
+                break;
+            case 'contain':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        array_push($tempArr, $value['id']);   
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                }
+                break;
+        }
+    }
+
+    public function getAllUsers() {
+        $data = User::getAllUsersWithRelationships();
+        
         return response()->json($data);
     }
 

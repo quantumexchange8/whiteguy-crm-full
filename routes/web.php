@@ -68,10 +68,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/documents', [DocumentController::class, 'getDocuments']);
     Route::get('/data/internal-news', [InternalNewsController::class, 'getInternalNews']);
     Route::get('/data/leads', [LeadController::class, 'getLeads']);
+    Route::get('/data/leads/latest', [LeadController::class, 'getLatestLeads']);
     Route::get('/data/leads/duplicates', [LeadController::class, 'getDuplicatedLeads']);
     Route::get('/data/leads/categories', [LeadController::class, 'getCategories']);
     Route::get('/data/lead-fronts/categories', [LeadFrontController::class, 'getLeadFrontCategories']);
     Route::get('/data/lead-fronts', [LeadFrontController::class, 'getAllLeadFronts']);
+    Route::get('/data/lead-fronts/latest', [LeadFrontController::class, 'getLatestLeadFronts']);
     Route::get('/data/lead-uploads', [LeadUploadsController::class, 'getLeadUploads']);
     Route::get('/data/notifications', [NotificationController::class, 'getNotifications']);
     Route::get('/data/notifications/categories', [NotificationController::class, 'getCategories']);
@@ -79,9 +81,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/orders/categories', [OrderController::class, 'getCategories']);
     Route::get('/data/payment-methods', [PaymentMethodController::class, 'getPaymentMethods']);
     Route::get('/data/payment-submissions', [PaymentSubmissionController::class, 'getPaymentSubmissions']);
+    Route::get('/data/payment-submissions/latest', [PaymentSubmissionController::class, 'getLatestPaymentSubmissions']);
     Route::get('/data/payment-submissions/categories', [PaymentSubmissionController::class, 'getCategories']);
     Route::get('/data/sale-orders', [SaleOrderController::class, 'getSaleOrders']);
     Route::get('/data/users-clients', [UserClientController::class, 'getUsersClients']);
+    Route::get('/data/users-clients/latest', [UserClientController::class, 'getLatestUsersClients']);
     Route::get('/data/users-clients/categories', [UserClientController::class, 'getCategories']);
 
     // Route to function that clear session error messages: used by back function in composables
@@ -183,12 +187,14 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     */
         Route::get('/notifications/export/{selectedRowsData}', [NotificationController::class, 'exportToExcel'])->name('notifications.export');
         Route::get('/notifications/{id}/notification-log-entries', [NotificationController::class, 'getNotificationLogEntries'])->name('notifications.getNotificationLogEntries');
+        Route::get('/notifications/users', [NotificationController::class, 'getAllUsers'])->name('notifications.getAllUsers');
         Route::resource('/notifications', NotificationController::class);
 
     /*
     |--------------------------------------------------------------------------
     | Orders Routes
     */
+        Route::get('/orders/users', [OrderController::class, 'getAllUsers'])->name('orders.getAllUsers');
         Route::get('/orders/export/{selectedRowsData}', [OrderController::class, 'exportToExcel'])->name('orders.export');
         Route::get('/orders/generate-trade-id', [OrderController::class, 'generateTradeId'])->name('orders.generateTradeId');
         Route::get('/orders/{id}/order-log-entries', [OrderController::class, 'getOrderLogEntries'])->name('orders.getOrderLogEntries');

@@ -49,7 +49,7 @@ const form = useForm({
 
 onMounted(async () => {
   try {
-    const usersResponse = await axios.get('/data/users-clients');
+    const usersResponse = await axios.get(route('notifications.getAllUsers'));
     
     // Iterate over the data and populate the allUsers array
     usersResponse.data.forEach(key => {

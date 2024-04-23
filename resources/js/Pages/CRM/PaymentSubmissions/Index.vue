@@ -19,7 +19,7 @@ const props = defineProps({
 const pageTitle = "Payment Submissions";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false, sort: false },
     { field: "id", title: "ID", headerClass: "text-gray-300 text-sm w-max" },
     { field: "user_id", title: "USER", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "status", title: "STATUS", headerClass: "text-gray-300 text-sm w-max"  },

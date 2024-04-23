@@ -340,22 +340,345 @@ class LeadFrontController extends Controller
                     }
                 }
             }
-            $data = $query->with(['lead', 'lead.assignee', 'lead.assignee.site'])
-                            ->limit(9000)
-                            ->orderByDesc('id')
-                            ->get();
 
-            return response()->json($data);
+            $tableColumns = Schema::getColumnListing('core_leadfront');
+            $sort_column = '';
+
+            if ($request['params']['sort_column'] === 'lead_front_commission') {
+                $sort_column = 'commission';
+            }
+
+            // Global search
+            $searchTerm = $request['params']['search'];
+            if (!empty($searchTerm)) {
+                $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
+                    foreach ($tableColumns as $column) {
+                        $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
+                    }
+                });
+            }
+            
+            // Column-specific searches
+            if (isset($request['params']['column_filters'])) {
+                foreach ($request['params']['column_filters'] as $filter) {
+                    if (isset($filter['value'])) {
+                        if ($filter['field'] === 'lead_front_assignee') {
+                            $leadAssigneeId = Lead::with('assignee')
+                                                    ->whereHas('assignee', function ($query) use($filter) {
+                                                        $query->where('username', 'LIKE', '%' . $filter['value'] . '%');
+                                                    })
+                                                    ->get()
+                                                    ->map(function ($lead) {
+                                                        return [
+                                                            'id' => $lead->id,
+                                                            'value' => $lead->assignee->username,
+                                                        ];
+                                                    });
+
+                            $filteredId = [];
+                            foreach ($leadAssigneeId as $key => $value) {
+                                $filteredId[] = [
+                                    'id' => $value['id'],
+                                    'value' => $value['value'],
+                                ];
+                            }
+                        }
+
+                        if ($filter['field'] === 'lead_id') {
+                            $leadId = Lead::whereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $filter['value'] . '%'])
+                                                    ->select('id', 'first_name')
+                                                    ->get();
+
+                            $filteredId = [];
+                            foreach ($leadId as $key => $value) {
+                                $filteredId[] = [
+                                    'id' => $value->id,
+                                    'value' => $value->name,
+                                ];
+                            }
+                        }
+
+                        if (isset($filteredId)) {
+                            $filteredIdArr = [];
+                            foreach ($filteredId as $key => $value) {
+                                $filteredIdArr[] = [
+                                    'id' => $value['id'],
+                                    'value' => $value['value'],
+                                ];
+                            }
+                        }
+                        
+                        $this->applyFilterCondition($query, $filter, isset($filteredId) ? $filteredIdArr : []);
+                        
+                        if ($filter['condition'] === 'is_null') {
+                            $query->orWhereNull($filter['field']);
+                        } elseif ($filter['condition'] === 'is_not_null') {
+                            $query->orWhereNotNull($filter['field']);
+                        }
+                    }
+                }
+            }
+            
+            $data = $query->with(['lead', 'lead.assignee', 'lead.assignee.site'])
+                            ->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
+                            ->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
+
+            $records = [
+                'data' => $data,
+                'total_rows' => $data->total(),
+            ];
+
+            return response()->json($records);
         }
 
-        $data = LeadFront::with(['lead', 'lead.assignee', 'lead.assignee.site'])
-                            ->limit(9000)
-                            ->orderByDesc('id')
-                            ->get();
+        $tableColumns = Schema::getColumnListing('core_leadfront');
+        $sort_column = '';
 
-        return response()->json($data);
+        if ($request['params']['sort_column'] === 'lead_front_commission') {
+            $sort_column = 'commission';
+        }
+
+        $queries = LeadFront::query();
+        $queries->with(['lead', 'lead.assignee', 'lead.assignee.site']);
+        $queries->where(function ($query) use ($tableColumns, $request) {
+            // Global search
+            $searchTerm = $request['params']['search'];
+            if (!empty($searchTerm)) {
+                $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
+                    foreach ($tableColumns as $column) {
+                        $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
+                    }
+                });
+            }
+            
+            // Column-specific searches
+            if (isset($request['params']['column_filters'])) {
+                foreach ($request['params']['column_filters'] as $filter) {
+                    if (isset($filter['value'])) {
+                        if ($filter['field'] === 'lead_front_assignee') {
+                            $leadAssigneeId = Lead::with('assignee')
+                                                    ->whereHas('assignee', function ($query) use($filter) {
+                                                        $query->where('username', 'LIKE', '%' . $filter['value'] . '%');
+                                                    })
+                                                    ->get()
+                                                    ->map(function ($lead) {
+                                                        return [
+                                                            'id' => $lead->id,
+                                                            'value' => $lead->assignee->username,
+                                                        ];
+                                                    });
+
+                            // dd($leadAssigneeId);
+                            $filteredId = [];
+                            foreach ($leadAssigneeId as $key => $value) {
+                                $filteredId[] = [
+                                    'id' => $value['id'],
+                                    'value' => $value['value'],
+                                ];
+                            }
+                        }
+
+                        if ($filter['field'] === 'lead_id') {
+                            $leadId = Lead::whereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $filter['value'] . '%'])
+                                                    ->select('id', 'first_name')
+                                                    ->get();
+
+                            $filteredId = [];
+                            foreach ($leadId as $key => $value) {
+                                $filteredId[] = [
+                                    'id' => $value->id,
+                                    'value' => $value->name,
+                                ];
+                            }
+                        }
+
+                        if (isset($filteredId)) {
+                            $filteredIdArr = [];
+                            foreach ($filteredId as $key => $value) {
+                                $filteredIdArr[] = [
+                                    'id' => $value['id'],
+                                    'value' => $value['value'],
+                                ];
+                            }
+                        }
+                        
+                        $this->applyFilterCondition($query, $filter, isset($filteredId) ? $filteredIdArr : []);
+                        
+                        if ($filter['condition'] === 'is_null') {
+                            $query->orWhereNull($filter['field']);
+                        } elseif ($filter['condition'] === 'is_not_null') {
+                            $query->orWhereNotNull($filter['field']);
+                        }
+                    }
+                }
+            }
+        });
+        $queries->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction']);
+        $data = $queries->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
+
+        $records = [
+            'data' => $data,
+            'total_rows' => $data->total(),
+        ];
+
+        return response()->json($records);
+    }
+
+    public function applyFilterCondition($query, $filter, $filteredIdArr) {
+        switch ($filter['condition']) {
+            case 'not_contain':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        array_push($tempArr, $value['id']);   
+                    }
+                    $query->whereNotIn('lead_id', $tempArr);
+                    // if($filter['field'] === 'lead_front_assignee') {
+                    // }
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+                }
+                break;
+            case 'equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] === $value['value']) {
+                            array_push($tempArr, $value['id']);     
+                        }
+                    }
+                    $query->whereIn('lead_id', $tempArr);
+                } else {
+                    if ($filter['field'] === 'lead_id'){
+                        $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 0);
+                    } else {
+                        $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], $filter['value']);
+                    }
+                }
+                break;
+            case 'not_equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] !== $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn('lead_id', $tempArr);
+                } else {
+                    if ($filter['field'] === 'lead_id'){
+                        $query->whereNot(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 0);
+                    } else {
+                        $query->whereNot(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], $filter['value']);
+                    }
+                }
+                break;
+            case 'start_with':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if (str_starts_with($value['value'], $filter['value'])) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn('lead_id', $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', $filter['value'] . '%');
+                }
+                break;
+            case 'end_with':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if (str_ends_with($value['value'], $filter['value'])) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn('lead_id', $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', '%' . $filter['value']);
+                }
+                break;
+            case 'greater_than':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] < $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn('lead_id', $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<', $filter['value']);
+                }
+                break;
+            case 'greater_than_equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] <= $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn('lead_id', $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<=', $filter['value']);
+                }
+                break;
+            case 'less_than':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] > $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn('lead_id', $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>', $filter['value']);
+                }
+                break;
+            case 'less_than_equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] >= $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn('lead_id', $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>=', $filter['value']);
+                }
+                break;
+            case 'contain':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        array_push($tempArr, $value['id']);   
+                    }
+                    $query->whereIn('lead_id', $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                }
+                break;
+        }
     }
     
+    public function getLatestLeadFronts()
+    {
+        $data = LeadFront::with([
+                                'lead', 
+                                'lead.assignee', 
+                                'lead.assignee.site'
+                            ])
+                            ->latest()
+                            ->take(5)
+                            ->get();
+        
+        return response()->json($data);
+    }
+
     public function getLead(string $id)
     {
         return response()->json(LeadFront::find($id)->lead);

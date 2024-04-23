@@ -18,7 +18,7 @@ const props = defineProps({
 const pageTitle = "Users / Clients";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false, sort: false },
     { field: "username", title: "USERNAME (SITE)", headerClass: "text-gray-300 text-sm w-max" },
     { field: "account_id", title: "ACCOUNT ID", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "full_name", title: "FULL LEGAL NAME", headerClass: "text-gray-300 text-sm w-max"  },
@@ -27,10 +27,10 @@ const colArray = ref([
     { field: "rank", title: "RANK", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "account_manager_id", title: "ACC. MANAGER", headerClass: "text-gray-300 text-sm w-max" },
     { field: "kyc_status", title: "KYC STATUS", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "is_active", title: "ACTIVE", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "is_staff", title: "STAFF", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "has_crm_access", title: "CRM", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "has_leads_access", title: "LEADS", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "is_active", title: "ACTIVE", headerClass: "text-gray-300 text-sm w-max", type: 'boolean'  },
+    { field: "is_staff", title: "STAFF", headerClass: "text-gray-300 text-sm w-max", type: 'boolean'  },
+    { field: "has_crm_access", title: "CRM", headerClass: "text-gray-300 text-sm w-max", type: 'boolean'  },
+    { field: "has_leads_access", title: "LEADS", headerClass: "text-gray-300 text-sm w-max", type: 'boolean'  },
 ]);
 
 // Custom Toastification

@@ -19,7 +19,7 @@ const props = defineProps({
 const pageTitle = "Orders";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false, sort: false },
 	{ field: 'id', title: 'ID', headerClass: "dark:text-gray-300 text-sm w-max" },
     { field: "trade_id", title: "Trade ID", headerClass: "text-gray-300 text-sm w-max" },
     { field: "order_date", title: "Date", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
@@ -28,7 +28,7 @@ const colArray = ref([
     { field: "stock", title: "Stock", headerClass: "text-gray-300 text-sm w-max" },
     { field: "unit_price", title: "Unit Price", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
     { field: "quantity", title: "Quantity", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
-    { field: "order_total_price", title: "Total Price", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
+    { field: "order_total_price", title: "Total Price", headerClass: "text-gray-300 text-sm w-max", type: 'number', sort:false },
     { field: "profit", title: "Profit / Loss", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
     { field: "status", title: "Status", headerClass: "text-gray-300 text-sm w-max" },
     { field: "order_confirmed_at", title: "Confirmed", headerClass: "text-gray-300 text-sm w-max", filter: false },

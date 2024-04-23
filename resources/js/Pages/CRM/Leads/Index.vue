@@ -19,7 +19,7 @@ const props = defineProps({
 const pageTitle = "Leads";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false, sort: false },
     { field: "id", title: "ID", headerClass: "dark:text-gray-300 text-sm w-max" },
     { field: "first_name", title: "FIRST NAME", headerClass: "dark:text-gray-300 text-sm w-max" },
     { field: "last_name", title: "LAST NAME", headerClass: "dark:text-gray-300 text-sm w-max"  },

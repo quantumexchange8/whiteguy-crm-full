@@ -19,13 +19,13 @@ const props = defineProps({
 const pageTitle = "Notifications";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false, sort: false },
 	{ field: 'title', title: 'TITLE', headerClass: "dark:text-gray-300 text-sm w-max" },
     { field: "notification_type", title: "NOTIFICATION TYPE", headerClass: "text-gray-300 text-sm w-max" },
     { field: "attachment", title: "ATTACHMENT", headerClass: "text-gray-300 text-sm w-max" },
-    { field: "is_read", title: "NOTIFICATION VIEWED?", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "is_read", title: "NOTIFICATION VIEWED?", headerClass: "text-gray-300 text-sm w-max", type: 'boolean' },
     { field: "user_id", title: "USER", headerClass: "text-gray-300 text-sm w-max" },
-    { field: "notification_created_at", title: "CREATED AT", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
+    { field: "created_at", title: "CREATED AT", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
 ]);
 
 // Custom Toastification

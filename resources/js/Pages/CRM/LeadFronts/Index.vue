@@ -19,15 +19,15 @@ const props = defineProps({
 const pageTitle = "Lead Fronts";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false, sort: false },
     { field: "id", title: "ID", headerClass: "text-gray-300 text-sm w-max" },
     { field: "name", title: "NAME", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "product", title: "PRODUCT", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "quantity", title: "QTY", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
     { field: "price", title: "PRICE", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
-    { field: "lead_front_total", title: "TOTAL", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
+    { field: "lead_front_total", title: "TOTAL", headerClass: "text-gray-300 text-sm w-max", type: 'number', sort: false, filter: false  },
     { field: "lead_front_commission", title: "COMM", headerClass: "text-gray-300 text-sm w-max", type: 'number'  },
-    { field: "lead_front_assignee", title: "ASSIGNEE", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "lead_front_assignee", title: "ASSIGNEE", headerClass: "text-gray-300 text-sm w-max", sort: false },
     { field: "vc", title: "VC", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "sdm", title: "SDM", headerClass: "text-gray-300 text-s mw-max"  },
     { field: "liquid", title: "LIQUID", headerClass: "text-gray-300 text-sm w-max"  },

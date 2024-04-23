@@ -192,4 +192,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class, 'user_id');
     }
+
+
+    public static function getAllUsersWithRelationships()
+    {
+        return self::with([
+                        'site', 'accountManager:id,username,site_id', 'accountManager.site:id,name'
+                    ])
+                    ->get();
+    }
 }

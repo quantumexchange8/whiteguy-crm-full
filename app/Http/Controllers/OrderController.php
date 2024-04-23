@@ -14,9 +14,11 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests\OrderRequest;
 use App\Models\Notification;
 use App\Models\Site;
+use App\Models\User;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Support\Facades\Schema;
 
 class OrderController extends Controller
 {
@@ -407,16 +409,98 @@ class OrderController extends Controller
                     }
                 }
             }
+        
+            $tableColumns = Schema::getColumnListing('core_order');
+            $sort_column = '';
 
-            // dd($query->toSql());v
+            if ($request['params']['sort_column'] === 'order_confirmed_at') {
+                $sort_column = 'confirmed_at';
+            }
+
+            // Global search
+            $searchTerm = $request['params']['search'];
+            if (!empty($searchTerm)) {
+                $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
+                    foreach ($tableColumns as $column) {
+                        $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
+                    }
+                });
+            }
+            
+            // Column-specific searches
+            if (isset($request['params']['column_filters'])) {
+                foreach ($request['params']['column_filters'] as $filter) {
+                    if (isset($filter['value'])) {
+                        if ($filter['field'] === 'user_id') {
+                            $filteredId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
+                                                    ->select('id', 'username')
+                                                    ->get()
+                                                    ->map(function ($user) {
+                                                        return [
+                                                            'id' => $user->id,
+                                                            'value' => $user->username,
+                                                        ];
+                                                    });
+                        }
+                        
+                        if ($filter['field'] === 'status' || $filter['field'] === 'limb_stage') {
+                            $fieldValArr = [];
+                            switch ($filter['field']) {
+                                case 'status':
+                                    $fieldValArr = [ 
+                                        "Pending", "In progress", "Active", "Cancelled", "Cancelled (approved)", "Cancelled (non-authorized)", 
+                                        "Pending allocation", "Pending payment", "Pending clearance", "Cleared", "Trade confirmation required"
+                                    ];
+                                    break;
+                                case 'limb_stage':
+                                    $fieldValArr = [ 
+                                        "ALLO", "Allo + docs", "Tt", "Cleared", "Cancelled", "Cancelled - bank block", "Cancelled - HTR", 
+                                        "Cancelled - order drop", "Cancelled refuse trade", "Kicked", "Carry over", "Free switch" 
+                                    ];
+                                    break;
+                            }
+
+                            $filteredId = [];
+
+                            foreach ($fieldValArr as $index => $fieldVal) {
+                                if (str_contains($fieldVal, $filter['value']) !== false) {
+                                    $filteredId[] = [
+                                        'id' => $index + 1,
+                                        'value' => $fieldVal,
+                                    ];
+                                }
+                            }
+                        }
+                        
+                        if (isset($filteredId)) {
+                            $filteredIdArr = [];
+                            foreach ($filteredId as $key => $value) {
+                                $filteredIdArr[] = [
+                                    'id' => $value['id'],
+                                    'value' => $value['value'],
+                                ];
+
+                            }
+                        }
+
+                        $this->applyFilterCondition($query, $filter, isset($filteredId) ? $filteredIdArr : []);
+                    }
+
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
+                    }
+                }
+            }
 
             $data = $query->with([
                                 'user:id,full_name,username,phone_number,email,country,address,site_id',
                                 'user.site:id,name'
                             ])
                             ->where('is_deleted', false)
-                            ->orderByDesc('id')
-                            ->get();
+                            ->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
+                            ->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
 
             $statusArray = [ 
                 "Pending", "In progress", "Active", "Cancelled", "Cancelled (approved)", "Cancelled (non-authorized)", 
@@ -439,17 +523,108 @@ class OrderController extends Controller
                     $order->limb_stage = $limbStageArray[$order->limb_stage - 1];
                 }
             }
-            // dd($data);
             
-            return response()->json($data);
+            $records = [
+                'data' => $data,
+                'total_rows' => $data->total(),
+            ];
+            
+            return response()->json($records);
         }
-        $data = Order::with([
-                            'user:id,full_name,username,phone_number,email,country,address,site_id',
-                            'user.site:id,name'
-                        ])
-                        ->where('is_deleted', false)
-                        ->orderByDesc('id')
-                        ->get();
+        
+        $tableColumns = Schema::getColumnListing('core_order');
+        $sort_column = '';
+
+        if ($request['params']['sort_column'] === 'order_confirmed_at') {
+            $sort_column = 'confirmed_at';
+        }
+
+        $queries = Order::query();
+        $queries->with([
+            'user:id,full_name,username,phone_number,email,country,address,site_id',
+            'user.site:id,name'
+        ]);
+        $queries->where(function ($query) use ($tableColumns, $request) {
+            // Global search
+            $searchTerm = $request['params']['search'];
+            if (!empty($searchTerm)) {
+                $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
+                    foreach ($tableColumns as $column) {
+                        $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
+                    }
+                });
+            }
+            
+            // Column-specific searches
+            if (isset($request['params']['column_filters'])) {
+                foreach ($request['params']['column_filters'] as $filter) {
+                    if (isset($filter['value'])) {
+                        if ($filter['field'] === 'user_id') {
+                            $filteredId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
+                                                    ->select('id', 'username')
+                                                    ->get()
+                                                    ->map(function ($user) {
+                                                        return [
+                                                            'id' => $user->id,
+                                                            'value' => $user->username,
+                                                        ];
+                                                    });
+                        }
+                        
+                        if ($filter['field'] === 'status' || $filter['field'] === 'limb_stage') {
+                            $fieldValArr = [];
+                            switch ($filter['field']) {
+                                case 'status':
+                                    $fieldValArr = [ 
+                                        "Pending", "In progress", "Active", "Cancelled", "Cancelled (approved)", "Cancelled (non-authorized)", 
+                                        "Pending allocation", "Pending payment", "Pending clearance", "Cleared", "Trade confirmation required"
+                                    ];
+                                    break;
+                                case 'limb_stage':
+                                    $fieldValArr = [ 
+                                        "ALLO", "Allo + docs", "Tt", "Cleared", "Cancelled", "Cancelled - bank block", "Cancelled - HTR", 
+                                        "Cancelled - order drop", "Cancelled refuse trade", "Kicked", "Carry over", "Free switch" 
+                                    ];
+                                    break;
+                            }
+
+                            $filteredId = [];
+
+                            foreach ($fieldValArr as $index => $fieldVal) {
+                                if (str_contains($fieldVal, $filter['value']) !== false) {
+                                    $filteredId[] = [
+                                        'id' => $index + 1,
+                                        'value' => $fieldVal,
+                                    ];
+                                }
+                            }
+                        }
+                        
+                        if (isset($filteredId)) {
+                            $filteredIdArr = [];
+                            foreach ($filteredId as $key => $value) {
+                                $filteredIdArr[] = [
+                                    'id' => $value['id'],
+                                    'value' => $value['value'],
+                                ];
+
+                            }
+                        }
+
+                        $this->applyFilterCondition($query, $filter, isset($filteredId) ? $filteredIdArr : []);
+                    }
+
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
+                    }
+                }
+            }
+        });
+        $queries->where('is_deleted', false);
+        $queries->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction']);
+        $data = $queries->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
 
         $statusArray = [ 
             "Pending", "In progress", "Active", "Cancelled", "Cancelled (approved)", "Cancelled (non-authorized)", 
@@ -471,8 +646,157 @@ class OrderController extends Controller
                 $order->limb_stage = $limbStageArray[$order->limb_stage - 1];
             }
         }
-        // dd($data);
-    
+            
+        $records = [
+            'data' => $data,
+            'total_rows' => $data->total(),
+        ];
+
+        return response()->json($records);
+    }
+
+    public function applyFilterCondition($query, $filter, $filteredIdArr) {
+        switch ($filter['condition']) {
+            case 'not_contain':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        array_push($tempArr, $value['id']);   
+                    }
+                    $query->whereNotIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
+                }
+                break;
+            case 'equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] === $value['value']) {
+                            array_push($tempArr, $value['id']);     
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    if ($filter['field'] === 'user_id' || $filter['field'] === 'status' || $filter['field'] === 'limb_stage'){
+                        $query->where($filter['field'], 0);
+                    } else {
+                        $query->where($filter['field'], $filter['value']);
+                    }
+                }
+                break;
+            case 'not_equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($filter['value'] !== $value['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    if ($filter['field'] === 'user_id' || $filter['field'] === 'status' || $filter['field'] === 'limb_stage'){
+                        $query->whereNot($filter['field'], 0);
+                    } else {
+                        $query->whereNot($filter['field'], $filter['value']);
+                    }
+                }
+                break;
+            case 'start_with':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if (str_starts_with($value['value'], $filter['value'])) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', $filter['value'] . '%');
+                }
+                break;
+            case 'end_with':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if (str_ends_with($value['value'], $filter['value'])) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', '%' . $filter['value']);
+                }
+                break;
+            case 'greater_than':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($value['value'] > $filter['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<', $filter['value']);
+                }
+                break;
+            case 'greater_than_equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($value['value'] >= $filter['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<=', $filter['value']);
+                }
+                break;
+            case 'less_than':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($value['value'] < $filter['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>', $filter['value']);
+                }
+                break;
+            case 'less_than_equal':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        if ($value['value'] <= $filter['value']) {
+                            array_push($tempArr, $value['id']);    
+                        }
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>=', $filter['value']);
+                }
+                break;
+            case 'contain':
+                if ($filteredIdArr) {
+                    $tempArr = [];
+                    foreach ($filteredIdArr as $index => $value) {
+                        array_push($tempArr, $value['id']);   
+                    }
+                    $query->whereIn($filter['field'], $tempArr);
+                } else {
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                }
+                break;
+        }
+    }
+
+    public function getAllUsers() {
+        $data = User::getAllUsersWithRelationships();
+        
         return response()->json($data);
     }
 
