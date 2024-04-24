@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PaymentSubmissionRequest;
 use App\Models\ContentType;
 use App\Models\PaymentMethod;
 use Carbon\Carbon;
@@ -45,15 +46,43 @@ class PaymentSubmissionController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('CRM/PaymentSubmissions/Create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PaymentSubmissionRequest $request)
     {
-        //
+        $data = $request->all();
+
+        // Insert into lead_front table
+        $newPaymentSubmissionData = PaymentSubmission::create([
+            'date' => $data['date'],
+            'amount' => $data['amount'],
+            'converted_amount' => $data['converted_amount'],
+            'user_memo' => $data['user_memo'],
+            'admin_memo' => $data['admin_memo'],
+            'admin_remark' => $data['admin_remark'],
+            'status' => $data['status'],
+            'approved_at' => $data['approved_at'],
+            'edited_at' => $data['edited_at'],
+            'created_at' => $data['created_at'],
+            'payment_method_id' => $data['payment_method_id'],
+            'user_id' => $data['user_id'],
+        ]);
+        $newPaymentSubmissionData->save();
+        
+        $errorMsgTitle = "You have successfully created a new payment submission.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('payment-submissions.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -69,7 +98,16 @@ class PaymentSubmissionController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data = PaymentSubmission::with([
+                                        'user:id,full_name,username,phone_number,email,country,address,site_id',
+                                        'user.site:id,name',
+                                        'paymentMethod:id,title'
+                                    ])
+                                    ->find($id);
+
+        return Inertia::render('CRM/PaymentSubmissions/Edit', [
+            'data' => $data,
+        ]);
     }
 
     /**
@@ -537,5 +575,29 @@ class PaymentSubmissionController extends Controller
         }
 
         return response()->json($paymentSubmissionLogEntries);
+    }
+
+    public function getAllUsers() {
+        $data = User::getAllUsersWithRelationships()
+                        ->map(function ($user) {
+                            return [
+                                'id' => $user->id,
+                                'value' => $user->username . ' (' . $user->site->name . ')',
+                            ];
+                        });
+        
+        return response()->json($data);
+    }
+
+    public function getAllPaymentMethods() {
+        $data = PaymentMethod::getAllPaymentMethods()
+                        ->map(function ($payment) {
+                            return [
+                                'id' => $payment->id,
+                                'value' => $payment->title,
+                            ];
+                        });
+        
+        return response()->json($data);
     }
 }

@@ -217,6 +217,8 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Payment Submissions Routes
     */
+        Route::get('/payment-submissions/payment-methods', [PaymentSubmissionController::class, 'getAllPaymentMethods'])->name('payment-submissions.getAllPaymentMethods');
+        Route::get('/payment-submissions/users', [PaymentSubmissionController::class, 'getAllUsers'])->name('payment-submissions.getAllUsers');
         Route::get('/payment-submissions/export/{selectedRowsData}', [PaymentSubmissionController::class, 'exportToExcel'])->name('payment-submissions.export');
         Route::get('/payment-submissions/{id}/payment-submission-log-entries', [PaymentSubmissionController::class, 'getPaymentSubmissionLogEntries'])->name('payment-submissions.getPaymentSubmissionLogEntries');
         Route::get('/payment-submissions/count', [PaymentSubmissionController::class, 'getTotalPaymentSubmissionCount'])->name('payment-submissions.getTotalPaymentSubmissionCount');

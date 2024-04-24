@@ -194,7 +194,7 @@ const changePage = (data) => {
         if (isDuplicate.value) {
             getDuplicatedData();
         } else {
-            cl(params);
+            // cl(params);
             getData(params);
         }
     }
@@ -216,7 +216,7 @@ const changePageSize = (data) => {
 const changeFilter = (data) => {
     loading.value = true;
     // params.search = data.search;
-    cl(data);
+    // cl(data);
     
     setTimeout(() => {
         loading.value = false;

@@ -37,4 +37,9 @@ class PaymentMethod extends Model
     {
         return $this->hasMany(PaymentSubmission::class, 'payment_method_id');
     }
+
+    public static function getAllPaymentMethods()
+    {
+        return self::all();
+    }
 }

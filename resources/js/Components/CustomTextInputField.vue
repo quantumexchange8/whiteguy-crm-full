@@ -1,12 +1,12 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { DashboardIcon } from '@/Components/Icons/outline'
-import InputIconWrapper from '@/Components/InputIconWrapper.vue'
-import TextareaInput from '@/Components/TextareaInput.vue'
-import InputError from '@/Components/InputError.vue'
-import Tooltip from '@/Components/Tooltip.vue'
-import Input from '@/Components/Input.vue'
 import Label from '@/Components/Label.vue'
+import Input from '@/Components/Input.vue'
+import Tooltip from '@/Components/Tooltip.vue'
+import InputError from '@/Components/InputError.vue'
+import { DashboardIcon } from '@/Components/Icons/outline'
+import TextareaInput from '@/Components/TextareaInput.vue'
+import InputIconWrapper from '@/Components/InputIconWrapper.vue'
 
 const props = defineProps({
 	inputType: {
