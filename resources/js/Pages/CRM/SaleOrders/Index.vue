@@ -18,10 +18,10 @@ const pageTitle = "Sale Orders";
 const toast = useToast();
 const colArray = ref([
 	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
-    { field: "id", title: "ID (SITE)", headerClass: "text-gray-300 text-sm w-max", type: 'text' },
-    { field: "vc", title: "VC", headerClass: "text-gray-300 text-sm w-max", type: 'text' },
-    { field: "registered_name", title: "REGISTERED NAME", headerClass: "text-gray-300 text-sm w-max", type: 'text' },
-    { field: "ao_numbers", title: "AO #1 / AO #2", headerClass: "text-gray-300 text-sm w-max", type: 'text' },
+    { field: "id", title: "ID (SITE)", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "vc", title: "VC", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "registered_name", title: "REGISTERED NAME", headerClass: "text-gray-300 text-sm w-max" },
+    { field: "ao_numbers", title: "AO #1 / AO #2", headerClass: "text-gray-300 text-sm w-max", filter: false, sorting: false },
     { field: "balance_due", title: "BALANCE DUE", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
     { field: "docs_received", title: "DOCS RECEIVED", headerClass: "text-gray-300 text-sm w-max" },
     { field: "tc_sent", title: "TC SENT", headerClass: "text-gray-300 text-sm w-max", type: 'date' },

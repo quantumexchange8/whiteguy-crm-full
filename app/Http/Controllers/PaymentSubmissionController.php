@@ -113,9 +113,38 @@ class PaymentSubmissionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(PaymentSubmissionRequest $request, string $id)
     {
-        //
+        $data = $request->all();
+        $oldPaymentSubmissionData = PaymentSubmission::find($id);
+    
+        if (isset($oldPaymentSubmissionData)) {
+            $oldPaymentSubmissionData->update([
+                'date' => $data['date'],
+                'amount' => $data['amount'],
+                'converted_amount' => $data['converted_amount'],
+                'user_memo' => $data['user_memo'],
+                'admin_memo' => $data['admin_memo'],
+                'admin_remark' => $data['admin_remark'],
+                'status' => $data['status'],
+                'approved_at' => $data['approved_at'] ? preg_replace('/(\d{2})(\d{2})$/', '$1', $data['approved_at']) : '',
+                'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+                'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['created_at']),
+                'payment_method_id' => $data['payment_method_id'],
+                'user_id' => $data['user_id'],
+            ]);
+        }
+		
+        $errorMsgTitle = "You have successfully updated the payment submission.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('payment-submissions.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -123,7 +152,20 @@ class PaymentSubmissionController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // dd($id);
+        $existingPaymentSubmission = PaymentSubmission::find($id);
+        $existingPaymentSubmission->delete();
+
+        $errorMsgTitle = "You have successfully deleted the payment submission.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('payment-submissions.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     public function getPaymentSubmissions(Request $request)
@@ -577,7 +619,8 @@ class PaymentSubmissionController extends Controller
         return response()->json($paymentSubmissionLogEntries);
     }
 
-    public function getAllUsers() {
+    public function getAllUsers() 
+    {
         $data = User::getAllUsersWithRelationships()
                         ->map(function ($user) {
                             return [
@@ -589,7 +632,8 @@ class PaymentSubmissionController extends Controller
         return response()->json($data);
     }
 
-    public function getAllPaymentMethods() {
+    public function getAllPaymentMethods() 
+    {
         $data = PaymentMethod::getAllPaymentMethods()
                         ->map(function ($payment) {
                             return [
@@ -599,5 +643,22 @@ class PaymentSubmissionController extends Controller
                         });
         
         return response()->json($data);
+    }
+
+    public function approvePaymentSubmission(Request $request)
+    {
+        $data = $request->all();
+        $paymentSubmissionData = PaymentSubmission::find($data['id']);
+    
+        if (isset($paymentSubmissionData)) {
+            $paymentSubmissionData->update([
+                'status' => 2,
+                'approved_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['approved_at']),
+            ]);
+            
+            $paymentSubmissionData->save();
+        }
+
+        return response()->json('You have successfully approved the payment submission!');
     }
 }

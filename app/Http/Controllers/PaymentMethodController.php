@@ -4,15 +4,32 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class PaymentMethodController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // Get the flashed messages from the session
+        $errors = $request->session()->get('errors');
+        $errorMsg = $request->session()->get('errorMsg');
+
+        // Clear the flashed messages from the session
+        $request->session()->forget('errors');
+        $request->session()->forget('errorMsg');
+        $request->session()->save();
+
+        if (isset($errorMsg)) {
+            return Inertia::render('CRM/PaymentMethods/Index', [
+                'errors' => $errors,
+                'errorMsg' => $errorMsg
+            ]);
+        }
+
+        return Inertia::render('CRM/PaymentMethods/Index');
     }
 
     /**

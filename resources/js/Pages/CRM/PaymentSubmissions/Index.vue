@@ -82,7 +82,6 @@ onMounted(() => {
 				:detailsLink="'payment-submissions'"
 				:categoryFilters="'/data/payment-submissions/categories'"
 				:modalComponent="PaymentSubmissionDetailsModal"
-				:customDelete="true"
 				:exportRoute="'payment-submissions.export'"
 			></Vue3Datatable>
 		</div>

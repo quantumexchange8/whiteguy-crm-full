@@ -22,7 +22,7 @@ class PaymentSubmission extends Model
         'admin_memo',
         'admin_remark',
         'status',
-        'aproved_at',
+        'approved_at',
         'edited_at',
         'created_at',
         'payment_method_id',

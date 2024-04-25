@@ -140,7 +140,19 @@ class NotificationController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $existingNotification = Notification::find($id);
+        $existingNotification->delete();
+
+        $errorMsgTitle = "You have successfully deleted the notification.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('notifications.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     public function getNotifications(Request $request)

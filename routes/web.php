@@ -209,9 +209,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Payment Methods Routes
     */
-        Route::get('/payment-methods', function () {
-            return Inertia::render('CRM/PaymentMethods/Index');
-        })->name('crm.payment-methods');
+        Route::resource('/payment-methods', PaymentMethodController::class);
         
     /*
     |--------------------------------------------------------------------------
@@ -222,6 +220,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
         Route::get('/payment-submissions/export/{selectedRowsData}', [PaymentSubmissionController::class, 'exportToExcel'])->name('payment-submissions.export');
         Route::get('/payment-submissions/{id}/payment-submission-log-entries', [PaymentSubmissionController::class, 'getPaymentSubmissionLogEntries'])->name('payment-submissions.getPaymentSubmissionLogEntries');
         Route::get('/payment-submissions/count', [PaymentSubmissionController::class, 'getTotalPaymentSubmissionCount'])->name('payment-submissions.getTotalPaymentSubmissionCount');
+        Route::post('/payment-submissions/approval', [PaymentSubmissionController::class, 'approvePaymentSubmission'])->name('payment-submissions.approvePaymentSubmission');
         Route::resource('/payment-submissions', PaymentSubmissionController::class);
 
     /*

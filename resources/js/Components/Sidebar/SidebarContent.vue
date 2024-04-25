@@ -67,11 +67,11 @@ import { TemplateIcon } from '@heroicons/vue/outline'
                 title="Lead Fronts" 
                 :active="route().current('lead-fronts.index')" 
             />
-            <SidebarCollapsibleItem 
+            <!-- <SidebarCollapsibleItem 
                 :href="route('crm.lead-uploads')" 
                 title="Lead Uploads" 
                 :active="route().current('crm.lead-uploads')" 
-            />
+            /> -->
             <SidebarCollapsibleItem 
                 :href="route('leads.index')" 
                 title="Leads" 
@@ -88,9 +88,9 @@ import { TemplateIcon } from '@heroicons/vue/outline'
                 :active="route().current('orders.index')" 
             />
             <SidebarCollapsibleItem 
-                :href="route('crm.payment-methods')" 
+                :href="route('payment-methods.index')" 
                 title="Payment Methods" 
-                :active="route().current('crm.payment-methods')" 
+                :active="route().current('payment-methods.index')" 
             />
             <SidebarCollapsibleItem 
                 :href="route('payment-submissions.index')" 
