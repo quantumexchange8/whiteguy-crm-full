@@ -193,6 +193,15 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class, 'user_id');
     }
 
+    /**
+     * SaleOrder Model
+     * Get user's orders.
+     */
+    public function saleorder(): HasMany
+    {
+        return $this->hasMany(SaleOrder::class, 'site_id');
+    }
+
     public static function getAllUsersWithRelationships()
     {
         return self::with([

@@ -316,6 +316,7 @@ const reset = () => {
     params.search = '';
     params.page = 1;
     params.pagesize = 10;
+    params.column_filters = [];
 
     if (isDuplicate.value) {
         getDuplicatedData();
@@ -1030,6 +1031,15 @@ watch(() => categories.value, (newVal) => {
             <template #created_at="rows">
                 <div class="min-w-max">{{ (rows.value.created_at && rows.value.created_at !== '-') ? formatToUserTimezone(rows.value.created_at, user.timezone, true) : '-' }}</div>
             </template>
+            <template #written_date="rows">
+                <div class="min-w-max">{{ (rows.value.written_date && rows.value.written_date !== '-') ? formatToUserTimezone(rows.value.written_date, user.timezone) : '-' }}</div>
+            </template>
+            <template #tc_sent="rows">
+                <div class="min-w-max">{{ (rows.value.tc_sent && rows.value.tc_sent !== '-') ? formatToUserTimezone(rows.value.tc_sent, user.timezone) : '-' }}</div>
+            </template>
+            <template #tt_received="rows">
+                <div class="min-w-max">{{ (rows.value.tt_received && rows.value.tt_received !== '-') ? formatToUserTimezone(rows.value.tt_received, user.timezone,) : '-' }}</div>
+            </template>
             <template #order_confirmed_at="rows">
                 <TimesCircleIcon 
                     class="flex-shrink-0 w-5 h-5"
@@ -1126,6 +1136,9 @@ watch(() => categories.value, (newVal) => {
             </template>
             <template #payment_method_id="rows">
                 {{ rows.value.payment_method.title || '-' }}
+            </template>
+            <template #ao_numbers="rows">
+                {{ rows.value.ao_1 || '-' }} / {{ rows.value.ao_2 || '-' }}
             </template>
         </vue3-datatable>
         <Modal 

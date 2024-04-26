@@ -4,6 +4,7 @@ import { useToast } from "vue-toastification";
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
 import Vue3Datatable from '@/Components/Vue3Datatable.vue'
 import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
+import SaleOrderDetailsModal from './Partials/SaleOrderDetailsModal.vue'
 import CustomToastification from '@/Components/CustomToastification.vue';
 
 const props = defineProps({
@@ -17,16 +18,16 @@ const props = defineProps({
 const pageTitle = "Sale Orders";
 const toast = useToast();
 const colArray = ref([
-	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false },
+	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false, sort: false },
     { field: "id", title: "ID (SITE)", headerClass: "text-gray-300 text-sm w-max" },
     { field: "vc", title: "VC", headerClass: "text-gray-300 text-sm w-max" },
     { field: "registered_name", title: "REGISTERED NAME", headerClass: "text-gray-300 text-sm w-max" },
-    { field: "ao_numbers", title: "AO #1 / AO #2", headerClass: "text-gray-300 text-sm w-max", filter: false, sorting: false },
+    { field: "ao_numbers", title: "AO #1 / AO #2", headerClass: "text-gray-300 text-sm w-max", filter: false, sort: false },
     { field: "balance_due", title: "BALANCE DUE", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
     { field: "docs_received", title: "DOCS RECEIVED", headerClass: "text-gray-300 text-sm w-max" },
     { field: "tc_sent", title: "TC SENT", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
     { field: "tt_received", title: "TT RECEIVED", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
-    { field: "created_at", title: "WRITTEN DATE", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
+    { field: "written_date", title: "WRITTEN DATE", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
 ]);
 
 // Custom Toastification
@@ -80,7 +81,8 @@ onMounted(() => {
 				:targetApi="'/data/sale-orders'"
 				:createLink="route('sale-orders.create')"
 				:detailsLink="'sale-orders'"
-				:categoryFilters="'/data/users-clients/categories'"
+				:categoryFilters="'/data/sale-orders/categories'"
+				:modalComponent="SaleOrderDetailsModal"
 				:exportRoute="'sale-orders.export'"
 			></Vue3Datatable>
 		</div>

@@ -24,4 +24,13 @@ class Site extends Model
     {
         return $this->hasMany(User::class, 'site_id');
     }
+
+    /**
+     * SaleOrder Model
+     * Get user's orders.
+     */
+    public function saleorder(): HasMany
+    {
+        return $this->hasMany(SaleOrder::class, 'site_id');
+    }
 }

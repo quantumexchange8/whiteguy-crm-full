@@ -410,11 +410,12 @@ class LeadFrontController extends Controller
                         
                         $this->applyFilterCondition($query, $filter, isset($filteredId) ? $filteredIdArr : []);
                         
-                        if ($filter['condition'] === 'is_null') {
-                            $query->orWhereNull($filter['field']);
-                        } elseif ($filter['condition'] === 'is_not_null') {
-                            $query->orWhereNotNull($filter['field']);
-                        }
+                    }
+
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
                     }
                 }
             }
@@ -504,11 +505,12 @@ class LeadFrontController extends Controller
                         
                         $this->applyFilterCondition($query, $filter, isset($filteredId) ? $filteredIdArr : []);
                         
-                        if ($filter['condition'] === 'is_null') {
-                            $query->orWhereNull($filter['field']);
-                        } elseif ($filter['condition'] === 'is_not_null') {
-                            $query->orWhereNotNull($filter['field']);
-                        }
+                    }
+
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
                     }
                 }
             }
@@ -609,7 +611,7 @@ class LeadFrontController extends Controller
                     }
                     $query->whereIn('lead_id', $tempArr);
                 } else {
-                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<', $filter['value']);
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>', $filter['value']);
                 }
                 break;
             case 'greater_than_equal':
@@ -622,7 +624,7 @@ class LeadFrontController extends Controller
                     }
                     $query->whereIn('lead_id', $tempArr);
                 } else {
-                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<=', $filter['value']);
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>=', $filter['value']);
                 }
                 break;
             case 'less_than':
@@ -635,7 +637,7 @@ class LeadFrontController extends Controller
                     }
                     $query->whereIn('lead_id', $tempArr);
                 } else {
-                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>', $filter['value']);
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<', $filter['value']);
                 }
                 break;
             case 'less_than_equal':
@@ -648,7 +650,7 @@ class LeadFrontController extends Controller
                     }
                     $query->whereIn('lead_id', $tempArr);
                 } else {
-                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>=', $filter['value']);
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<=', $filter['value']);
                 }
                 break;
             case 'contain':
@@ -661,6 +663,12 @@ class LeadFrontController extends Controller
                 } else {
                     $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', '%' . $filter['value'] . '%');
                 }
+                break;
+            case 'is_null':
+                $query->orWhereNull($filter['field']);
+                break;
+            case 'is_not_null':
+                $query->orWhereNotNull($filter['field']);
                 break;
         }
     }

@@ -84,6 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/data/payment-submissions/latest', [PaymentSubmissionController::class, 'getLatestPaymentSubmissions']);
     Route::get('/data/payment-submissions/categories', [PaymentSubmissionController::class, 'getCategories']);
     Route::get('/data/sale-orders', [SaleOrderController::class, 'getSaleOrders']);
+    Route::get('/data/sale-orders/categories', [SaleOrderController::class, 'getCategories']);
     Route::get('/data/users-clients', [UserClientController::class, 'getUsersClients']);
     Route::get('/data/users-clients/latest', [UserClientController::class, 'getLatestUsersClients']);
     Route::get('/data/users-clients/categories', [UserClientController::class, 'getCategories']);

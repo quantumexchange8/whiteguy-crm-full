@@ -481,7 +481,7 @@ class NotificationController extends Controller
                     }
                     $query->whereIn($filter['field'], $tempArr);
                 } else {
-                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<', $filter['value']);
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>', $filter['value']);
                 }
                 break;
             case 'greater_than_equal':
@@ -494,7 +494,7 @@ class NotificationController extends Controller
                     }
                     $query->whereIn($filter['field'], $tempArr);
                 } else {
-                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<=', $filter['value']);
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>=', $filter['value']);
                 }
                 break;
             case 'less_than':
@@ -507,7 +507,7 @@ class NotificationController extends Controller
                     }
                     $query->whereIn($filter['field'], $tempArr);
                 } else {
-                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>', $filter['value']);
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<', $filter['value']);
                 }
                 break;
             case 'less_than_equal':
@@ -520,7 +520,7 @@ class NotificationController extends Controller
                     }
                     $query->whereIn($filter['field'], $tempArr);
                 } else {
-                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '>=', $filter['value']);
+                    $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], '<=', $filter['value']);
                 }
                 break;
             case 'contain':
@@ -533,6 +533,12 @@ class NotificationController extends Controller
                 } else {
                     $query->where(($filter['field'] === 'lead_front_commission') ? 'commission' : $filter['field'], 'LIKE', '%' . $filter['value'] . '%');
                 }
+                break;
+            case 'is_null':
+                $query->orWhereNull($filter['field']);
+                break;
+            case 'is_not_null':
+                $query->orWhereNotNull($filter['field']);
                 break;
         }
     }

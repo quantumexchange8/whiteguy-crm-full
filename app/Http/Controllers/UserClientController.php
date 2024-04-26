@@ -729,7 +729,7 @@ class UserClientController extends Controller
                     }
                     $query->whereIn($filter['field'], $tempArr);
                 } else {
-                    $query->where($filter['field'], '<', $filter['value']);
+                    $query->where($filter['field'], '>', $filter['value']);
                 }
                 break;
             case 'greater_than_equal':
@@ -742,7 +742,7 @@ class UserClientController extends Controller
                     }
                     $query->whereIn($filter['field'], $tempArr);
                 } else {
-                    $query->where($filter['field'], '<=', $filter['value']);
+                    $query->where($filter['field'], '>=', $filter['value']);
                 }
                 break;
             case 'less_than':
@@ -755,7 +755,7 @@ class UserClientController extends Controller
                     }
                     $query->whereIn($filter['field'], $tempArr);
                 } else {
-                    $query->where($filter['field'], '>', $filter['value']);
+                    $query->where($filter['field'], '<', $filter['value']);
                 }
                 break;
             case 'less_than_equal':
@@ -768,7 +768,7 @@ class UserClientController extends Controller
                     }
                     $query->whereIn($filter['field'], $tempArr);
                 } else {
-                    $query->where($filter['field'], '>=', $filter['value']);
+                    $query->where($filter['field'], '<=', $filter['value']);
                 }
                 break;
             case 'contain':
@@ -781,6 +781,12 @@ class UserClientController extends Controller
                 } else {
                     $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
                 }
+                break;
+            case 'is_null':
+                $query->orWhereNull($filter['field']);
+                break;
+            case 'is_not_null':
+                $query->orWhereNotNull($filter['field']);
                 break;
         }
     }

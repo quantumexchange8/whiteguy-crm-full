@@ -91,7 +91,7 @@ class SaleOrderController extends Controller
                 if (is_array($options) && count($options) > 0) {
                     $tempArray = [];
                     foreach ($options as $value) {
-                        array_push($tempArray, (int)$value);
+                        array_push($tempArray, $value);
                     }
                     $query->whereIn($category, $tempArray);
 
@@ -121,7 +121,7 @@ class SaleOrderController extends Controller
                 }
             }
 
-            $tableColumns = Schema::getColumnListing('core_lead');
+            $tableColumns = Schema::getColumnListing('core_saleorder');
 
             // Global search
             $searchTerm = $request['params']['search'];
@@ -137,26 +137,14 @@ class SaleOrderController extends Controller
             if (isset($request['params']['column_filters'])) {
                 foreach ($request['params']['column_filters'] as $filter) {
                     if (isset($filter['value'])) {
-                        // if ($filter['field'] === 'lead_assignee') {
-                        //     $leadAssigneeId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
-                        //                             ->select('id', 'username')
-                        //                             ->get();
-
-                        //     $assigneeIdArr = [];
-                        //     foreach ($leadAssigneeId as $key => $value) {
-                        //         $assigneeIdArr[] = [
-                        //             'id' => $value->id,
-                        //             'value' => $value->username,
-                        //         ];
-                        //     }
-                        // }
                         $this->applyFilterCondition($query, $filter, isset($assigneeIdArr) ? $assigneeIdArr : []);
                         
-                        if ($filter['condition'] === 'is_null') {
-                            $query->orWhereNull($filter['field']);
-                        } elseif ($filter['condition'] === 'is_not_null') {
-                            $query->orWhereNotNull($filter['field']);
-                        }
+                    }
+                    
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
                     }
                 }
             }
@@ -164,19 +152,7 @@ class SaleOrderController extends Controller
             $sort_column = '';
 
             // dd($query->toSql(), $query->getBindings());
-            $data = $query->with([
-                                'leadCreator:id,username,site_id', 
-                                'leadCreator.site:id,name', 
-                                'assignee:id,username,site_id', 
-                                'assignee.site:id,name', 
-                                'leadnotes',
-                                'leadnotes.leadNoteCreator:id,username,site_id',
-                                'leadnotes.leadNoteCreator.site:id,name',
-                                'contactOutcome:id,title',
-                                'stage:id,title',
-                                'appointmentLabel:id,title'
-                            ])
-                            ->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
+            $data = $query->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction'])
                             ->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
                             
             $records = [
@@ -192,18 +168,11 @@ class SaleOrderController extends Controller
         
         // Default fetch all on load
         $queries = SaleOrder::query();
-        // $queries->with([
-        //                     'leadCreator:id,username,site_id', 
-        //                     'leadCreator.site:id,name', 
-        //                     'assignee:id,username,site_id', 
-        //                     'assignee.site:id,name', 
-        //                     'leadnotes',
-        //                     'leadnotes.leadNoteCreator:id,username,site_id',
-        //                     'leadnotes.leadNoteCreator.site:id,name',
-        //                     'contactOutcome:id,title',
-        //                     'stage:id,title',
-        //                     'appointmentLabel:id,title'
-        // ]);
+        $queries->with([
+                            'creator:id,username,site_id', 
+                            'creator.site:id,name', 
+                            'site:id,name', 
+        ]);
         $queries->where(function ($query) use ($tableColumns, $request) {
             // Global search
             $searchTerm = $request['params']['search'];
@@ -219,35 +188,21 @@ class SaleOrderController extends Controller
             if (isset($request['params']['column_filters'])) {
                 foreach ($request['params']['column_filters'] as $filter) {
                     if (isset($filter['value'])) {
-                        // if ($filter['field'] === 'lead_assignee') {
-                        //     $leadAssigneeId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
-                        //                             ->select('id', 'username')
-                        //                             ->get();
-
-                        //     $assigneeIdArr = [];
-                        //     foreach ($leadAssigneeId as $key => $value) {
-                        //         $assigneeIdArr[] = [
-                        //             'id' => $value->id,
-                        //             'value' => $value->username,
-                        //         ];
-                        //     }
-                        // }
-                        $this->applyFilterCondition($query, $filter, isset($assigneeIdArr) ? $assigneeIdArr : []);
+                        $this->applyFilterCondition($query, $filter, []);
                         
-                        if ($filter['condition'] === 'is_null') {
-                            $query->orWhereNull($filter['field']);
-                        } elseif ($filter['condition'] === 'is_not_null') {
-                            $query->orWhereNotNull($filter['field']);
-                        }
+                    }
+
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
                     }
                 }
             }
-            // dd($query->toSQL());
         });
         $queries->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction']);
         $data = $queries->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
         
-
         $records = [
             'data' => $data,
             'total_rows' => $data->total(),
@@ -259,132 +214,70 @@ class SaleOrderController extends Controller
     public function applyFilterCondition($query, $filter, $filteredIdArr) {
         switch ($filter['condition']) {
             case 'not_contain':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        array_push($tempArr, $value['id']);   
-                    }
-                    $query->whereNotIn($filter['field'], $tempArr);
-                } else {
-                    $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
-                }
+                $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
                 break;
             case 'equal':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        if ($filter['value'] === $value['value']) {
-                            array_push($tempArr, $value['id']);     
-                        }
-                    }
-                    $query->whereIn($filter['field'], $tempArr);
-                } else {
-                    $query->where($filter['field'], $filter['value']);
-                }
+                $query->where($filter['field'], $filter['value']);
                 break;
             case 'not_equal':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        if ($filter['value'] !== $value['value']) {
-                            array_push($tempArr, $value['id']);    
-                        }
-                    }
-                    $query->whereIn($filter['field'], $tempArr);
-                } else {
-                    $query->whereNot($filter['field'], $filter['value']);
-                }
+                $query->whereNot($filter['field'], $filter['value']);
                 break;
             case 'start_with':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        if (str_starts_with($value['value'], $filter['value'])) {
-                            array_push($tempArr, $value['id']);    
-                        }
-                    }
-                    $query->whereIn($filter['field'], $tempArr);
-                } else {
-                    $query->where($filter['field'], 'LIKE', $filter['value'] . '%');
-                }
+                $query->where($filter['field'], 'LIKE', $filter['value'] . '%');
                 break;
             case 'end_with':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        if (str_ends_with($value['value'], $filter['value'])) {
-                            array_push($tempArr, $value['id']);    
-                        }
-                    }
-                    $query->whereIn($filter['field'], $tempArr);
-                } else {
-                    $query->where($filter['field'], 'LIKE', '%' . $filter['value']);
-                }
+                $query->where($filter['field'], 'LIKE', '%' . $filter['value']);
                 break;
             case 'greater_than':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        if ($filter['value'] < $value['value']) {
-                            array_push($tempArr, $value['id']);    
-                        }
-                    }
-                    $query->whereIn($filter['field'], $tempArr);
-                } else {
-                    $query->where($filter['field'], '<', $filter['value']);
-                }
+                $query->where($filter['field'], '>', $filter['value']);
                 break;
             case 'greater_than_equal':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        if ($filter['value'] <= $value['value']) {
-                            array_push($tempArr, $value['id']);    
-                        }
-                    }
-                    $query->whereIn($filter['field'], $tempArr);
-                } else {
-                    $query->where($filter['field'], '<=', $filter['value']);
-                }
+                $query->where($filter['field'], '>=', $filter['value']);
                 break;
             case 'less_than':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        if ($filter['value'] > $value['value']) {
-                            array_push($tempArr, $value['id']);    
-                        }
-                    }
-                    $query->whereIn($filter['field'], $tempArr);
-                } else {
-                    $query->where($filter['field'], '>', $filter['value']);
-                }
+                $query->where($filter['field'], '<', $filter['value']);
                 break;
             case 'less_than_equal':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        if ($filter['value'] >= $value['value']) {
-                            array_push($tempArr, $value['id']);    
-                        }
-                    }
-                    $query->whereIn($filter['field'], $tempArr);
-                } else {
-                    $query->where($filter['field'], '>=', $filter['value']);
-                }
+                $query->where($filter['field'], '<=', $filter['value']);
                 break;
             case 'contain':
-                if ($filteredIdArr) {
-                    $tempArr = [];
-                    foreach ($filteredIdArr as $index => $value) {
-                        array_push($tempArr, $value['id']);   
-                    }
-                    $query->whereIn($filter['field'], $tempArr);
-                } else {
-                    $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
-                }
+                $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
+                break;
+            case 'is_null':
+                $query->orWhereNull($filter['field']);
+                break;
+            case 'is_not_null':
+                $query->orWhereNotNull($filter['field']);
                 break;
         }
+    }
+
+    public function getCategories(Request $request)
+    {
+        $written_date = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+
+        $tc_sent = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+
+        $tt_received = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+
+        $settlement_date = [ "Today", "Past 7 days", "This month", "This year", "No date", "Has date" ];
+
+        $currency_pair = [ 
+            ['id' => 'USDEUR', 'title' => "USD/EUR"],
+            ['id' => 'USDGBP', 'title' => "USD/GBP"],
+            ['id' => 'USDAUD', 'title' => "USD/AUD"],
+            ['id' => 'USDNZD', 'title' => "USD/NZD"],
+        ];
+
+        $data = [
+            'written_date' => $written_date,
+            'tc_sent' => $tc_sent,
+            'tt_received' => $tt_received,
+            'settlement_date' => $settlement_date,
+            'currency_pair' => $currency_pair,
+        ];
+        
+        return response()->json($data);
     }
 
     public function getTotalSaleOrderCount()

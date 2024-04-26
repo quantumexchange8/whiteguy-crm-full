@@ -876,11 +876,12 @@ class LeadController extends Controller
                         }
                         $this->applyFilterCondition($query, $filter, isset($assigneeIdArr) ? $assigneeIdArr : []);
                         
-                        if ($filter['condition'] === 'is_null') {
-                            $query->orWhereNull($filter['field']);
-                        } elseif ($filter['condition'] === 'is_not_null') {
-                            $query->orWhereNotNull($filter['field']);
-                        }
+                    }
+
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
                     }
                 }
             }
@@ -966,11 +967,12 @@ class LeadController extends Controller
                         }
                         $this->applyFilterCondition($query, $filter, isset($assigneeIdArr) ? $assigneeIdArr : []);
                         
-                        if ($filter['condition'] === 'is_null') {
-                            $query->orWhereNull($filter['field']);
-                        } elseif ($filter['condition'] === 'is_not_null') {
-                            $query->orWhereNotNull($filter['field']);
-                        }
+                    }
+
+                    if ($filter['condition'] === 'is_null') {
+                        $query->orWhereNull($filter['field']);
+                    } elseif ($filter['condition'] === 'is_not_null') {
+                        $query->orWhereNotNull($filter['field']);
                     }
                 }
             }
@@ -1071,7 +1073,7 @@ class LeadController extends Controller
                     }
                     $query->whereIn('assignee_id', $tempArr);
                 } else {
-                    $query->where($filter['field'], '<', $filter['value']);
+                    $query->where($filter['field'], '>', $filter['value']);
                 }
                 break;
             case 'greater_than_equal':
@@ -1084,7 +1086,7 @@ class LeadController extends Controller
                     }
                     $query->whereIn('assignee_id', $tempArr);
                 } else {
-                    $query->where($filter['field'], '<=', $filter['value']);
+                    $query->where($filter['field'], '>=', $filter['value']);
                 }
                 break;
             case 'less_than':
@@ -1097,7 +1099,7 @@ class LeadController extends Controller
                     }
                     $query->whereIn('assignee_id', $tempArr);
                 } else {
-                    $query->where($filter['field'], '>', $filter['value']);
+                    $query->where($filter['field'], '<', $filter['value']);
                 }
                 break;
             case 'less_than_equal':
@@ -1110,7 +1112,7 @@ class LeadController extends Controller
                     }
                     $query->whereIn('assignee_id', $tempArr);
                 } else {
-                    $query->where($filter['field'], '>=', $filter['value']);
+                    $query->where($filter['field'], '<=', $filter['value']);
                 }
                 break;
             case 'contain':
@@ -1123,6 +1125,12 @@ class LeadController extends Controller
                 } else {
                     $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
                 }
+                break;
+            case 'is_null':
+                $query->orWhereNull($filter['field']);
+                break;
+            case 'is_not_null':
+                $query->orWhereNotNull($filter['field']);
                 break;
         }
     }
