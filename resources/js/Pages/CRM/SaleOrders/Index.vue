@@ -84,6 +84,7 @@ onMounted(() => {
 				:categoryFilters="'/data/sale-orders/categories'"
 				:modalComponent="SaleOrderDetailsModal"
 				:exportRoute="'sale-orders.export'"
+				:exportAllRoute="route('sale-orders.getAllSaleOrdersForExport')"
 			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>

@@ -60,10 +60,10 @@ class LeadFrontsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
             number_format(((float)$leadFront->quantity), 2, '.', ''),
             number_format(((float)$leadFront->price), 2, '.', ''),
             number_format(((float)$leadFront->price * (float)$leadFront->quantity), 2, '.', ''),
-            '(' . number_format((float)$leadFront->commission, 2, '.', '') . ') ' . number_format(((float)$leadFront->commission / 100 * ((float)$leadFront->price * (float)$leadFront->quantity)), 2, '.', ''),
+            '(' . number_format((float)$leadFront->commission, 2, '.', '') . '%) ' . number_format(((float)$leadFront->commission / 100 * ((float)$leadFront->price * (float)$leadFront->quantity)), 2, '.', ''),
             $leadFront->vc,
-            $leadFront->sdm,
-            $leadFront->liquid,
+            (!$leadFront->sdm) ? 'FALSE' : $leadFront->sdm,
+            (!$leadFront->liquid) ? 'FALSE' : $leadFront->liquid,
             $leadFront->bank,
             $leadFront->note,
             $leadFront->lead?->assignee ? $leadFront->lead->assignee->username . ' (' . $leadFront->lead->assignee->site->name . ')' : 'No Assignee Set',
@@ -82,7 +82,6 @@ class LeadFrontsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
                                         'lead.assignee.site:id,name'
                                     ])
                             ->whereIn('id', $this->leadFronts)
-                            ->orderByDesc('id')
-                            ->get();
+                            ->orderByDesc('id');
     }
 }

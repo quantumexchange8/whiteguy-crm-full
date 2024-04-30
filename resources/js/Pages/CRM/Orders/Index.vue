@@ -90,6 +90,7 @@ onMounted(() => {
 				:modalComponent="OrderDetailsModal"
 				:customDelete="true"
 				:exportRoute="'orders.export'"
+				:exportAllRoute="route('orders.getAllOrdersForExport')"
 			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>

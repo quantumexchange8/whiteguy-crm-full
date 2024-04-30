@@ -87,6 +87,7 @@ onMounted(() => {
 				:categoryFilters="'/data/lead-fronts/categories'"
 				:modalComponent="LeadFrontDetailsModal"
 				:exportRoute="'lead-fronts.export'"
+				:exportAllRoute="route('lead-fronts.getAllLeadFrontForExport')"
 			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>

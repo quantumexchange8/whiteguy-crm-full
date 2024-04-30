@@ -594,4 +594,15 @@ class NotificationController extends Controller
         
         return (new NotificationsExport($notificationsArr))->download($exportTitle);
     }
+
+    public function getAllNotificationsForExport()
+    {
+        $data = Notification::with([
+                                    'user:id,full_name,username,phone_number,email,country,address,site_id',
+                                    'user.site:id,name'
+                                ])
+                                ->get();
+
+        return response()->json($data);
+    }
 }

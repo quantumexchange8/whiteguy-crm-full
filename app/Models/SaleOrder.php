@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SaleOrder extends Model
 {
@@ -82,6 +83,15 @@ class SaleOrder extends Model
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class, 'site_id');
+    }
+
+    /**
+     * SaleOrderItem Model
+     * Get the sale order items of the sale order.
+     */
+    public function saleOrderItems(): HasMany
+    {
+        return $this->hasMany(SaleOrderItem::class, 'sale_order_id');
     }
 
 }

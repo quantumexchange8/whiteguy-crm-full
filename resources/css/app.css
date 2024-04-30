@@ -212,6 +212,7 @@
 
 	.bh-datatable .bh-table-responsive .bh-table-compact > thead > tr > th > .bh-filter .bh-filter-menu {
 		border: 1px solid #0a0a0a82;
+		padding: 0;
 	}
 
 	.bh-datatable .bh-table-responsive .bh-table-compact > thead > tr > th > .bh-filter .bh-filter-menu button {

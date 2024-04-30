@@ -78,6 +78,9 @@ const props = defineProps({
     exportRoute: {
         type: String,
     },
+    exportAllRoute: {
+        type: String,
+    },
     errors:Object,
 })
 
@@ -421,7 +424,7 @@ const importExcel = (e) => {
 };
 
 // Gets selected rows or all rows based on user selection and sends to controller for exporting to excel file
-const exportToExcel = (type) => {
+const exportToExcel = async (type) => {
     const selected = datatable.value.getSelectedRows();
     const filteredRows = datatable.value.getFilteredRows();
     selectedRowsLength.value = selected.length;
@@ -429,7 +432,12 @@ const exportToExcel = (type) => {
 
     switch (type) {
         case 'All':
-            selectedRows.value = rows.value.map(col => col.id);
+            try {
+                const allRowsData = await axios.get(props.exportAllRoute);
+                selectedRows.value = allRowsData.data.map(col => col.id);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
             break;
         case 'Filtered':
             selectedRows.value = filteredRows.map(col => col.id);
@@ -444,16 +452,16 @@ const exportToExcel = (type) => {
 
     if (selectedRows.value.length > 0) {
         window.location.href = route(props.exportRoute, { selectedRowsData: selectedRows.value });
+        selected.forEach((col) => {
+            selectedRows.value.push(col.id);
+        });
+        // cl(type);
+        router.get(route(props.exportRoute, { selectedRowsData: selectedRows.value }), {
+            onSuccess: () => clearSelectedRows(),
+        })
+    } else {
+        clearSelectedRows()
     }
-
-    clearSelectedRows()
-
-    selected.forEach((col) => {
-        selectedRows.value.push(col.id);
-    });
-    router.get(route(props.exportRoute, { selectedRowsData: selectedRows.value }), {
-        onSuccess: () => clearSelectedRows(),
-    })
 };
 
 const clearSelectedRows = () => {
@@ -637,7 +645,7 @@ watch(() => categories.value, (newVal) => {
                                             :variant="'success'"
                                             :size="'sm'"
                                             class="justify-center gap-2 w-full h-full" 
-                                            @click="exportToExcel('All')"
+                                            @click="exportToExcel('Filtered')"
                                         >
                                             Export Filtered  ({{ filteredRowsLength }})
                                         </Button>

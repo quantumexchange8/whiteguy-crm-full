@@ -1559,4 +1559,23 @@ class LeadController extends Controller
     {
         return response()->json(LeadAppointmentLabel::all());
     }
+
+    public function getAllLeadsForExport()
+    {
+        $data = Lead::with([
+                            'leadCreator:id,username,site_id', 
+                            'leadCreator.site:id,name', 
+                            'assignee:id,username,site_id', 
+                            'assignee.site:id,name', 
+                            'leadnotes',
+                            'leadnotes.leadNoteCreator:id,username,site_id',
+                            'leadnotes.leadNoteCreator.site:id,name',
+                            'contactOutcome:id,title',
+                            'stage:id,title',
+                            'appointmentLabel:id,title'
+                        ])
+                        ->get();
+
+        return response()->json($data);
+    }
 }

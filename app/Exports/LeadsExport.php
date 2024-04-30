@@ -63,7 +63,7 @@ class LeadsExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
             'Data Type',
             'Deleted At',
             'Deleted Note',
-            'Sort ID',
+            // 'Sort ID',
         ];
     }
 
@@ -99,11 +99,11 @@ class LeadsExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
             $lead->assignee_read_at,
             $lead->edited_at,
             $lead->created_at,
-            $lead->appointment_label_id,
+            $lead->appointment_label_id ? $lead->appointmentLabel->title : '',
             $lead->assignee_id ? $lead->assignee->username . ' (' . $lead->assignee->site->name . ')' : 'No Assignee Set',
-            $lead->contact_outcome_id,
+            $lead->contact_outcome_id ? $lead->contactOutcome->title : '',
             $lead->created_by_id ? $lead->leadCreator->username . ' (' . $lead->leadCreator->site->name . ')' : 'No Creator Set',
-            $lead->stage_id,
+            $lead->stage_id ? $lead->stage->title : '',
             $lead->give_up_at,
             $lead->account_manager,
             $lead->address,
@@ -113,7 +113,7 @@ class LeadsExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
             $lead->data_type,
             $lead->deleted_at,
             $lead->deleted_note,
-            $lead->sort_id,
+            // $lead->sort_id,
         ];
     }
 
@@ -124,7 +124,10 @@ class LeadsExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
                                     'assignee:id,username,site_id',
                                     'assignee.site:id,name',
                                     'leadCreator:id,username,site_id',
-                                    'leadCreator.site:id,name'
+                                    'leadCreator.site:id,name',
+                                    'stage:id,title',
+                                    'contactOutcome:id,title',
+                                    'appointmentLabel:id,title'
                                 ])
                         ->orderByDesc('id')
                         ->whereIn('id', $this->leads);

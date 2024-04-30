@@ -998,4 +998,12 @@ class UserClientController extends Controller
 
         return response()->json($userList);
     }
+
+    public function getAllUserForExport()
+    {
+        $userList = User::with(['site', 'accountManager:id,username,site_id', 'accountManager.site:id,name'])
+                            ->get();
+
+        return response()->json($userList);
+    }
 }

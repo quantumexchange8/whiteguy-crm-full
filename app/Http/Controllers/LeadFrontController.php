@@ -820,4 +820,12 @@ class LeadFrontController extends Controller
     {
         return response()->json(LeadFront::count());
     }
+
+    public function getAllLeadFrontForExport()
+    {
+        $data = LeadFront::with(['lead', 'lead.assignee', 'lead.assignee.site'])
+                            ->get();
+
+        return response()->json($data);
+    }
 }

@@ -91,6 +91,7 @@ onMounted(() => {
 				:getDuplicatesURL="'/data/leads/duplicates'"
 				:hasImport="true"
 				:exportRoute="'leads.export'"
+				:exportAllRoute="route('leads.getAllLeadsForExport')"
 			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>

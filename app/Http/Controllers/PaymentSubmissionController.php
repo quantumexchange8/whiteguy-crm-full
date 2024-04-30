@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PaymentSubmissionExport;
 use App\Http\Requests\PaymentSubmissionRequest;
 use App\Models\ContentType;
 use App\Models\PaymentMethod;
@@ -575,6 +576,18 @@ class PaymentSubmissionController extends Controller
         
         return response()->json($data);
     }
+    
+    public function getAllPaymentSubmissionsForExport()
+    {
+        $data = PaymentSubmission::with([
+                                'user:id,full_name,username,phone_number,email,country,address,site_id',
+                                'user.site:id,name',
+                                'paymentMethod:id,title'
+                            ])
+                            ->get();
+        
+        return response()->json($data);
+    }
 
     public function getCategories(Request $request)
     {
@@ -666,5 +679,18 @@ class PaymentSubmissionController extends Controller
         }
 
         return response()->json('You have successfully approved the payment submission!');
+    }
+    
+    public function exportToExcel($selectedRowsData)
+    {
+        $paymentSubmissionArr = explode(',', $selectedRowsData);
+        foreach ($paymentSubmissionArr as $key => $value) {
+            $paymentSubmissionArr[$key] = (int)$value;
+        }
+
+        $currentDate = Carbon::now()->format('Ymd_His');
+        $exportTitle = 'payment-submission_' . $currentDate . '.xlsx';
+        
+        return (new PaymentSubmissionExport($paymentSubmissionArr))->download($exportTitle);
     }
 }

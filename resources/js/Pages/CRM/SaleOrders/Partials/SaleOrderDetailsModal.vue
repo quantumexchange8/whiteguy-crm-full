@@ -7,8 +7,8 @@ import { cl, back, convertToHumanReadable, replaceHyphensWithEmpty, formatToUser
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
 import { AtSymbolIcon } from '@heroicons/vue/outline';
 import { PhoneIcon, MapIcon, FlagIcon, CalendarIcon } from '@heroicons/vue/solid';
-// import UserOrdersModal from './UserOrdersModal.vue';
-// import UserChangelogsSection from './UserChangelogsSection.vue';
+import SaleOrderItemsDetailsModal from './SaleOrderItemsDetailsModal.vue';
+import SaleOrderChangelogSection from './SaleOrderChangelogSection.vue';
 import Label from '@/Components/Label.vue';
 import Button from '@/Components/Button.vue';
 import CustomLabelGroup from '@/Components/CustomLabelGroup.vue';
@@ -22,32 +22,29 @@ const props = defineProps({
 })
 
 const categories = ref([
-    'Sale Order Info', 'Client Details', 'Financial Details', 'Allocation & Support', 'Sale Order Items'
+    'Sale Order Info', 'Client Details', 'Financial Details', 'Allocation & Support'
 ])
 
 const emit = defineEmits(['closeModal', 'rowEdit']);
 
 const page = usePage();
 const user = computed(() => page.props.auth.user)
-const userId = ref();
-const isUserOrdersModalOpen = ref(false);
+const saleOrderItemId = ref();
+const isSaleOrderItemsModalOpen = ref(false);
 const saleOrderItemsData = reactive({});
 
 onMounted(async () => {
-    // const saleOrderItemsResponse = await axios.get(route('sale-orders.getSaleOrderItems', props.userId));
-    // saleOrderItemsData.value = saleOrderItemsResponse.data;
-
     replaceHyphensWithEmpty(props.selectedRowData);
 });
 
-const openUserOrdersModal = () => {
-    userId.value = props.selectedRowData.id;
-    isUserOrdersModalOpen.value = true;
+const openSaleOrderItemsModal = () => {
+    saleOrderItemId.value = props.selectedRowData.id;
+    isSaleOrderItemsModalOpen.value = true;
 };
 
-const closeUserOrdersModal = () => {
-    isUserOrdersModalOpen.value = false;
-    userId.value = null;
+const closeSaleOrderItemsModal = () => {
+    isSaleOrderItemsModalOpen.value = false;
+    saleOrderItemId.value = null;
 };
 </script>
 
@@ -58,9 +55,6 @@ const closeUserOrdersModal = () => {
                 <div class="input-group flex flex-col">
                     <p class="dark:text-gray-300 font-semibold text-xl pb-2">
                         Client Details
-                        <!-- <span class="text-xs font-thin pl-4">
-                            ( {{ props.selectedRowData?.id || '' }} )
-                        </span> -->
                     </p>
                     <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-4">
                         <p class="dark:text-gray-300 lg:col-span-6 font-semibold text-2xl pb-2">
@@ -142,6 +136,29 @@ const closeUserOrdersModal = () => {
                                     ]"
                                 >
                                     <div class="grid grid-cols-1 sm:grid-cols-3">
+                                        <div class="input-wrapper">
+                                            <Label
+                                                :value="'Sale Order Items'"
+                                                :for="'sale_order_items'"
+                                                class="mb-2"
+                                            >
+                                            </Label>
+                                            <div class="my-4 ml-6">
+                                                <Button 
+                                                    :type="'button'"
+                                                    :size="'sm'"
+                                                    class="self-center justify-center gap-2 w-full lg:w-4/5 text-sm" 
+                                                    @click="openSaleOrderItemsModal"
+                                                >
+                                                    View Sale Order Items
+                                                </Button>
+                                                <SaleOrderItemsDetailsModal 
+                                                    :isOpen="isSaleOrderItemsModalOpen" 
+                                                    :saleOrderItemId="props.selectedRowData.id" 
+                                                    @close="closeSaleOrderItemsModal" 
+                                                />
+                                            </div>
+                                        </div>
                                         <CustomLabelGroup
                                             :inputId="'site'"
                                             :labelValue="'Site:'"
@@ -150,22 +167,22 @@ const closeUserOrdersModal = () => {
                                         <CustomLabelGroup
                                             :inputId="'written_date'"
                                             :labelValue="'Written Date:'"
-                                            :dataValue="props.selectedRowData?.written_date || '-'"
+                                            :dataValue="props.selectedRowData.written_date ? formatToUserTimezone(props.selectedRowData.written_date, user.timezone) : '-'"
                                         />
-                                        <CustomLabelGroup
+                                        <!-- <CustomLabelGroup
                                             :inputId="'public_id'"
                                             :labelValue="'Sale Order Public ID:'"
                                             :dataValue="props.selectedRowData?.public_id || '-'"
-                                        />
+                                        /> -->
                                         <CustomLabelGroup
-                                            :inputId="'created_by'"
+                                            :inputId="'created_by_id'"
                                             :labelValue="'Created by:'"
-                                            :dataValue="props.selectedRowData?.created_by || '-'"
+                                            :dataValue="props.selectedRowData?.created_by_id || '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'edited_at'"
                                             :labelValue="'Edited at:'"
-                                            :dataValue="props.selectedRowData?.username || '-'"
+                                            :dataValue="props.selectedRowData.edited_at ? formatToUserTimezone(props.selectedRowData.edited_at, user.timezone, true) : '-'"
                                         />
                                     </div>
                                 </TabPanel>
@@ -176,29 +193,6 @@ const closeUserOrdersModal = () => {
                                     ]"
                                 >
                                     <div class="grid grid-cols-1 sm:grid-cols-3">
-                                        <!-- <div class="input-wrapper">
-                                            <Label
-                                                :value="'Orders'"
-                                                :for="'orders'"
-                                                class="mb-2"
-                                            >
-                                            </Label>
-                                            <div class="my-4 ml-6">
-                                                <Button 
-                                                    :type="'button'"
-                                                    :size="'sm'"
-                                                    class="self-center justify-center gap-2 w-full lg:w-3/5 text-sm" 
-                                                    @click="openUserOrdersModal"
-                                                >
-                                                    View Orders
-                                                </Button>
-                                                <UserOrdersModal 
-                                                    :isOpen="isUserOrdersModalOpen" 
-                                                    :userId="props.selectedRowData.id" 
-                                                    @close="closeUserOrdersModal" 
-                                                />
-                                            </div>
-                                        </div> -->
                                         <CustomLabelGroup
                                             :inputId="'registered_name'"
                                             :labelValue="'Registered Name:'"
@@ -332,7 +326,7 @@ const closeUserOrdersModal = () => {
                                         <CustomLabelGroup
                                             :inputId="'settlement_date'"
                                             :labelValue="'Settlement Date:'"
-                                            :dataValue="props.selectedRowData?.settlement_date || '-'"
+                                            :dataValue="props.selectedRowData.settlement_date ? formatToUserTimezone(props.selectedRowData.settlement_date, user.timezone) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'factory'"
@@ -426,52 +420,13 @@ const closeUserOrdersModal = () => {
                                         <CustomLabelGroup
                                             :inputId="'tc_sent'"
                                             :labelValue="'TC Sent:'"
-                                            :dataValue="props.selectedRowData?.tc_sent || '-'"
+                                            :dataValue="props.selectedRowData?.tc_sent ? formatToUserTimezone(props.selectedRowData.tc_sent, user.timezone) : '-'"
                                         />
                                         <CustomLabelGroup
                                             :inputId="'tt_received'"
                                             :labelValue="'TT Received:'"
-                                            :dataValue="props.selectedRowData?.tt_received || '-'"
+                                            :dataValue="props.selectedRowData?.tt_received ? formatToUserTimezone(props.selectedRowData.tt_received, user.timezone) : '-'"
                                         />
-                                    </div>
-                                </TabPanel>
-                                <TabPanel
-                                    :class="[
-                                        'rounded-xl bg-gray-200 dark:bg-gray-700 p-3',
-                                        'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                                    ]"
-                                >
-                                    <div class="input-group">
-                                        <div class="flex justify-between">
-                                            <div class="w-full p-2 sm:px-0 max-h-80 h-80 overflow-auto">
-                                                <div 
-                                                    class="bg-gray-700 dark:bg-gray-700 rounded-xl text-gray-300 h-20 
-                                                            px-4 flex flex-col justify-center w-full mb-2" 
-                                                >
-                                                    <div class="flex items-center w-full text-2xl font-bold">
-                                                        <!-- $ {{ parseFloat(value.unit_price * value.quantity).toFixed(2) }} -->
-
-                                                        <span class="text-sm text-gray-800 bg-yellow-600 px-4 rounded-md ml-auto">
-                                                            <!-- {{ value.limb_stage }} -->
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex items-center w-full">
-                                                        <!-- <Link 
-                                                            :href="route('orders.edit', value.id)"
-                                                            class="text-xs text-blue-500 underline"
-                                                        >
-                                                            Trade ID: {{ value.trade_id }}
-                                                        </Link> -->
-                                                        <span class="text-xs text-gray-400 ml-auto">
-                                                            <!-- {{ dayjs(value.created_at).tz(user.timezone).format('DD MMMM YYYY, hh:mm A') }} -->
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <!-- <div class="w-full flex justify-center" v-else>
-                                                    <h3 class="font-semibold text-gray-200"> No records found for this sale order currently. </h3>
-                                                </div> -->
-                                            </div>
-                                        </div>
                                     </div>
                                 </TabPanel>
                             </TabPanels>
@@ -480,10 +435,10 @@ const closeUserOrdersModal = () => {
                 </div>
             </div>
             <div class="col-span-1">
-                <!-- <UserChangelogsSection
+                <SaleOrderChangelogSection
                     :selectedRowData="props.selectedRowData"
                     class="w-full"
-                /> -->
+                />
             </div>
         </div>
         <div class="flex justify-end p-9">

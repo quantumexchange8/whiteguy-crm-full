@@ -145,6 +145,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Lead Fronts Routes
     */
+    Route::get('/lead-fronts/export-all', [LeadFrontController::class, 'getAllLeadFrontForExport'])->name('lead-fronts.getAllLeadFrontForExport');
     Route::get('/lead-fronts/export/{selectedRowsData}', [LeadFrontController::class, 'exportToExcel'])->name('lead-fronts.export');
     Route::get('/lead-fronts/leads-list', [LeadFrontController::class, 'getLeadList'])->name('lead-fronts.getLeadList');
     Route::get('/lead-fronts/lead/{id}', [LeadFrontController::class, 'getLeadDetails'])->name('lead-fronts.getLeadDetails');
@@ -166,6 +167,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Leads Routes
     */
+    Route::get('/leads/export-all', [LeadController::class, 'getAllLeadsForExport'])->name('leads.getAllLeadsForExport');
     Route::get('/leads/lead-appointment-labels', [LeadController::class, 'getAllLeadAppointmentLabels'])->name('leads.getAllLeadAppointmentLabels');
     Route::get('/leads/lead-contact-outcomes', [LeadController::class, 'getAllLeadContactOutcomes'])->name('leads.getAllLeadContactOutcomes');
     Route::get('/leads/lead-stages', [LeadController::class, 'getAllLeadStages'])->name('leads.getAllLeadStages');
@@ -186,6 +188,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Notifications Routes
     */
+        Route::get('/notifications/export-all', [NotificationController::class, 'getAllNotificationsForExport'])->name('notifications.getAllNotificationsForExport');
         Route::get('/notifications/export/{selectedRowsData}', [NotificationController::class, 'exportToExcel'])->name('notifications.export');
         Route::get('/notifications/{id}/notification-log-entries', [NotificationController::class, 'getNotificationLogEntries'])->name('notifications.getNotificationLogEntries');
         Route::get('/notifications/users', [NotificationController::class, 'getAllUsers'])->name('notifications.getAllUsers');
@@ -195,6 +198,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Orders Routes
     */
+        Route::get('/orders/export-all', [OrderController::class, 'getAllOrdersForExport'])->name('orders.getAllOrdersForExport');
         Route::get('/orders/users', [OrderController::class, 'getAllUsers'])->name('orders.getAllUsers');
         Route::get('/orders/export/{selectedRowsData}', [OrderController::class, 'exportToExcel'])->name('orders.export');
         Route::get('/orders/generate-trade-id', [OrderController::class, 'generateTradeId'])->name('orders.generateTradeId');
@@ -216,6 +220,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Payment Submissions Routes
     */
+        Route::get('/payment-submissions/export-all', [PaymentSubmissionController::class, 'getAllPaymentSubmissionsForExport'])->name('payment-submissions.getAllPaymentSubmissionsForExport');
         Route::get('/payment-submissions/payment-methods', [PaymentSubmissionController::class, 'getAllPaymentMethods'])->name('payment-submissions.getAllPaymentMethods');
         Route::get('/payment-submissions/users', [PaymentSubmissionController::class, 'getAllUsers'])->name('payment-submissions.getAllUsers');
         Route::get('/payment-submissions/export/{selectedRowsData}', [PaymentSubmissionController::class, 'exportToExcel'])->name('payment-submissions.export');
@@ -236,6 +241,10 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Sale Orders Routes
     */
+        Route::get('/sale-orders/export-all', [SaleOrderController::class, 'getAllSaleOrdersForExport'])->name('sale-orders.getAllSaleOrdersForExport');
+        Route::get('/sale-orders/export/{selectedRowsData}', [SaleOrderController::class, 'exportToExcel'])->name('sale-orders.export');
+        Route::get('/sale-orders/{id}/sale-orders-log-entries', [SaleOrderController::class, 'getSaleOrderLogEntries'])->name('sale-orders.getSaleOrderLogEntries');
+        Route::get('/sale-orders/{id}/sale-order-items', [SaleOrderController::class, 'getSaleOrderItems'])->name('sale-orders.getSaleOrderItems');
         Route::get('/sale-orders/count', [SaleOrderController::class, 'getTotalSaleOrderCount'])->name('sale-orders.getTotalSaleOrderCount');
         Route::resource('/sale-orders', SaleOrderController::class);
 
@@ -243,6 +252,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Users / Clients Routes
     */
+        Route::get('/users-clients/export-all', [UserClientController::class, 'getAllUserForExport'])->name('users-clients.getAllUserForExport');
         Route::get('/users-clients/user-list', [UserClientController::class, 'getUserList'])->name('users-clients.getUserList');
         Route::get('/users-clients/account-managers', [UserClientController::class, 'getAccountManagers'])->name('users-clients.getAccountManagers');
         Route::get('/users-clients/{id}/orders', [UserClientController::class, 'getUserOrders'])->name('users-clients.getUserOrders');

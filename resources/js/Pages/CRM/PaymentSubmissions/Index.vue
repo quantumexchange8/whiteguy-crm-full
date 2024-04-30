@@ -24,8 +24,8 @@ const colArray = ref([
     { field: "user_id", title: "USER", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "status", title: "STATUS", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "date", title: "DATE", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "amount", title: "CRYPTO AMOUNT", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "converted_amount", title: "CONVERTED USD AMOUNT", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "amount", title: "CRYPTO AMOUNT", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
+    { field: "converted_amount", title: "CONVERTED USD AMOUNT", headerClass: "text-gray-300 text-sm w-max", type: 'number' },
     { field: "user_memo", title: "MEMO", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "payment_method_id", title: "PAYMENT METHOD", headerClass: "text-gray-300 text-sm w-max"  },
 ]);
@@ -83,6 +83,7 @@ onMounted(() => {
 				:categoryFilters="'/data/payment-submissions/categories'"
 				:modalComponent="PaymentSubmissionDetailsModal"
 				:exportRoute="'payment-submissions.export'"
+				:exportAllRoute="route('payment-submissions.getAllPaymentSubmissionsForExport')"
 			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>

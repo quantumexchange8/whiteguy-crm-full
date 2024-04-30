@@ -81,6 +81,7 @@ onMounted(() => {
 				:categoryFilters="'/data/notifications/categories'"
 				:modalComponent="NotificationDetailsModal"
 				:exportRoute="'notifications.export'"
+				:exportAllRoute="route('notifications.getAllNotificationsForExport')"
 			></Vue3Datatable>
 		</div>
 	</AuthenticatedLayout>

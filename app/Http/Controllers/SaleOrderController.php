@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\SaleOrdersExport;
+use App\Models\ContentType;
 use App\Models\SaleOrder;
+use App\Models\SaleOrderItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -280,8 +283,61 @@ class SaleOrderController extends Controller
         return response()->json($data);
     }
 
+    public function getSaleOrderItems(string $id)
+    {
+        $data = SaleOrder::find($id);
+
+        return response()->json($data->saleOrderItems);
+    }
+
+    public function getAllSaleOrdersForExport()
+    {
+        $data = SaleOrder::with([
+                                'creator:id,username,site_id', 
+                                'creator.site:id,name', 
+                                'site:id,name', 
+                            ])
+                            ->orderByDesc('id')
+                            ->get();
+
+        return response()->json($data);
+    }
+
     public function getTotalSaleOrderCount()
     {   
         return response()->json(SaleOrder::count());
+    }
+
+    public function getSaleOrderLogEntries(string $id)
+    {
+        $contentTypeId = ContentType::with('auditLogEntries')
+                                        ->where('app_label', 'core')
+                                        ->where('model', 'saleorder')
+                                        ->select('id')
+                                        ->orderByDesc('id')
+                                        ->get();
+
+        $saleOrderLogEntries = [];
+
+        foreach ($contentTypeId[0]->auditLogEntries as $key => $value) {
+            if ((string)$value->object_id === $id){
+                array_push($saleOrderLogEntries, $value);
+            }
+        }
+
+        return response()->json($saleOrderLogEntries);
+    }
+    
+    public function exportToExcel($selectedRowsData)
+    {
+        $saleOrderArr = explode(',', $selectedRowsData);
+        foreach ($saleOrderArr as $key => $value) {
+            $saleOrderArr[$key] = (int)$value;
+        }
+
+        $currentDate = Carbon::now()->format('Ymd_His');
+        $exportTitle = 'sale-order_' . $currentDate . '.xlsx';
+        
+        return (new SaleOrdersExport($saleOrderArr))->download($exportTitle);
     }
 }

@@ -956,4 +956,15 @@ class OrderController extends Controller
 
         return response()->json($leadFrontLogEntries);
     }
+
+    public function getAllOrdersForExport()
+    {
+        $data = Order::with([
+                            'user:id,full_name,username,phone_number,email,country,address,site_id',
+                            'user.site:id,name'
+                        ])
+                        ->get();
+
+        return response()->json($data);
+    }
 }
