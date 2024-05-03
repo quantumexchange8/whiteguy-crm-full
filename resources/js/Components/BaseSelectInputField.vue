@@ -9,10 +9,6 @@ const props = defineProps({
 		type: String,
 		default: '',
 	},
-    labelValue: {
-		type: String,
-		default: '',
-	},
 	inputArray: {
 		type: [Array, Object],
 		default: () => [],
@@ -23,10 +19,6 @@ const props = defineProps({
     errorMessage: {
         type: String,
         default: ''
-    },
-    withTooltip: {
-        type: Boolean,
-        default: false
     },
     customValue: {
         type: Boolean,
@@ -46,17 +38,6 @@ onMounted(() => {
 
 <template>
     <div class="input-wrapper">
-        <span class="flex flex-row gap-2">
-            <Label
-                :value="labelValue"
-                :for="inputId"
-                class="mb-2"
-            >
-            </Label>
-            <Tooltip v-if="withTooltip">
-                <slot></slot>
-            </Tooltip>
-        </span>
         <div class="relative">
             <select 
                 v-if="inputArray.length || Object.keys(inputArray).length"
@@ -64,7 +45,7 @@ onMounted(() => {
                 v-model="selectedValue"
                 @change="$emit('update:modelValue', $event.target.value)"
                 class="block appearance-none w-full bg-gray-200 border border-grey-lighter text-black 
-                        py-2 px-4 pr-8 text-sm rounded-md focus:border-gray-400 focus:ring focus:ring-purple-500 
+                        py-2.5 pl-4 pr-8 text-sm rounded-md focus:border-gray-400 focus:ring focus:ring-purple-500 
                         focus:ring-offset-2 focus:ring-offset-white dark:border-gray-600 
                         dark:bg-dark-eval-1 dark:text-gray-300 dark:focus:ring-offset-dark-eval-1" 
             >
@@ -77,7 +58,7 @@ onMounted(() => {
                     {{ option }}
                 </option>
             </select>
-            <span class="text-sm" v-else>No options available</span>
+            <span class="text-xs text-nowrap dark:text-gray-300" v-else>Not options</span>
         </div>
         <InputError
             :message="errorMessage"

@@ -45,12 +45,12 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="input-wrapper">
-        <span class="flex flex-row gap-2">
+    <div class="input-wrapper flex flex-row">
+        <span class="flex flex-row gap-2 pr-6 self-center">
             <Label
                 :value="labelValue"
                 :for="inputId"
-                class="mb-2"
+                class="mb-2 text-nowrap"
             >
             </Label>
             <Tooltip v-if="withTooltip">
@@ -77,7 +77,7 @@ onMounted(() => {
                     {{ option }}
                 </option>
             </select>
-            <span class="text-sm" v-else>No options available</span>
+            <span v-else>No options available</span>
         </div>
         <InputError
             :message="errorMessage"

@@ -75,11 +75,11 @@ const clearDateValue = () => {
 </script>
 
 <template>
-    <div class="input-wrapper">
+    <div class="input-wrapper flex flex-row">
         <Label
             :value="labelValue"
             :for="inputId"
-            class="mb-2"
+            class="mb-2 text-nowrap pr-6 self-center"
         >
         </Label>
         <VueDatePicker 
@@ -98,50 +98,50 @@ const clearDateValue = () => {
             input-class-name="py-2 focus:ring focus:ring-purple-500 focus:ring-offset-2 
                 focus:ring-offset-white dark:focus:ring-offset-dark-eval-1 !text-sm" 
         >
-        <template #hours="{ text, value }">
-            {{ props.modelValue ? dayjs(props.modelValue).tz(user.timezone).hour() : value }}
-        </template>
-        <template #minutes="{ text, value }">
-            {{ props.modelValue ? dayjs(props.modelValue).tz(user.timezone).minute() : value }}
-        </template>
-        <template #action-extra="{ selectCurrentDate }">
-            <Button 
-                :type="'button'"
-                :size="'sm'"
-                @click="selectCurrentDate()"
-                title="Select now"
-                class="justify-center gap-2 form-actions my-3"
+            <template #hours="{ text, value }">
+                {{ props.modelValue ? dayjs(props.modelValue).tz(user.timezone).hour() : value }}
+            </template>
+            <template #minutes="{ text, value }">
+                {{ props.modelValue ? dayjs(props.modelValue).tz(user.timezone).minute() : value }}
+            </template>
+            <template #action-extra="{ selectCurrentDate }">
+                <Button 
+                    :type="'button'"
+                    :size="'sm'"
+                    @click="selectCurrentDate()"
+                    title="Select now"
+                    class="justify-center gap-2 form-actions my-3"
+                >
+                    <span>Select now</span>
+                </Button>
+            </template>
+            </VueDatePicker>
+            <VueDatePicker 
+                :id="inputId"
+                :model-value="props.modelValue"
+                :enable-time-picker="dateTimeOpt"
+                @update:model-value="updateDateValue"
+                @cleared="clearDateValue"
+                time-picker-inline 
+                v-else
+                :format="formatDate"
+                auto-apply
+                dark
+                placeholder="Select Date"
+                input-class-name="py-2 focus:ring focus:ring-purple-500 focus:ring-offset-2 
+                    focus:ring-offset-white dark:focus:ring-offset-dark-eval-1 !text-sm" 
             >
-                <span>Select now</span>
-            </Button>
-        </template>
-        </VueDatePicker>
-        <VueDatePicker 
-            :id="inputId"
-            :model-value="props.modelValue"
-            :enable-time-picker="dateTimeOpt"
-            @update:model-value="updateDateValue"
-            @cleared="clearDateValue"
-            time-picker-inline 
-            v-else
-            :format="formatDate"
-            auto-apply
-            dark
-            placeholder="Select Date"
-            input-class-name="py-2 focus:ring focus:ring-purple-500 focus:ring-offset-2 
-                focus:ring-offset-white dark:focus:ring-offset-dark-eval-1 !text-sm" 
-        >
-        <template #action-extra="{ selectCurrentDate }">
-            <Button 
-                :type="'button'"
-                :size="'sm'"
-                @click="selectCurrentDate()"
-                title="Select now"
-                class="justify-center gap-2 form-actions mb-3"
-            >
-                <span>Select now</span>
-            </Button>
-        </template>
+            <template #action-extra="{ selectCurrentDate }">
+                <Button 
+                    :type="'button'"
+                    :size="'sm'"
+                    @click="selectCurrentDate()"
+                    title="Select now"
+                    class="justify-center gap-2 form-actions mb-3"
+                >
+                    <span>Select now</span>
+                </Button>
+            </template>
         </VueDatePicker>
         <InputError
             :message="errorMessage"

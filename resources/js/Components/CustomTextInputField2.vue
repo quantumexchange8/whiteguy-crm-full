@@ -44,19 +44,20 @@ const props = defineProps({
 </script>
 
 <template>
-	<div class="input-wrapper">
-        <span class="flex flex-row gap-2">
+	<div class="input-wrapper flex flex-row gap-2 w-full">
+        <span class="flex flex-row gap-2 pr-6 self-center w-[25%]">
             <Label
                 :value="labelValue"
                 :for="inputId"
-                class="mb-2"
+                class="mb-2 text-sm text-nowrap"
             >
             </Label>
             <Tooltip v-if="withTooltip">
                 <slot></slot>
             </Tooltip>
         </span>
-        <InputIconWrapper>
+        <span class="w-[10%]"></span>
+        <InputIconWrapper class="w-[65%]">
             <template #icon>
                 <DashboardIcon 
                     class="flex-shrink-0 w-5 h-5" 

@@ -496,7 +496,7 @@ const cancelImportFile = () => {
     form.leadExcelFile = '';
     closeImportModal();
 
-    cl(form.leadExcelFile);
+    // cl(form.leadExcelFile);
 }
 
 // Watch categories for changes

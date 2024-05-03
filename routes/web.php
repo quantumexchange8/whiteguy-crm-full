@@ -145,15 +145,15 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Lead Fronts Routes
     */
-    Route::get('/lead-fronts/export-all', [LeadFrontController::class, 'getAllLeadFrontForExport'])->name('lead-fronts.getAllLeadFrontForExport');
-    Route::get('/lead-fronts/export/{selectedRowsData}', [LeadFrontController::class, 'exportToExcel'])->name('lead-fronts.export');
-    Route::get('/lead-fronts/leads-list', [LeadFrontController::class, 'getLeadList'])->name('lead-fronts.getLeadList');
-    Route::get('/lead-fronts/lead/{id}', [LeadFrontController::class, 'getLeadDetails'])->name('lead-fronts.getLeadDetails');
-    Route::get('/lead-fronts/{id}/lead', [LeadFrontController::class, 'getLead'])->name('lead-fronts.getLead');
-    Route::get('/lead-fronts/{id}/lead-front-log-entries', [LeadFrontController::class, 'getLeadFrontLogEntries'])->name('lead-fronts.getLeadFrontLogEntries');
-    // Route::get('/lead-fronts/{id}/lead-front-changelogs', [LeadFrontController::class, 'getLeadFrontChangelogs'])->name('lead-fronts.getLeadFrontChangelogs');
-    Route::get('/lead-fronts/count', [LeadFrontController::class, 'getTotalLeadFrontCount'])->name('lead-fronts.getTotalLeadFrontCount');
-    Route::resource('/lead-fronts', LeadFrontController::class);
+        Route::get('/lead-fronts/export-all', [LeadFrontController::class, 'getAllLeadFrontForExport'])->name('lead-fronts.getAllLeadFrontForExport');
+        Route::get('/lead-fronts/export/{selectedRowsData}', [LeadFrontController::class, 'exportToExcel'])->name('lead-fronts.export');
+        Route::get('/lead-fronts/leads-list', [LeadFrontController::class, 'getLeadList'])->name('lead-fronts.getLeadList');
+        Route::get('/lead-fronts/lead/{id}', [LeadFrontController::class, 'getLeadDetails'])->name('lead-fronts.getLeadDetails');
+        Route::get('/lead-fronts/{id}/lead', [LeadFrontController::class, 'getLead'])->name('lead-fronts.getLead');
+        Route::get('/lead-fronts/{id}/lead-front-log-entries', [LeadFrontController::class, 'getLeadFrontLogEntries'])->name('lead-fronts.getLeadFrontLogEntries');
+        // Route::get('/lead-fronts/{id}/lead-front-changelogs', [LeadFrontController::class, 'getLeadFrontChangelogs'])->name('lead-fronts.getLeadFrontChangelogs');
+        Route::get('/lead-fronts/count', [LeadFrontController::class, 'getTotalLeadFrontCount'])->name('lead-fronts.getTotalLeadFrontCount');
+        Route::resource('/lead-fronts', LeadFrontController::class);
     
     /*
     |--------------------------------------------------------------------------
@@ -167,22 +167,22 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Leads Routes
     */
-    Route::get('/leads/export-all', [LeadController::class, 'getAllLeadsForExport'])->name('leads.getAllLeadsForExport');
-    Route::get('/leads/lead-appointment-labels', [LeadController::class, 'getAllLeadAppointmentLabels'])->name('leads.getAllLeadAppointmentLabels');
-    Route::get('/leads/lead-contact-outcomes', [LeadController::class, 'getAllLeadContactOutcomes'])->name('leads.getAllLeadContactOutcomes');
-    Route::get('/leads/lead-stages', [LeadController::class, 'getAllLeadStages'])->name('leads.getAllLeadStages');
-    Route::post('/leads/import', [LeadController::class, 'importExcel'])->name('leads.import');
-    Route::get('/leads/export/{selectedRowsData}', [LeadController::class, 'exportToExcel'])->name('leads.export');
-    Route::get('/leads/{id}/lead-front', [LeadController::class, 'getLeadFront'])->name('leads.getLeadFront');
-    Route::get('/leads/{id}/lead-notes', [LeadController::class, 'getLeadNotes'])->name('leads.getLeadNotes');
-    Route::get('/leads/{id}/lead-log-entries', [LeadController::class, 'getLeadLogEntries'])->name('leads.getLeadLogEntries');
-    // Route::get('/leads/{id}/lead-changelogs', [LeadController::class, 'getLeadChangelogs'])->name('leads.getLeadChangelogs');
-    Route::get('/leads/{id}/lead-notes-changelogs', [LeadController::class, 'getLeadNotesAndChangelogs'])->name('leads.getLeadNotesAndChangelogs');
-    Route::get('/leads/count', [LeadController::class, 'getTotalLeadCount'])->name('leads.getTotalLeadCount');
-    Route::delete('/leads/{id}/lead-front', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
-    Route::delete('/leads/{id}/lead-note', [LeadController::class, 'deleteLeadNote'])->name('leads.deleteLeadNote');
-    Route::delete('/leads/{id}/lead-duplicate', [LeadController::class, 'destroyDuplicate'])->name('leads.destroyDuplicate');
-    Route::resource('/leads', LeadController::class);
+        Route::get('/leads/export-all', [LeadController::class, 'getAllLeadsForExport'])->name('leads.getAllLeadsForExport');
+        Route::get('/leads/lead-appointment-labels', [LeadController::class, 'getAllLeadAppointmentLabels'])->name('leads.getAllLeadAppointmentLabels');
+        Route::get('/leads/lead-contact-outcomes', [LeadController::class, 'getAllLeadContactOutcomes'])->name('leads.getAllLeadContactOutcomes');
+        Route::get('/leads/lead-stages', [LeadController::class, 'getAllLeadStages'])->name('leads.getAllLeadStages');
+        Route::post('/leads/import', [LeadController::class, 'importExcel'])->name('leads.import');
+        Route::get('/leads/export/{selectedRowsData}', [LeadController::class, 'exportToExcel'])->name('leads.export');
+        Route::get('/leads/{id}/lead-front', [LeadController::class, 'getLeadFront'])->name('leads.getLeadFront');
+        Route::get('/leads/{id}/lead-notes', [LeadController::class, 'getLeadNotes'])->name('leads.getLeadNotes');
+        Route::get('/leads/{id}/lead-log-entries', [LeadController::class, 'getLeadLogEntries'])->name('leads.getLeadLogEntries');
+        // Route::get('/leads/{id}/lead-changelogs', [LeadController::class, 'getLeadChangelogs'])->name('leads.getLeadChangelogs');
+        Route::get('/leads/{id}/lead-notes-changelogs', [LeadController::class, 'getLeadNotesAndChangelogs'])->name('leads.getLeadNotesAndChangelogs');
+        Route::get('/leads/count', [LeadController::class, 'getTotalLeadCount'])->name('leads.getTotalLeadCount');
+        Route::delete('/leads/{id}/lead-front', [LeadController::class, 'deleteLeadFront'])->name('leads.deleteLeadFront');
+        Route::delete('/leads/{id}/lead-note', [LeadController::class, 'deleteLeadNote'])->name('leads.deleteLeadNote');
+        Route::delete('/leads/{id}/lead-duplicate', [LeadController::class, 'destroyDuplicate'])->name('leads.destroyDuplicate');
+        Route::resource('/leads', LeadController::class);
 
     /*
     |--------------------------------------------------------------------------
@@ -241,6 +241,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Sale Orders Routes
     */
+        Route::get('/sale-orders/sites', [SaleOrderController::class, 'getAllSites'])->name('sale-orders.getAllSites');
         Route::get('/sale-orders/export-all', [SaleOrderController::class, 'getAllSaleOrdersForExport'])->name('sale-orders.getAllSaleOrdersForExport');
         Route::get('/sale-orders/export/{selectedRowsData}', [SaleOrderController::class, 'exportToExcel'])->name('sale-orders.export');
         Route::get('/sale-orders/{id}/sale-orders-log-entries', [SaleOrderController::class, 'getSaleOrderLogEntries'])->name('sale-orders.getSaleOrderLogEntries');

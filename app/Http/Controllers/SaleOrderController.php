@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Exports\SaleOrdersExport;
+use App\Http\Requests\SaleOrderItemRequest;
+use App\Http\Requests\SaleOrderRequest;
 use App\Models\ContentType;
 use App\Models\SaleOrder;
 use App\Models\SaleOrderItem;
+use App\Models\Site;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
@@ -42,15 +46,64 @@ class SaleOrderController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('CRM/SaleOrders/Create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(SaleOrderRequest $request)
     {
-        //
+        dd($request->sale_order_items);
+        $data = $request->all();
+
+        if (count($data['sale_order_items']) > 0) {
+            $saleOrderItemRequest = new SaleOrderItemRequest();
+            $request->validate($saleOrderItemRequest->rules());
+        }
+
+        $newSaleOrderData = SaleOrder::create([
+            'name' => $data['lead_front_name'],
+            'mimo' => $data['lead_front_mimo'],
+            'product' => $data['lead_front_product'],
+            'quantity' => $data['lead_front_quantity'],
+            'price' => $data['lead_front_price'],
+            'vc' => $data['lead_front_vc'],
+            'sdm' => $data['lead_front_sdm'],
+            'liquid' => $data['lead_front_liquid'],
+            'bank' => $data['lead_front_bank'],
+            'note' => $data['lead_front_note'],
+            'commission' => $data['lead_front_commission'],
+            'edited_at' => $data['lead_front_edited_at'],
+            'created_at' => $data['lead_front_created_at'],
+            'lead_id' => $data['lead_id'],
+            'email' => $data['lead_front_email'],
+            'phone_number' => $data['lead_front_phone_number'],
+        ]);
+        $newSaleOrderData->save();
+
+        if (count($data['sale_order_items']) > 0) {
+            foreach ($request->lead_notes as $key => $value) {
+                $newSaleOrderItemData = SaleOrderItem::create([
+                    'note' => $value['note'],
+                    'created_by_id' => $value['created_by_id'],
+                    'lead_id' => $newLeadData->id,
+                    'user_editable' => $value['user_editable'],
+                ]);
+            }
+            $newSaleOrderItemData->save();
+        }
+
+        $errorMsgTitle = "You have successfully created a new sale order.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('sale-orders.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -214,7 +267,8 @@ class SaleOrderController extends Controller
         return response()->json($records);
     }
 
-    public function applyFilterCondition($query, $filter, $filteredIdArr) {
+    public function applyFilterCondition($query, $filter, $filteredIdArr) 
+    {
         switch ($filter['condition']) {
             case 'not_contain':
                 $query->where($filter['field'], 'NOT LIKE', '%' . $filter['value'] . '%');
@@ -339,5 +393,12 @@ class SaleOrderController extends Controller
         $exportTitle = 'sale-order_' . $currentDate . '.xlsx';
         
         return (new SaleOrdersExport($saleOrderArr))->download($exportTitle);
+    }
+
+    public function getAllSites()
+    {
+        $sites = Site::all();
+
+        return response()->json($sites);
     }
 }

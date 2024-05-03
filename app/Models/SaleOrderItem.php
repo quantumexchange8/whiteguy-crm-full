@@ -27,6 +27,7 @@ class SaleOrderItem extends Model
         'total_exchanged_price',
         'total_price',
         'edited_at',
+        'created_at',
         'sale_order_id',
         'completed_at',
         'order_id',
