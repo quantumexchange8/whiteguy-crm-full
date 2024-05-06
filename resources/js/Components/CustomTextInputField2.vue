@@ -45,7 +45,7 @@ const props = defineProps({
 
 <template>
 	<div class="input-wrapper flex flex-row gap-2 w-full">
-        <span class="flex flex-row gap-2 pr-6 self-center w-[25%]">
+        <span class="flex flex-row gap-2 pr-6 pt-2 self-start w-[25%]">
             <Label
                 :value="labelValue"
                 :for="inputId"
@@ -57,46 +57,48 @@ const props = defineProps({
             </Tooltip>
         </span>
         <span class="w-[10%]"></span>
-        <InputIconWrapper class="w-[65%]">
-            <template #icon>
-                <DashboardIcon 
-                    class="flex-shrink-0 w-5 h-5" 
-                    aria-hidden="true" 
+        <div class="w-[65%]">
+            <InputIconWrapper>
+                <template #icon>
+                    <DashboardIcon 
+                        class="flex-shrink-0 w-5 h-5" 
+                        aria-hidden="true" 
+                    />
+                </template>
+                <Input 
+                    :id="inputId"
+                    :name="inputId"
+                    :withIcon="true"
+                    :class="'w-full text-sm'"
+                    :value="dataValue"
+                    @change="$emit('update:modelValue', $event.target.value)"
+                    v-if="inputType === 'text'"
                 />
-            </template>
-            <Input 
-                :id="inputId"
-                :name="inputId"
-                :withIcon="true"
-                :class="'w-full text-sm'"
-                :value="dataValue"
-                @change="$emit('update:modelValue', $event.target.value)"
-                v-if="inputType === 'text'"
+                <Input 
+                    :id="inputId"
+                    :name="inputId"
+                    :withIcon="true"
+                    :class="'w-full text-sm'"
+                    :value="dataValue"
+                    @change="$emit('update:modelValue', $event.target.value)"
+                    :inputType="inputType"
+                    :step="decimalOption ? step : 1"
+                    v-if="inputType === 'number'"
+                />
+                <TextareaInput 
+                    :id="inputId"
+                    :name="inputId"
+                    :withIcon="true"
+                    class="w-full text-sm"
+                    :value="dataValue"
+                    @change="$emit('update:modelValue', $event.target.value)"
+                    v-if="inputType === 'textarea'"
+                />
+            </InputIconWrapper>
+            <InputError
+                :message="errorMessage"
+                v-if="errorMessage"
             />
-            <Input 
-                :id="inputId"
-                :name="inputId"
-                :withIcon="true"
-                :class="'w-full text-sm'"
-                :value="dataValue"
-                @change="$emit('update:modelValue', $event.target.value)"
-                :inputType="inputType"
-                :step="decimalOption ? step : 1"
-                v-if="inputType === 'number'"
-            />
-            <TextareaInput 
-                :id="inputId"
-                :name="inputId"
-                :withIcon="true"
-                class="w-full text-sm"
-                :value="dataValue"
-                @change="$emit('update:modelValue', $event.target.value)"
-                v-if="inputType === 'textarea'"
-            />
-        </InputIconWrapper>
-        <InputError
-            :message="errorMessage"
-            v-if="errorMessage"
-        />
+        </div>
     </div>
 </template>

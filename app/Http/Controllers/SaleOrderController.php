@@ -9,12 +9,14 @@ use App\Models\ContentType;
 use App\Models\SaleOrder;
 use App\Models\SaleOrderItem;
 use App\Models\Site;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class SaleOrderController extends Controller
 {
@@ -54,7 +56,11 @@ class SaleOrderController extends Controller
      */
     public function store(SaleOrderRequest $request)
     {
-        dd($request->sale_order_items);
+        $saleOrderWithItems = SaleOrder::whereHas('saleOrderItems')
+                                            ->get();
+        $saleOrderWithoutItems = SaleOrder::whereDoesntHave('saleOrderItems')
+                                            ->get();
+        // dd($request);
         $data = $request->all();
 
         if (count($data['sale_order_items']) > 0) {
@@ -63,32 +69,76 @@ class SaleOrderController extends Controller
         }
 
         $newSaleOrderData = SaleOrder::create([
-            'name' => $data['lead_front_name'],
-            'mimo' => $data['lead_front_mimo'],
-            'product' => $data['lead_front_product'],
-            'quantity' => $data['lead_front_quantity'],
-            'price' => $data['lead_front_price'],
-            'vc' => $data['lead_front_vc'],
-            'sdm' => $data['lead_front_sdm'],
-            'liquid' => $data['lead_front_liquid'],
-            'bank' => $data['lead_front_bank'],
-            'note' => $data['lead_front_note'],
-            'commission' => $data['lead_front_commission'],
-            'edited_at' => $data['lead_front_edited_at'],
-            'created_at' => $data['lead_front_created_at'],
-            'lead_id' => $data['lead_id'],
-            'email' => $data['lead_front_email'],
-            'phone_number' => $data['lead_front_phone_number'],
+            'public_id' => $this->generatePublicId(),
+            'written_date' => $data['written_date'],
+            'vc' => $data['vc'],
+            'room_number' => $data['room_number'],
+            'allo' => $data['allo'],
+            'allo_name' => $data['allo_name'],
+            'sm_number' => $data['sm_number'],
+            'gm_number' => $data['gm_number'],
+            'fm_number' => $data['fm_number'],
+            'lm_number' => $data['lm_number'],
+            'ao_1' => $data['ao_1'],
+            'ao_1_name' => $data['ao_1_name'],
+            'ao_2' => $data['ao_2'],
+            'ao_2_name' => $data['ao_2_name'],
+            'bonus_comment' => $data['bonus_comment'],
+            'currency_pair' => $data['currency_pair'],
+            'exchange_rate' => $data['exchange_rate'],
+            'registered_name' => $data['registered_name'],
+            'contact_name' => $data['contact_name'],
+            'office_number_1' => $data['office_number_1'],
+            'office_number_2' => $data['office_number_2'],
+            'home_number' => $data['home_number'],
+            'mobile_number' => $data['mobile_number'],
+            'fax_number' => $data['fax_number'],
+            'date_of_birth' => $data['date_of_birth'],
+            'email' => $data['email'],
+            'address_1' => $data['address_1'],
+            'address_2' => $data['address_2'],
+            'city' => $data['city'],
+            'country' => $data['country'],
+            'exit_time_frame' => $data['exit_time_frame'],
+            'sell_price' => $data['sell_price'],
+            'allocation_officer' => $data['allocation_officer'],
+            'trade_plus' => $data['trade_plus'],
+            'settlement_date' => $data['settlement_date'],
+            'factory' => $data['factory'],
+            'pay_via' => $data['pay_via'],
+            'allo_comment' => $data['allo_comment'],
+            'docs_received' => $data['docs_received'],
+            'tc_sent' => $data['tc_sent'],
+            'tt_received' => $data['tt_received'],
+            'edited_at' => $data['edited_at'],
+            'created_at' => $data['created_at'],
+            'balance_due' => $data['balance_due'],
+            'exchanged_balance_due' => $data['exchanged_balance_due'],
+            'site_id' => $data['site_id'],
+            'se_name' => $data['se_name'],
+            'se_number' => $data['se_number'],
+            'created_by_id' => $data['created_by_id'],
         ]);
         $newSaleOrderData->save();
 
         if (count($data['sale_order_items']) > 0) {
-            foreach ($request->lead_notes as $key => $value) {
+            foreach ($data['sale_order_items'] as $key => $value) {
                 $newSaleOrderItemData = SaleOrderItem::create([
-                    'note' => $value['note'],
-                    'created_by_id' => $value['created_by_id'],
-                    'lead_id' => $newLeadData->id,
-                    'user_editable' => $value['user_editable'],
+                    'order_type' => $value['order_type'],
+                    'product' => $value['product'],
+                    'price' => $value['price'],
+                    'exchanged_price' => $value['exchanged_price'],
+                    'quantity' => $value['quantity'],
+                    'subtotal' => $value['subtotal'],
+                    'commission_rate' => $value['commission_rate'],
+                    'commission' => $value['commission'],
+                    'total_exchanged_price' => $value['total_exchanged_price'],
+                    'total_price' => $value['total_price'],
+                    'edited_at' => $value['edited_at'],
+                    'created_at' => $value['edited_at'],
+                    'sale_order_id' => $newSaleOrderData->id,
+                    'completed_at' => '',
+                    'order_id' => '',
                 ]);
             }
             $newSaleOrderItemData->save();
@@ -106,6 +156,26 @@ class SaleOrderController extends Controller
                         ->with('errorMsg', $errorMsg);
     }
 
+    public function generatePublicId()
+    {
+        do {
+            $newPublicId = Str::uuid();
+        } while ($this->checkExistingPublicId($newPublicId));
+        
+        return (string) $newPublicId;
+    }
+
+    public function checkExistingPublicId($string)
+    {
+        $existingPublicId = SaleOrder::where('public_id', $string)->get();
+
+        if (count($existingPublicId) > 0) {
+            return true;
+        }
+        
+        return false;
+    }
+
     /**
      * Display the specified resource.
      */
@@ -119,7 +189,16 @@ class SaleOrderController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data = SaleOrder::with(['creator:id,username', 'site', 'saleOrderItems'])
+                            ->find($id);
+
+        $existingSaleOrderItems = $data->saleOrderItems;
+
+
+		return Inertia::render('CRM/SaleOrders/Edit', [
+            'data' => $data, 
+            'saleOrderItemsData' => $existingSaleOrderItems,
+        ]);
     }
 
     /**
@@ -400,5 +479,18 @@ class SaleOrderController extends Controller
         $sites = Site::all();
 
         return response()->json($sites);
+    }
+
+    public function getAllUsers() 
+    {
+        $data = User::getAllUsersWithRelationships()
+                        ->map(function ($user) {
+                            return [
+                                'id' => $user->id,
+                                'value' => $user->username . ' (' . $user->site->name . ')',
+                            ];
+                        });
+        
+        return response()->json($data);
     }
 }

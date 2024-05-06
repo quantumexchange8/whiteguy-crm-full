@@ -46,7 +46,7 @@ onMounted(() => {
 
 <template>
     <div class="input-wrapper flex flex-row">
-        <span class="flex flex-row gap-2 pr-6 self-center">
+        <span class="flex flex-row gap-2 pr-6 pt-2 self-start w-[25%]">
             <Label
                 :value="labelValue"
                 :for="inputId"
@@ -57,7 +57,8 @@ onMounted(() => {
                 <slot></slot>
             </Tooltip>
         </span>
-        <div class="relative">
+        <span class="w-[10%]"></span>
+        <div class="relative w-[65%]">
             <select 
                 v-if="inputArray.length || Object.keys(inputArray).length"
                 :id="inputId"
@@ -78,10 +79,10 @@ onMounted(() => {
                 </option>
             </select>
             <span v-else>No options available</span>
+            <InputError
+                :message="errorMessage"
+                v-if="errorMessage"
+            />
         </div>
-        <InputError
-            :message="errorMessage"
-            v-if="errorMessage"
-        />
     </div>
 </template>

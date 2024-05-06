@@ -241,6 +241,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Sale Orders Routes
     */
+        Route::get('/sale-orders/users', [SaleOrderController::class, 'getAllUsers'])->name('sale-orders.getAllUsers');
         Route::get('/sale-orders/sites', [SaleOrderController::class, 'getAllSites'])->name('sale-orders.getAllSites');
         Route::get('/sale-orders/export-all', [SaleOrderController::class, 'getAllSaleOrdersForExport'])->name('sale-orders.getAllSaleOrdersForExport');
         Route::get('/sale-orders/export/{selectedRowsData}', [SaleOrderController::class, 'exportToExcel'])->name('sale-orders.export');

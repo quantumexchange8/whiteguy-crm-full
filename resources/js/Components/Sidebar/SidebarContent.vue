@@ -228,8 +228,8 @@ import { TemplateIcon } from '@heroicons/vue/outline'
             :active="route().current('instant-message.index')"
         >
             <template #icon>
-                <DashboardIcon 
-                    class="flex-shrink-0 w-6 h-6" 
+                <TemplateIcon 
+                    class="flex-shrink-0 w-6 h-6 self-start" 
                     aria-hidden="true" 
                 />
             </template>

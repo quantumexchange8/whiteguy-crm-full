@@ -6,7 +6,7 @@ import { ref, onMounted, reactive, computed, watch } from 'vue'
 import { useForm, usePage } from '@inertiajs/vue3'
 import { 
     cl, back, populateArrayFromResponse, convertToIndexedValueObject, 
-    setDateTimeWithOffset, setFormattedDateTimeWithOffset
+    setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone
 } from '@/Composables'
 import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
@@ -29,8 +29,16 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 // Get the errors thats passed back from controller if there are any error after backend validations
-defineProps({
-    errors:Object
+const props = defineProps({
+    errors:Object,
+    data: {
+        type: Object,
+        default: () => ({}),
+    },
+    saleOrderItemsData: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const siteArray  = reactive({});
@@ -70,55 +78,55 @@ const user = computed(() => page.props.auth.user)
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
-	written_date: '',
-	vc: '',
-	room_number: '',
-	allo: '',
-	allo_name: '',
-	sm_number: '',
-	gm_number: '',
-	fm_number: '',
-	lm_number: '',
-	ao_1: '',
-	ao_1_name: '',
-	ao_2: '',
-	ao_2_name: '',
-	bonus_comment: '',
-	currency_pair: '',
-	exchange_rate: parseFloat(0.00),
-	registered_name: '',
-	contact_name: '',
-	office_number_1: '',
-	office_number_2: '',
-	home_number: '',
-	mobile_number: '',
-	fax_number: '',
-	date_of_birth: '',
-	email: '',
-	address_1: '',
-	address_2: '',
-	city: '',
-	country: '',
-	exit_time_frame: '',
-	sell_price: parseFloat(0.00),
-	allocation_officer: '',
-	trade_plus: '',
-	settlement_date: '',
-	factory: '',
-	pay_via: '',
-	allo_comment: '',
-	docs_received: '',
-	tc_sent: '',
-	tt_received: '',
-	edited_at: '',
-	created_at: '',
-	balance_due: parseFloat(0.00),
-	exchanged_balance_due: parseFloat(0.00),
-	site_id: '',
-	se_name: '',
-	se_number: '',
-	created_by_id: '',
-    sale_order_items: [],
+	written_date: props.data.written_date,
+	vc: props.data.vc,
+	room_number: props.data.room_number,
+	allo: props.data.allo,
+	allo_name: props.data.allo_name,
+	sm_number: props.data.sm_number,
+	gm_number: props.data.gm_number,
+	fm_number: props.data.fm_number,
+	lm_number: props.data.lm_number,
+	ao_1: props.data.ao_1,
+	ao_1_name: props.data.ao_1_name,
+	ao_2: props.data.ao_2,
+	ao_2_name: props.data.ao_2_name,
+	bonus_comment: props.data.bonus_comment,
+	currency_pair: props.data.currency_pair,
+	exchange_rate: props.data.exchange_rate,
+	registered_name: props.data.registered_name,
+	contact_name: props.data.contact_name,
+	office_number_1: props.data.office_number_1,
+	office_number_2: props.data.office_number_2,
+	home_number: props.data.home_number,
+	mobile_number: props.data.mobile_number,
+	fax_number: props.data.fax_number,
+	date_of_birth: props.data.date_of_birth,
+	email: props.data.email,
+	address_1: props.data.address_1,
+	address_2: props.data.address_2,
+	city: props.data.city,
+	country: props.data.country,
+	exit_time_frame: props.data.exit_time_frame,
+	sell_price: props.data.sell_price,
+	allocation_officer: props.data.allocation_officer,
+	trade_plus: props.data.trade_plus,
+	settlement_date: props.data.settlement_date,
+	factory: props.data.factory,
+	pay_via: props.data.pay_via,
+	allo_comment: props.data.allo_comment,
+	docs_received: props.data.docs_received,
+	tc_sent: props.data.tc_sent,
+	tt_received: props.data.tt_received,
+	edited_at: props.data.edited_at,
+	created_at: props.data.created_at,
+	balance_due: props.data.balance_due,
+	exchanged_balance_due: props.data.exchanged_balance_due,
+	site_id: props.data.site_id,
+	se_name: props.data.se_name,
+	se_number: props.data.se_number,
+	created_by_id: props.data.created_by_id,
+    sale_order_items: (props.saleOrderItemsData) ? props.saleOrderItemsData : [],
 });
 
 onMounted(async () => {
@@ -132,7 +140,6 @@ onMounted(async () => {
     } catch (error) {
         console.error("Error fetching data:", error);
     }
-    // addItem();
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
@@ -151,10 +158,15 @@ const formSubmit = () => {
             item.commission = isValidNumber(item.commission) ? parseFloat((item.commission_rate / 100) * (item.price * item.quantity)) : item.commission;
             item.total_exchanged_price = isValidNumber(item.total_exchanged_price) ? parseFloat((item.price * item.quantity) + ((item.commission_rate / 100) * (item.price * item.quantity))) : item.total_exchanged_price;
             item.total_price = isValidNumber(item.total_price) ? parseFloat((item.price * item.quantity) + ((item.commission_rate / 100) * (item.price * item.quantity))) : item.total_price;
+            item.edited_at = setDateTimeWithOffset(true);
+            item.created_at = (item.created_at === '') 
+                                ? item.created_at = setDateTimeWithOffset(true) 
+                                : setFormattedDateTimeWithOffset(item.created_at, true);
+            
         });
     }
 
-    form.post(route('sale-orders.store'), {
+    form.post(route('sale-orders.update'), {
         preserveScroll: true,
         onSuccess: () => form.reset(),
     
@@ -210,6 +222,12 @@ const addItem = () => {
     });
 }
 
+// Filtered array containing only new lead notes
+// const filteredSaleOrderItems = computed(() => {
+//   const existingSaleOrderItemIds = props.saleOrderItemsData.map(item => item.id)
+//   return form.sale_order_items.filter(item => !existingSaleOrderItemIds.includes(item.id))
+// })
+
 const balanceDue = computed(() => {
     let totalBalanceDue = 0;
     form.sale_order_items.forEach(item => {
@@ -264,6 +282,7 @@ const balanceDue = computed(() => {
                             :inputId="'site_id'"
                             :labelValue="'Website'"
                             :customValue="true"
+                            :dataValue="props.data.site_id"
                             :errorMessage="form?.errors?.site_id ?? ''"
                             class="col-span-full lg:col-span-3"
                             v-model="form.site_id"
@@ -272,6 +291,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Written Date'"
                             :inputId="'written_date'"
                             :dateTimeOpt="false"
+                            :dataValue="props.data.written_date"
                             :errorMessage="form?.errors?.written_date ?? '' "
                             class="col-span-full lg:col-span-3"
                             v-model="form.written_date"
@@ -282,6 +302,7 @@ const balanceDue = computed(() => {
                             :labelValue="'VC'"
                             :inputId="'vc'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.vc"
                             :errorMessage="form?.errors?.vc ?? '' "
                             v-model="form.vc"
                         />
@@ -289,6 +310,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Room #'"
                             :inputId="'room_number'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.room_number"
                             :errorMessage="form?.errors?.room_number ?? '' "
                             v-model="form.room_number"
                         />
@@ -296,6 +318,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Allo'"
                             :inputId="'allo'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.allo"
                             :errorMessage="form?.errors?.allo ?? '' "
                             v-model="form.allo"
                         />
@@ -303,6 +326,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Allo Name'"
                             :inputId="'allo_name'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.allo_name"
                             :errorMessage="form?.errors?.allo_name ?? '' "
                             v-model="form.allo_name"
                         />
@@ -312,7 +336,7 @@ const balanceDue = computed(() => {
                             :labelValue="'SM #'"
                             :inputId="'sm_number'"
                             class="col-span-full lg:col-span-3"
-                            :dataValue="form.sm_number"
+                            :dataValue="props.data.sm_number"
                             :errorMessage="form?.errors?.sm_number ?? '' "
                             v-model="form.sm_number"
                         />
@@ -320,6 +344,7 @@ const balanceDue = computed(() => {
                             :labelValue="'GM #'"
                             :inputId="'gm_number'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.gm_number"
                             :errorMessage="form?.errors?.gm_number ?? '' "
                             v-model="form.gm_number"
                         />
@@ -327,6 +352,7 @@ const balanceDue = computed(() => {
                             :labelValue="'AO #1'"
                             :inputId="'ao_1'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.ao_1"
                             :errorMessage="form?.errors?.ao_1 ?? '' "
                             v-model="form.ao_1"
                         />
@@ -334,6 +360,7 @@ const balanceDue = computed(() => {
                             :labelValue="'AO #1 Name'"
                             :inputId="'ao_1_name'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.ao_1_name"
                             :errorMessage="form?.errors?.ao_1_name ?? '' "
                             v-model="form.ao_1_name"
                         />
@@ -341,6 +368,7 @@ const balanceDue = computed(() => {
                             :labelValue="'FM #'"
                             :inputId="'fm_number'"
                             class="col-start-1 col-span-full lg:col-span-3"
+                            :dataValue="props.data.fm_number"
                             :errorMessage="form?.errors?.fm_number ?? '' "
                             v-model="form.fm_number"
                         />
@@ -348,6 +376,7 @@ const balanceDue = computed(() => {
                             :labelValue="'LM #'"
                             :inputId="'lm_number'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.lm_number"
                             :errorMessage="form?.errors?.lm_number ?? '' "
                             v-model="form.lm_number"
                         />
@@ -355,6 +384,7 @@ const balanceDue = computed(() => {
                             :labelValue="'AO #2'"
                             :inputId="'ao_2'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.ao_2"
                             :errorMessage="form?.errors?.ao_2 ?? '' "
                             v-model="form.ao_2"
                         />
@@ -362,6 +392,7 @@ const balanceDue = computed(() => {
                             :labelValue="'AO #2 Name'"
                             :inputId="'ao_2_name'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.ao_2_name"
                             :errorMessage="form?.errors?.ao_2_name ?? '' "
                             v-model="form.ao_2_name"
                         />
@@ -369,6 +400,7 @@ const balanceDue = computed(() => {
                             :labelValue="'SE #'"
                             :inputId="'se_number'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.se_number"
                             :errorMessage="form?.errors?.se_number ?? '' "
                             v-model="form.se_number"
                         />
@@ -376,6 +408,7 @@ const balanceDue = computed(() => {
                             :labelValue="'SE Name'"
                             :inputId="'se_name'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.se_name"
                             :errorMessage="form?.errors?.se_name ?? '' "
                             v-model="form.se_name"
                         />
@@ -386,6 +419,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Bonus Comments'"
                             :inputId="'bonus_comment'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.bonus_comment"
                             :errorMessage="form?.errors?.bonus_comment ?? '' "
                             v-model="form.bonus_comment"
                         />
@@ -396,6 +430,7 @@ const balanceDue = computed(() => {
                                 :labelValue="'Exchange rate for'"
                                 :customValue="true"
                                 :errorMessage="form?.errors?.currency_pair ?? ''"
+                                :dataValue="props.data.currency_pair"
                                 class="col-span-full !col-start-1 lg:col-span-7 self-start"
                                 v-model="form.currency_pair"
                             />
@@ -406,6 +441,7 @@ const balanceDue = computed(() => {
                                 :step="0.01"
                                 @keypress="isNumber($event)"
                                 class="col-span-full lg:col-span-5"
+                                :dataValue="props.data.exchange_rate"
                                 :errorMessage="form?.errors?.exchange_rate ?? '' "
                                 v-model="form.exchange_rate"
                             />
@@ -453,6 +489,7 @@ const balanceDue = computed(() => {
                                             :inputArray="orderTypeArr"
                                             :inputId="'order_type_'+(i+1)"
                                             :customValue="true"
+                                            :dataValue="orderTypeArr.findIndex(items => items.id === item.order_type)"
                                             :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.order_type']  : '' "
                                             class="col-span-full lg:col-span-2"
                                             v-model="item.order_type"
@@ -462,6 +499,7 @@ const balanceDue = computed(() => {
                                         <BaseTextInputField
                                             :inputId="'product_'+(i+1)"
                                             class="col-span-full lg:col-span-3"
+                                            :dataValue="item.product"
                                             :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.product']  : '' "
                                             v-model="item.product"
                                         />
@@ -642,6 +680,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Registered Name *'"
                             :inputId="'registered_name'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.registered_name"
                             :errorMessage="form?.errors?.registered_name ?? '' "
                             v-model="form.registered_name"
                         />
@@ -649,6 +688,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Contact Name *'"
                             :inputId="'contact_name'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.contact_name"
                             :errorMessage="form?.errors?.contact_name ?? '' "
                             v-model="form.contact_name"
                         />
@@ -656,6 +696,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Office Number'"
                             :inputId="'office_number_1'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.office_number_1"
                             :errorMessage="form?.errors?.office_number_1 ?? '' "
                             v-model="form.office_number_1"
                         />
@@ -663,6 +704,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Date Of Birth'"
                             :inputId="'date_of_birth'"
                             :dateTimeOpt="false"
+                            :dataValue="props.data.date_of_birth"
                             :errorMessage="form?.errors?.date_of_birth ?? '' "
                             class="col-span-full lg:col-span-6"
                             v-model="form.date_of_birth"
@@ -671,6 +713,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Office Number 2'"
                             :inputId="'office_number_2'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.office_number_2"
                             :errorMessage="form?.errors?.office_number_2 ?? '' "
                             v-model="form.office_number_2"
                         />
@@ -678,6 +721,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Home Number *'"
                             :inputId="'home_number'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.home_number"
                             :errorMessage="form?.errors?.home_number ?? '' "
                             v-model="form.home_number"
                         />
@@ -685,6 +729,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Fax'"
                             :inputId="'fax_number'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.fax_number"
                             :errorMessage="form?.errors?.fax_number ?? '' "
                             v-model="form.fax_number"
                         />
@@ -692,6 +737,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Mobile Number *'"
                             :inputId="'mobile_number'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.mobile_number"
                             :errorMessage="form?.errors?.mobile_number ?? '' "
                             v-model="form.mobile_number"
                         />
@@ -699,6 +745,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Email *'"
                             :inputId="'email'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.email"
                             :errorMessage="form?.errors?.email ?? '' "
                             v-model="form.email"
                         />
@@ -709,6 +756,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Address 1 *'"
                             :inputId="'address_1'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.address_1"
                             :errorMessage="form?.errors?.address_1 ?? '' "
                             v-model="form.address_1"
                         />
@@ -717,6 +765,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Address 2 *'"
                             :inputId="'address_2'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.address_2"
                             :errorMessage="form?.errors?.address_2 ?? '' "
                             v-model="form.address_2"
                         />
@@ -724,6 +773,7 @@ const balanceDue = computed(() => {
                             :labelValue="'City / State / PC *'"
                             :inputId="'city'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.city"
                             :errorMessage="form?.errors?.city ?? '' "
                             v-model="form.city"
                         />
@@ -731,6 +781,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Country *'"
                             :inputId="'country'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.country"
                             :errorMessage="form?.errors?.country ?? '' "
                             v-model="form.country"
                         />
@@ -740,6 +791,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Exit Time Frame *'"
                             :inputId="'exit_time_frame'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.exit_time_frame"
                             :errorMessage="form?.errors?.exit_time_frame ?? '' "
                             v-model="form.exit_time_frame"
                         />
@@ -747,6 +799,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Sell Price *'"
                             :inputId="'sell_price'"
                             class="col-span-full lg:col-span-2"
+                            :dataValue="props.data.sell_price"
                             :errorMessage="form?.errors?.sell_price ?? '' "
                             v-model="form.sell_price"
                         />
@@ -754,6 +807,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Allocation Officer'"
                             :inputId="'allocation_officer'"
                             class="col-span-full lg:col-span-3"
+                            :dataValue="props.data.allocation_officer"
                             :errorMessage="form?.errors?.allocation_officer ?? '' "
                             v-model="form.allocation_officer"
                         />
@@ -761,6 +815,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Trade + *'"
                             :inputId="'trade_plus'"
                             class="col-span-full lg:col-span-2"
+                            :dataValue="props.data.trade_plus"
                             :errorMessage="form?.errors?.trade_plus ?? '' "
                             v-model="form.trade_plus"
                         />
@@ -768,6 +823,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Settlement Date *'"
                             :inputId="'settlement_date'"
                             :dateTimeOpt="false"
+                            :dataValue="props.data.settlement_date"
                             :errorMessage="form?.errors?.settlement_date ?? '' "
                             class="col-span-full lg:col-span-2"
                             v-model="form.settlement_date"
@@ -778,6 +834,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Factory'"
                             :inputId="'factory'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.factory"
                             :errorMessage="form?.errors?.factory ?? '' "
                             v-model="form.factory"
                         />
@@ -785,6 +842,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Paying Via'"
                             :inputId="'pay_via'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.pay_via"
                             :errorMessage="form?.errors?.pay_via ?? '' "
                             v-model="form.pay_via"
                         />
@@ -793,6 +851,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Allo Comments'"
                             :inputId="'allo_comment'"
                             class="col-span-full lg:col-span-6"
+                            :dataValue="props.data.allo_comment"
                             :errorMessage="form?.errors?.allo_comment ?? '' "
                             v-model="form.allo_comment"
                         />
@@ -802,6 +861,7 @@ const balanceDue = computed(() => {
                             :labelValue="'Docs Received'"
                             :inputId="'docs_received'"
                             class="col-span-full lg:col-span-4"
+                            :dataValue="props.data.docs_received"
                             :errorMessage="form?.errors?.docs_received ?? '' "
                             v-model="form.docs_received"
                         />
@@ -810,6 +870,7 @@ const balanceDue = computed(() => {
                             :inputId="'tc_sent'"
                             :dateTimeOpt="false"
                             class="col-span-full lg:col-span-4"
+                            :dataValue="props.data.tc_sent"
                             :errorMessage="form?.errors?.tc_sent ?? '' "
                             v-model="form.tc_sent"
                         />
@@ -817,6 +878,7 @@ const balanceDue = computed(() => {
                             :labelValue="'TT Received'"
                             :inputId="'tt_received'"
                             :dateTimeOpt="false"
+                            :dataValue="props.data.tt_received"
                             :errorMessage="form?.errors?.tt_received ?? '' "
                             class="col-span-full lg:col-span-4"
                             v-model="form.tt_received"
@@ -826,13 +888,13 @@ const balanceDue = computed(() => {
                         <CustomLabelGroup2
                             :inputId="'leadFrontEditedAt'"
                             :labelValue="'Edited at'"
-                            :dataValue="'-'"
+                            :dataValue="props.data.edited_at ? formatToUserTimezone(props.data.edited_at, user.timezone, true) : '-'"
                             class="col-span-full lg:col-span-4"
                         />
                         <CustomLabelGroup2
                             :inputId="'leadFrontCreatedAt'"
                             :labelValue="'Created at'"
-                            :dataValue="'-'"
+                            :dataValue="props.data.created_at ? formatToUserTimezone(props.data.created_at, user.timezone, true) : '-'"
                             class="col-span-full lg:col-span-4"
                         />
                         <CustomSelectInputField2
@@ -840,6 +902,7 @@ const balanceDue = computed(() => {
                             :inputId="'created_by_id'"
                             :labelValue="'Created By'"
                             :customValue="true"
+                            :dataValue="props.data.created_by_id"
                             :errorMessage="form?.errors?.created_by_id ?? ''"
                             class="col-span-full lg:col-span-4"
                             v-model="form.created_by_id"

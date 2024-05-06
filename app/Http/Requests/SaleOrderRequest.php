@@ -23,7 +23,7 @@ class SaleOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'written' => 'required|date_format:Y-m-d',
+            'written_date' => 'required|date_format:Y-m-d',
             'vc' => 'required|string|max:200',
             'room_number' => 'required|string|max:200',
             'allo' => 'required|string|max:200',
@@ -61,21 +61,21 @@ class SaleOrderRequest extends FormRequest
             'pay_via' => 'required|string|max:200',
             'allo_comment' => 'required|string',
             'docs_received' => 'required|string|max:200',
-            'tc_sent' => 'required|date_format:Y-m-d',
-            'tt_received' => 'required|date_format:Y-m-d',
+            'tc_sent' => 'nullable|date_format:Y-m-d',
+            'tt_received' => 'nullable|date_format:Y-m-d',
             'balance_due' => 'required|max:99999999999999999999.99|decimal:0,2',
             'exchanged_balance_due' => 'required|max:99999999999999999999.99|decimal:0,2',
             'site_id' => 'required|integer',
             'se_name' => 'required|string|max:200',
             'se_number' => 'required|string|max:200',
-            'created_by_id' => 'required|integer',
+            'created_by_id' => 'nullable|integer',
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'written' => 'Written',
+            'written_date' => 'Written Date',
             'vc' => 'Vc',
             'room_number' => 'Room Number',
             'allo' => 'Allo',
