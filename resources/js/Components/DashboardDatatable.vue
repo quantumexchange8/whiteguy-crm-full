@@ -405,6 +405,12 @@ const showAll = () => {
             <template #payment_method_id="rows">
                 <div class="min-w-max">{{ rows.value.payment_method.title }}</div>
             </template>
+            <template #first_name="rows">
+                <div class="min-w-max">{{ rows.value.first_name }}</div>
+            </template>
+            <template #last_name="rows">
+                <div class="min-w-max">{{ rows.value.last_name }}</div>
+            </template>
         </vue3-datatable>
     </div>
 </template>

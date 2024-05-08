@@ -1,6 +1,6 @@
 <script setup>
 import dayjs from 'dayjs';
-import { ref, onMounted, reactive, computed, watch } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import { useForm, usePage } from '@inertiajs/vue3'
 import { cl, back, populateArrayFromResponse, setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone } from '@/Composables'
 import LeadChangelogsModalSection from './LeadChangelogsModalSection.vue'

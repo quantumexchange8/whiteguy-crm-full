@@ -1,6 +1,4 @@
 <script setup>
-import Label from '@/Components/Label.vue'
-import Button from '@/Components/Button.vue'
 import { ChevronUpIcon } from '@heroicons/vue/solid'
 import { onMounted, computed, ref } from "vue";
 import { CheckCircleIcon, ErrorCircleIcon, InfoCircleIcon } from '@/Components/Icons/outline';
@@ -45,9 +43,6 @@ const typeClass = computed(() => {
             :is="typeClass" 
             class="flex-shrink-0 w-36 h-36 mb-10"
         />
-        <!-- <CheckCircleIcon class="flex-shrink-0 w-36 h-36 mb-10" v-if="props.type === 'success'"/>
-        <ErrorCircleIcon class="flex-shrink-0 w-36 h-36 mb-10" v-else-if="props.type === 'error'"/>
-        <InfoCircleIcon class="flex-shrink-0 w-36 h-36 mb-10" v-else/> -->
         <div class="px-8 flex flex-col items-center">
             <p class="dark:text-gray-200 text-gray-700 font-semibold text-lg">{{ props.errorMsg ? props.errorMsg.title : '' }}</p>
             <hr class="border-b rounded-md border-gray-600 mb-2 w-full mx-auto">
@@ -92,6 +87,5 @@ const typeClass = computed(() => {
                 </DisclosurePanel>
             </transition>
         </Disclosure>
-        <!-- <pre class="dark:text-gray-300">{{ props.errors }}</pre> -->
     </div>
 </template>

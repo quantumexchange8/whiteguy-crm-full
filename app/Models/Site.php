@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Site extends Model
 {
@@ -32,5 +33,14 @@ class Site extends Model
     public function saleorder(): HasMany
     {
         return $this->hasMany(SaleOrder::class, 'site_id');
+    }
+    
+    /**
+     * Announcement Model
+     * Get the sites that belong to the announcement.
+     */
+    public function announcements(): BelongsToMany
+    {
+        return $this->belongsToMany(Announcement::class, 'core_siteannouncement');
     }
 }
