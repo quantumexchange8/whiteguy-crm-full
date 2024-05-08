@@ -248,6 +248,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
         Route::get('/sale-orders/{id}/sale-orders-log-entries', [SaleOrderController::class, 'getSaleOrderLogEntries'])->name('sale-orders.getSaleOrderLogEntries');
         Route::get('/sale-orders/{id}/sale-order-items', [SaleOrderController::class, 'getSaleOrderItems'])->name('sale-orders.getSaleOrderItems');
         Route::get('/sale-orders/count', [SaleOrderController::class, 'getTotalSaleOrderCount'])->name('sale-orders.getTotalSaleOrderCount');
+        Route::delete('/sale-orders/{id}/sale-order-item', [SaleOrderController::class, 'deleteSaleOrderItem'])->name('sale-orders.deleteSaleOrderItem');
         Route::resource('/sale-orders', SaleOrderController::class);
 
     /*

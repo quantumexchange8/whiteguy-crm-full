@@ -8,6 +8,7 @@ import {
     cl, back, populateArrayFromResponse, convertToIndexedValueObject, 
     setDateTimeWithOffset, setFormattedDateTimeWithOffset, formatToUserTimezone
 } from '@/Composables'
+import Modal from '@/Components/Modal.vue'
 import Label from '@/Components/Label.vue'
 import Button from '@/Components/Button.vue'
 import Checkbox2 from '@/Components/Checkbox2.vue'
@@ -41,6 +42,7 @@ const props = defineProps({
     },
 })
 
+const selectedSaleOrderItem = ref(null);
 const siteArray  = reactive({});
 const usersList  = reactive({});
 const orderTypeArr  = ref([
@@ -78,6 +80,8 @@ const user = computed(() => page.props.auth.user)
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
+    id: props.data.id,
+    public_id: props.data.public_id,
 	written_date: props.data.written_date,
 	vc: props.data.vc,
 	room_number: props.data.room_number,
@@ -130,6 +134,14 @@ const form = useForm({
 });
 
 onMounted(async () => {
+    form.sale_order_items.forEach((item) => {
+        item['edited'] = false;
+    })
+    // cl(form.sale_order_items);
+
+    // Initialize initial state for sale order items when the form is loaded
+    // initializeSaleOrderItemsInitialState(form.sale_order_items);
+
     try {
         const siteResponse = await axios.get(route('sale-orders.getAllSites'));
         populateArrayFromResponse(siteResponse.data, siteArray, 'id', 'domain');
@@ -145,6 +157,8 @@ onMounted(async () => {
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
     form.written_date ? setFormattedDateTimeWithOffset(form.written_date) : form.written_date;
+    form.balance_due = parseFloat(balanceDue.value);
+    form.exchanged_balance_due = parseFloat(balanceDue.value);
     form.edited_at = setDateTimeWithOffset(true);
     form.created_at = setDateTimeWithOffset(true);
 
@@ -158,21 +172,27 @@ const formSubmit = () => {
             item.commission = isValidNumber(item.commission) ? parseFloat((item.commission_rate / 100) * (item.price * item.quantity)) : item.commission;
             item.total_exchanged_price = isValidNumber(item.total_exchanged_price) ? parseFloat((item.price * item.quantity) + ((item.commission_rate / 100) * (item.price * item.quantity))) : item.total_exchanged_price;
             item.total_price = isValidNumber(item.total_price) ? parseFloat((item.price * item.quantity) + ((item.commission_rate / 100) * (item.price * item.quantity))) : item.total_price;
-            item.edited_at = setDateTimeWithOffset(true);
-            item.created_at = (item.created_at === '') 
-                                ? item.created_at = setDateTimeWithOffset(true) 
-                                : setFormattedDateTimeWithOffset(item.created_at, true);
-            
-        });
-    }
+            // item.order_type = item.order_type ? orderTypeArr.value[parseInt(item.order_type)]['value'] : '';
+            item.edited_at = (item.edited) 
+                                ? setDateTimeWithOffset(true) 
+                                : setFormattedDateTimeWithOffset(item.edited_at, true);
 
-    form.post(route('sale-orders.update'), {
+            item.created_at = (item.created_at === '') 
+                                ? setDateTimeWithOffset(true) 
+                                : setFormattedDateTimeWithOffset(item.created_at, true);
+
+            // cl(item.order_type);
+        });
+        // checkForArrayChanges(form.sale_order_items)
+    }
+    // cl(parseFloat(balanceDue.value));
+
+    form.put(route('sale-orders.update', form.id), {
         preserveScroll: true,
         onSuccess: () => form.reset(),
     
     })
 };
-
 
 // Check and allows only the following keypressed
 const isNumber = (e, withDot = true) => {
@@ -198,17 +218,32 @@ const isValidNumber = (value) => {
     return value !== '' && !isNaN(parseFloat(value)) && isFinite(value);
 };
 
-const removeItem = (i) => {
-    form.sale_order_items.splice(i, 1)
-
-    // if (form.sale_order_items.length === 0) {
-    //     setTimeout(() => {
-    //         addItem();
-    //     }, 0);
-    // }
+const deleteSaleOrderItem = (id) => {
+    form.delete(route('sale-orders.deleteSaleOrderItem', id));
 }
+
+const removeItem = (i, id) => {
+    if (id !== undefined && id !== '') {
+        deleteSaleOrderItem(id);
+    }
+    form.sale_order_items.splice(i, 1);
+    
+    cl(form.sale_order_items);
+    closeSaleOrderItemModal();
+}
+
+const openSaleOrderItemModal = (i) => {
+    selectedSaleOrderItem.value = i;
+    // cl(i);
+}
+
+const closeSaleOrderItemModal = () => {
+    selectedSaleOrderItem.value = null;
+}
+
 const addItem = () => {
     form.sale_order_items.push({
+        'id': '',
         'order_type': '',
         'product': '',
         'price': parseFloat(0.00),
@@ -219,14 +254,12 @@ const addItem = () => {
         'commission': parseFloat(0.00),
         'total_exchanged_price': parseFloat(0.00),
         'total_price': parseFloat(0.00),
+        'completed_at': '',
+        'edited_at': '',
+        'created_at': '',
+        'edited': true,
     });
 }
-
-// Filtered array containing only new lead notes
-// const filteredSaleOrderItems = computed(() => {
-//   const existingSaleOrderItemIds = props.saleOrderItemsData.map(item => item.id)
-//   return form.sale_order_items.filter(item => !existingSaleOrderItemIds.includes(item.id))
-// })
 
 const balanceDue = computed(() => {
     let totalBalanceDue = 0;
@@ -236,6 +269,59 @@ const balanceDue = computed(() => {
     return totalBalanceDue;
   }
 )
+
+const arraysEqual = (a, b) => {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+
+  for (var i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) {
+        b.edited_at = setDateTimeWithOffset(true);
+    }
+  }
+  return true;
+}
+
+// Define a function to initialize the initial state of sale order items
+function initializeSaleOrderItemsInitialState(items) {
+    items.forEach(item => {
+        // Store the initial state of each item
+        item.initialState = { ...item };
+    });
+}
+
+// Define a function to check for changes in sale order items
+function checkForItemChanges(item) {
+    const initialState = item.initialState;
+
+    // Compare each property of the current item with its initial state
+    for (const key in item) {
+        if (item.hasOwnProperty(key) && key !== 'initialState') {
+            // If any property differs from its initial state, return true
+            if (item[key] !== initialState[key]) {
+                return true;
+            }
+        }
+    }
+
+    // If no property has changed, return false
+    return false;
+}
+
+// Function to check for changes in the sale order items array
+function checkForArrayChanges(items) {
+    items.forEach(item => {
+        // Check if the item has been edited and set the 'edited' flag accordingly
+        item.edited = checkForItemChanges(item);
+    });
+}
+
+const setCurrencyPairFormValue = ($event) => {
+    // cl(currencyPairsArr.value[2]['id']);
+    form.currency_pair = currencyPairsArr.value[$event.target.value]['id'];
+}
+
 </script>
 
 <template>
@@ -430,10 +516,12 @@ const balanceDue = computed(() => {
                                 :labelValue="'Exchange rate for'"
                                 :customValue="true"
                                 :errorMessage="form?.errors?.currency_pair ?? ''"
-                                :dataValue="props.data.currency_pair"
+                                :dataValue="currencyPairsArr.findIndex(items => items.id === form.currency_pair)"
+                                @change="setCurrencyPairFormValue($event)"
                                 class="col-span-full !col-start-1 lg:col-span-7 self-start"
                                 v-model="form.currency_pair"
-                            />
+                            /> 
+                            <!-- {{ cl(currencyPairsArr.findIndex(items => items.id === form.currency_pair)) }} -->
                             <BaseTextInputField
                                 :inputType="'number'"
                                 :inputId="'exchange_rate'"
@@ -470,6 +558,7 @@ const balanceDue = computed(() => {
                         >
                             <thead class="bg-gray-600 text-gray-300 rounded-md">
                                 <tr class="w-full">
+                                    <th scope="col" class="w-0 p-0"></th>
                                     <th scope="col" class="text-xs text-nowrap">IN/OUT <span class="text-red-500">*</span></th>
                                     <th scope="col" class="text-xs text-nowrap">PRODUCT <span class="text-red-500">*</span></th>
                                     <th scope="col" class="text-xs text-nowrap">PRICE <span class="text-red-500">*</span></th>
@@ -483,147 +572,185 @@ const balanceDue = computed(() => {
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-600">
-                                <tr class="lg:text-black" v-for="(item, i) in form.sale_order_items" :key="i">
-                                    <td class="py-2">
+                                <tr class="lg:text-black" v-for="(item, i) in form.sale_order_items" :key="i" @change="item.edited = true">
+                                    <td class="align-top !w-0 pr-0 pl-3 pb-0 !pt-1 absolute" >
+                                        <p class="text-gray-300 font-semibold text-[11px] text-nowrap" v-if="item.public_id">{{ item.public_id }}</p>
+                                        <span class="" v-else></span>
+                                    </td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseSelectInputField
                                             :inputArray="orderTypeArr"
-                                            :inputId="'order_type_'+(i+1)"
+                                            :inputId="'order_type_'+(i)"
                                             :customValue="true"
                                             :dataValue="orderTypeArr.findIndex(items => items.id === item.order_type)"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.order_type']  : '' "
-                                            class="col-span-full lg:col-span-2"
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.order_type']  : '' "
+                                            class="col-span-full lg:col-span-3"
+                                            @change="form.sale_order_items[i].order_type = orderTypeArr[parseInt(item.order_type)]['value']"
                                             v-model="item.order_type"
                                         />
                                     </td>
-                                    <td class="py-2">
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseTextInputField
-                                            :inputId="'product_'+(i+1)"
+                                            :inputId="'product_'+(i)"
                                             class="col-span-full lg:col-span-3"
                                             :dataValue="item.product"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.product']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.product']  : '' "
                                             v-model="item.product"
                                         />
                                     </td>
-                                    <td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseTextInputField
                                             :inputType="'number'"
-                                            :inputId="'price_'+(i+1)"
+                                            :inputId="'price_'+(i)"
 										    :dataValue="parseFloat(item.price).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             @keypress="isNumber($event)"
                                             class="col-span-full lg:col-span-3"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.price']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.price']  : '' "
                                             v-model="item.price"
                                         />
                                     </td>
-                                    <td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseTextInputField
                                             :inputType="'number'"
-                                            :inputId="'exchanged_price_'+(i+1)"
+                                            :inputId="'exchanged_price_'+(i)"
 										    :dataValue="parseFloat(item.exchanged_price).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             @keypress="isNumber($event)"
                                             class="col-span-full lg:col-span-3"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.exchanged_price']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.exchanged_price']  : '' "
                                             v-model="item.exchanged_price"
                                         />
                                     </td>
-                                    <td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseTextInputField
                                             :inputType="'number'"
-                                            :inputId="'quantity_'+(i+1)"
+                                            :inputId="'quantity_'+(i)"
 										    :dataValue="parseFloat(item.quantity).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             @keypress="isNumber($event)"
                                             class="col-span-full lg:col-span-3"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.quantity']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.quantity']  : '' "
                                             v-model="item.quantity"
                                         />
                                     </td>
-                                    <td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseTextInputField
                                             :inputType="'number'"
-                                            :inputId="'subtotal_'+(i+1)"
+                                            :inputId="'subtotal_'+(i)"
 										    :dataValue="parseFloat(item.price * item.quantity).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             @keypress="isNumber($event)"
                                             class="col-span-full lg:col-span-3"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.subtotal']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.subtotal']  : '' "
                                             v-model="item.subtotal"
                                         />
                                     </td>
-                                    <td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseTextInputField
                                             :inputType="'number'"
-                                            :inputId="'commission_rate_'+(i+1)"
+                                            :inputId="'commission_rate_'+(i)"
 										    :dataValue="parseFloat(item.commission_rate).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             @keypress="isNumber($event)"
                                             class="col-span-full lg:col-span-3"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.commission_rate']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.commission_rate']  : '' "
                                             v-model="item.commission_rate"
                                         />
                                     </td>
-                                    <td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseTextInputField
                                             :inputType="'number'"
-                                            :inputId="'commission_'+(i+1)"
+                                            :inputId="'commission_'+(i)"
 										    :dataValue="parseFloat((item.commission_rate / 100) * (item.price * item.quantity)).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             @keypress="isNumber($event)"
                                             class="col-span-full lg:col-span-3"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.commission']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.commission']  : '' "
                                             v-model="item.commission"
                                         />
                                     </td>
-                                    <td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseTextInputField
                                             :inputType="'number'"
-                                            :inputId="'total_exchanged_price_'+(i+1)"
+                                            :inputId="'total_exchanged_price_'+(i)"
 										    :dataValue="parseFloat((item.price * item.quantity) + ((item.commission_rate / 100) * (item.price * item.quantity))).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             @keypress="isNumber($event)"
                                             class="col-span-full lg:col-span-3"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.total_exchanged_price']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.total_exchanged_price']  : '' "
                                             v-model="item.total_exchanged_price"
                                         />
                                     </td>
-                                    <td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <BaseTextInputField
                                             :inputType="'number'"
-                                            :inputId="'total_price_'+(i+1)"
+                                            :inputId="'total_price_'+(i)"
 										    :dataValue="parseFloat((item.price * item.quantity) + ((item.commission_rate / 100) * (item.price * item.quantity))).toFixed(2)"
                                             :decimalOption="true"
                                             :step="0.01"
                                             @keypress="isNumber($event)"
                                             class="col-span-full lg:col-span-3"
-                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.total_price']  : '' "
+                                            :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i) + '.total_price']  : '' "
                                             v-model="item.total_price"
                                         />
                                     </td>
-                                    <td>
+                                    <td :class="[ 'align-top', { 'pb-2 pt-7': item.public_id, 'py-2': !item.public_id } ]">
                                         <Button 
                                             :type="'button'"
                                             :variant="'transparent'" 
                                             :size="'sm'" 
                                             class="justify-center gap-2 w-full"
-                                            @click="removeItem(i)"
+                                            @click="openSaleOrderItemModal((i))"
                                         >
                                             <TimesCircleIcon class="flex-shrink-0 w-5 h-5 cursor-pointer" aria-hidden="true" />
                                         </Button>
+                                        <Modal 
+                                            :show="(i) === selectedSaleOrderItem" 
+                                            maxWidth="2xl" 
+                                            :closeable="true" 
+                                            @close="closeSaleOrderItemModal">
+
+                                            <div class="modal">
+                                                <p class="text-gray-200 text-2xl bg-red-500 p-4 rounded-md font-bold">Delete Sale Order Item Confirmation.</p>
+                                                <p class="text-gray-200 text-lg p-4">Are you sure that you want to <span class="font-bold">delete</span> this item?</p>
+                                            </div>
+                                            <div class="flex flex-row justify-end p-9">
+                                                <div class="dark:bg-gray-600 p-4 rounded-md flex gap-4">
+                                                    <Button 
+                                                        :type="'button'"
+                                                        :variant="'info'" 
+                                                        :size="'sm'"
+                                                        @click="closeSaleOrderItemModal"
+                                                        class="justify-center px-6 py-2"
+                                                    >
+                                                        <span>Back</span>   
+                                                    </Button>
+                                                    <Button 
+                                                        :type="'button'"
+                                                        :variant="'danger'" 
+                                                        :size="'sm'" 
+                                                        class="justify-center px-6 py-2"
+                                                        @click="removeItem((i), item.id)"
+                                                    >
+                                                        <span>Confirm</span>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </Modal>
                                     </td>
                                 </tr>
                             </tbody>
                             <tfoot>
                                 <tr class="!py-2">
-                                    <td colspan="7" class="pl-3.5 py-2.5">
+                                    <td colspan="8" class="pl-3.5 py-2.5">
                                         <Button 
                                             :type="'button'"
                                             :variant="'success'" 

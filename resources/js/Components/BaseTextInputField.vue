@@ -41,7 +41,12 @@ const props = defineProps({
             :id="inputId"
             :name="inputId"
             :withIcon="true"
-            :class="'w-full text-sm !pl-4 !py-2.5 min-w-20'"
+            :class="[
+                'w-full text-sm !pl-4 !py-2.5 min-w-20',
+                {
+                    '!border-red-600': errorMessage,
+                }
+            ]"
             :value="dataValue"
             @change="$emit('update:modelValue', $event.target.value)"
             v-if="inputType === 'text'"
@@ -50,7 +55,12 @@ const props = defineProps({
             :id="inputId"
             :name="inputId"
             :withIcon="true"
-            :class="'w-full text-sm !pl-4 !py-2.5 min-w-20'"
+            :class="[
+                'w-full text-sm !pl-4 !py-2.5 min-w-20',
+                {
+                    '!border-red-600': errorMessage,
+                }
+            ]"
             :value="dataValue"
             @change="$emit('update:modelValue', $event.target.value)"
             :inputType="inputType"
@@ -61,7 +71,12 @@ const props = defineProps({
             :id="inputId"
             :name="inputId"
             :withIcon="true"
-            class="w-full text-sm !pl-4 !py-2.5 min-w-20"
+            :class="[
+                'w-full text-sm !pl-4 !py-2.5 min-w-20',
+                {
+                    '!border-red-600': errorMessage,
+                }
+            ]"
             :value="dataValue"
             @change="$emit('update:modelValue', $event.target.value)"
             v-if="inputType === 'textarea'"

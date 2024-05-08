@@ -56,12 +56,8 @@ class SaleOrderController extends Controller
      */
     public function store(SaleOrderRequest $request)
     {
-        $saleOrderWithItems = SaleOrder::whereHas('saleOrderItems')
-                                            ->get();
-        $saleOrderWithoutItems = SaleOrder::whereDoesntHave('saleOrderItems')
-                                            ->get();
-        // dd($request);
         $data = $request->all();
+        // dd($data);
 
         if (count($data['sale_order_items']) > 0) {
             $saleOrderItemRequest = new SaleOrderItemRequest();
@@ -69,7 +65,7 @@ class SaleOrderController extends Controller
         }
 
         $newSaleOrderData = SaleOrder::create([
-            'public_id' => $this->generatePublicId(),
+            'public_id' => $this->generatePublicId('saleorder'),
             'written_date' => $data['written_date'],
             'vc' => $data['vc'],
             'room_number' => $data['room_number'],
@@ -124,6 +120,7 @@ class SaleOrderController extends Controller
         if (count($data['sale_order_items']) > 0) {
             foreach ($data['sale_order_items'] as $key => $value) {
                 $newSaleOrderItemData = SaleOrderItem::create([
+                    'public_id' => $this->generatePublicId('saleorderitem'),
                     'order_type' => $value['order_type'],
                     'product' => $value['product'],
                     'price' => $value['price'],
@@ -134,11 +131,11 @@ class SaleOrderController extends Controller
                     'commission' => $value['commission'],
                     'total_exchanged_price' => $value['total_exchanged_price'],
                     'total_price' => $value['total_price'],
-                    'edited_at' => $value['edited_at'],
-                    'created_at' => $value['edited_at'],
+                    'edited_at' => $data['edited_at'],
+                    'created_at' => $data['edited_at'],
                     'sale_order_id' => $newSaleOrderData->id,
-                    'completed_at' => '',
-                    'order_id' => '',
+                    'completed_at' => null,
+                    'order_id' => null,
                 ]);
             }
             $newSaleOrderItemData->save();
@@ -156,18 +153,20 @@ class SaleOrderController extends Controller
                         ->with('errorMsg', $errorMsg);
     }
 
-    public function generatePublicId()
+    public function generatePublicId($model)
     {
         do {
             $newPublicId = Str::uuid();
-        } while ($this->checkExistingPublicId($newPublicId));
+        } while ($this->checkExistingPublicId($newPublicId, $model));
         
         return (string) $newPublicId;
     }
 
-    public function checkExistingPublicId($string)
+    public function checkExistingPublicId($string, $model)
     {
-        $existingPublicId = SaleOrder::where('public_id', $string)->get();
+        $existingPublicId = $model === 'saleorder'
+                                ? SaleOrder::where('public_id', $string)->get()
+                                : SaleOrderItem::where('public_id', $string)->get();
 
         if (count($existingPublicId) > 0) {
             return true;
@@ -204,9 +203,127 @@ class SaleOrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(SaleOrderRequest $request, string $id)
     {
-        //
+        $data = $request->all();
+        // dd($data);
+
+        if (count($data['sale_order_items']) > 0) {
+            $saleOrderItemRequest = new SaleOrderItemRequest();
+            $this->validate($request, $saleOrderItemRequest->rules(), $saleOrderItemRequest->messages(), $saleOrderItemRequest->attributes());
+        }
+        $existingSaleOrder = SaleOrder::find($id);
+
+        $existingSaleOrder->update([
+            'public_id' => $data['public_id'],
+            'written_date' => $data['written_date'],
+            'vc' => $data['vc'],
+            'room_number' => $data['room_number'],
+            'allo' => $data['allo'],
+            'allo_name' => $data['allo_name'],
+            'sm_number' => $data['sm_number'],
+            'gm_number' => $data['gm_number'],
+            'fm_number' => $data['fm_number'],
+            'lm_number' => $data['lm_number'],
+            'ao_1' => $data['ao_1'],
+            'ao_1_name' => $data['ao_1_name'],
+            'ao_2' => $data['ao_2'],
+            'ao_2_name' => $data['ao_2_name'],
+            'bonus_comment' => $data['bonus_comment'],
+            'currency_pair' => $data['currency_pair'],
+            'exchange_rate' => $data['exchange_rate'],
+            'registered_name' => $data['registered_name'],
+            'contact_name' => $data['contact_name'],
+            'office_number_1' => $data['office_number_1'],
+            'office_number_2' => $data['office_number_2'],
+            'home_number' => $data['home_number'],
+            'mobile_number' => $data['mobile_number'],
+            'fax_number' => $data['fax_number'],
+            'date_of_birth' => $data['date_of_birth'],
+            'email' => $data['email'],
+            'address_1' => $data['address_1'],
+            'address_2' => $data['address_2'],
+            'city' => $data['city'],
+            'country' => $data['country'],
+            'exit_time_frame' => $data['exit_time_frame'],
+            'sell_price' => $data['sell_price'],
+            'allocation_officer' => $data['allocation_officer'],
+            'trade_plus' => $data['trade_plus'],
+            'settlement_date' => $data['settlement_date'],
+            'factory' => $data['factory'],
+            'pay_via' => $data['pay_via'],
+            'allo_comment' => $data['allo_comment'],
+            'docs_received' => $data['docs_received'],
+            'tc_sent' => $data['tc_sent'],
+            'tt_received' => $data['tt_received'],
+            'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['edited_at']),
+            'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $data['created_at']),
+            'balance_due' => $data['balance_due'],
+            'exchanged_balance_due' => $data['exchanged_balance_due'],
+            'site_id' => $data['site_id'],
+            'se_name' => $data['se_name'],
+            'se_number' => $data['se_number'],
+            'created_by_id' => $data['created_by_id'],
+        ]);
+        $existingSaleOrder->save();
+
+        if (count($data['sale_order_items']) > 0) {
+            foreach ($data['sale_order_items'] as $key => $value) {
+                if ($value['id'] === null) {
+                    // dd($value['completed_at']);
+                    SaleOrderItem::create([
+                        'public_id' => $this->generatePublicId('saleorderitem'),
+                        'order_type' => $value['order_type'],
+                        'product' => $value['product'],
+                        'price' => $value['price'],
+                        'exchanged_price' => $value['exchanged_price'],
+                        'quantity' => $value['quantity'],
+                        'subtotal' => $value['subtotal'],
+                        'commission_rate' => $value['commission_rate'],
+                        'commission' => $value['commission'],
+                        'total_exchanged_price' => $value['total_exchanged_price'],
+                        'total_price' => $value['total_price'],
+                        'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $value['edited_at']),
+                        'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $value['created_at']),
+                        'sale_order_id' => $data['id'],
+                        'completed_at' => ($value['completed_at'] !== null) ? preg_replace('/(\d{2})(\d{2})$/', '$1', $value['completed_at']) : null,
+                        'order_id' => null,
+                    ]);
+                } else {
+                    $existingSaleOrderItemData = SaleOrderItem::find($value['id']);
+
+                    $existingSaleOrderItemData->update([
+                        'public_id' => $value['public_id'],
+                        'order_type' => $value['order_type'],
+                        'product' => $value['product'],
+                        'price' => $value['price'],
+                        'exchanged_price' => $value['exchanged_price'],
+                        'quantity' => $value['quantity'],
+                        'subtotal' => $value['subtotal'],
+                        'commission_rate' => $value['commission_rate'],
+                        'commission' => $value['commission'],
+                        'total_exchanged_price' => $value['total_exchanged_price'],
+                        'total_price' => $value['total_price'],
+                        'edited_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $value['edited_at']),
+                        'created_at' => preg_replace('/(\d{2})(\d{2})$/', '$1', $value['created_at']),
+                        'sale_order_id' => $data['id'],
+                        'completed_at' => ($value['completed_at'] !== null) ? preg_replace('/(\d{2})(\d{2})$/', '$1', $value['completed_at']) : null,
+                        'order_id' => null,
+                    ]);
+                }
+            }
+        }
+		
+        $errorMsgTitle = "You have successfully updated the sale order.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('sale-orders.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -214,7 +331,43 @@ class SaleOrderController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $existingSaleOrderItems = SaleOrderItem::where('sale_order_id', $id)
+                                                    ->select('id')
+                                                    ->delete();
+
+        $anyExistingSaleOrderItems = SaleOrderItem::where('sale_order_id', $id)
+                                                        ->select('id')
+                                                        ->count();
+        
+        if ($anyExistingSaleOrderItems === 0) {
+            SaleOrder::destroy($id);
+
+            $errorMsgTitle = "You have successfully deleted the sale order.";
+            $errorMsgType = "success";
+        } else {
+            $errorMsgTitle = "Unable to delete the sale order. There are still order items active.";
+            $errorMsgType = "error";
+        }
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('sale-orders.index')
+                        ->with('errorMsg', $errorMsg);
+    }
+
+    /**
+     * Delete sale order item.
+     */
+    public function deleteSaleOrderItem(string $id)
+    {
+        $existingSaleOrderItem = SaleOrderItem::find($id);
+        $saleOrderId = $existingSaleOrderItem->sale_order_id;
+        $existingSaleOrderItem->delete();
+
+        return redirect(route('sale-orders.edit', $saleOrderId));
     }
 
     public function getSaleOrders(Request $request)

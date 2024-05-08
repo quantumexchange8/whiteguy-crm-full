@@ -264,23 +264,23 @@ class LeadFrontController extends Controller
         $linked_lead = $existingLeadFront->linked_lead;
         $existingLeadFront->delete();
 
-        $leadFrontChanges = [];
+        // $leadFrontChanges = [];
         
-        $leadFrontChanges['Delete'] = [
-            'id' => $id,
-            'description' => 'This lead front has been deleted',
-        ];
+        // $leadFrontChanges['Delete'] = [
+        //     'id' => $id,
+        //     'description' => 'This lead front has been deleted',
+        // ];
 
-        $newLeadChangelog = new LeadChangelog;
+        // $newLeadChangelog = new LeadChangelog;
 
-        $newLeadChangelog->lead_id = $linked_lead;
-        $newLeadChangelog->column_name = 'lead_front';
-        $newLeadChangelog->lead_changes = [];
-        $newLeadChangelog->lead_front_changes = $leadFrontChanges;
-        $newLeadChangelog->lead_notes_changes = [];
-        $newLeadChangelog->description = 'This lead front has been deleted';
+        // $newLeadChangelog->lead_id = $linked_lead;
+        // $newLeadChangelog->column_name = 'lead_front';
+        // $newLeadChangelog->lead_changes = [];
+        // $newLeadChangelog->lead_front_changes = $leadFrontChanges;
+        // $newLeadChangelog->lead_notes_changes = [];
+        // $newLeadChangelog->description = 'This lead front has been deleted';
 
-        $newLeadChangelog->save();
+        // $newLeadChangelog->save();
 
         $errorMsgTitle = "You have successfully deleted the lead front.";
         $errorMsgType = "success";

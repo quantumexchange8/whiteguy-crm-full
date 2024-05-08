@@ -44,10 +44,15 @@ onMounted(() => {
                 :id="inputId"
                 v-model="selectedValue"
                 @change="$emit('update:modelValue', $event.target.value)"
-                class="block appearance-none w-full min-w-20 bg-gray-200 border border-grey-lighter text-black 
-                        py-2.5 pl-4 pr-8 text-sm rounded-md focus:border-gray-400 focus:ring focus:ring-purple-500 
-                        focus:ring-offset-2 focus:ring-offset-white dark:border-gray-600 
-                        dark:bg-dark-eval-1 dark:text-gray-300 dark:focus:ring-offset-dark-eval-1" 
+                :class="[
+                    'block appearance-none w-full min-w-32 bg-gray-200 border border-grey-lighter',
+                    'text-black py-2.5 pl-4 pr-8 text-sm rounded-md focus:border-gray-400 focus:ring',
+                    'focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-white dark:border-gray-600',
+                    'dark:bg-dark-eval-1 dark:text-gray-300 dark:focus:ring-offset-dark-eval-1',
+                    {
+                        '!border-red-600': errorMessage,
+                    }
+                ]"
             >
                 <option disabled>---------------</option>
                 <!-- Passing an object of objects with key as id and item and value for dynamic/values that are retrieved from another table -->

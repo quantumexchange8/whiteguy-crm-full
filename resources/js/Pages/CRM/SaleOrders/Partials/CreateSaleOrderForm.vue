@@ -138,6 +138,8 @@ onMounted(async () => {
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
     form.written_date ? setFormattedDateTimeWithOffset(form.written_date) : form.written_date;
+    form.balance_due = parseFloat(balanceDue.value);
+    form.exchanged_balance_due = parseFloat(balanceDue.value);
     form.edited_at = setDateTimeWithOffset(true);
     form.created_at = setDateTimeWithOffset(true);
 
@@ -218,6 +220,11 @@ const balanceDue = computed(() => {
     return totalBalanceDue;
   }
 )
+
+const setCurrencyPairFormValue = ($event) => {
+    form.currency_pair = currencyPairsArr.value[$event.target.value]['id'];
+}
+
 </script>
 
 <template>
@@ -396,6 +403,7 @@ const balanceDue = computed(() => {
                                 :labelValue="'Exchange rate for'"
                                 :customValue="true"
                                 :errorMessage="form?.errors?.currency_pair ?? ''"
+                                @change="setCurrencyPairFormValue($event)"
                                 class="col-span-full !col-start-1 lg:col-span-7 self-start"
                                 v-model="form.currency_pair"
                             />
@@ -455,6 +463,7 @@ const balanceDue = computed(() => {
                                             :customValue="true"
                                             :errorMessage="(form.errors) ? form.errors['sale_order_items.' + (i+1) + '.order_type']  : '' "
                                             class="col-span-full lg:col-span-2"
+                                            @change="form.sale_order_items[i].order_type = orderTypeArr[parseInt(item.order_type)]['value']"
                                             v-model="item.order_type"
                                         />
                                     </td>

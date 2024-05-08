@@ -347,21 +347,21 @@ class UserClientController extends Controller
         $existingUserClient = User::find($id);
         $existingUserClient->delete();
 
-        $userClientChanges = [];
+        // $userClientChanges = [];
         
-        $userClientChanges['Delete'] = [
-            'id' => $id,
-            'description' => 'This user has been deleted',
-        ];
+        // $userClientChanges['Delete'] = [
+        //     'id' => $id,
+        //     'description' => 'This user has been deleted',
+        // ];
 
-        $newUserClientChangelog = new UserClientChangelog;
+        // $newUserClientChangelog = new UserClientChangelog;
 
-        $newUserClientChangelog->users_clients_id = $id;
-        $newUserClientChangelog->column_name = 'users_clients';
-        $newUserClientChangelog->changes = $userClientChanges;
-        $newUserClientChangelog->description = 'The user has been successfully deleted';
+        // $newUserClientChangelog->users_clients_id = $id;
+        // $newUserClientChangelog->column_name = 'users_clients';
+        // $newUserClientChangelog->changes = $userClientChanges;
+        // $newUserClientChangelog->description = 'The user has been successfully deleted';
 
-        $newUserClientChangelog->save();
+        // $newUserClientChangelog->save();
 
         $errorMsgTitle = "You have successfully deleted the user.";
         $errorMsgType = "success";
