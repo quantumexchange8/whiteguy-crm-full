@@ -7,6 +7,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
 import { ZiggyVue } from '../../vendor/tightenco/ziggy/dist/vue.m'
 import Toast, { TYPE } from "vue-toastification";
 import "vue-toastification/dist/index.css";
+import { VueQueryPlugin } from '@tanstack/vue-query'
 
 const appName =
     window.document.getElementsByTagName('title')[0]?.innerText || 'K UI'
@@ -43,9 +44,8 @@ createInertiaApp({
             .use(plugin)
             .use(ZiggyVue, Ziggy)
             .use(Toast, options)
+            .use(VueQueryPlugin)
             .mount(el)
     },
-    progress: {
-        color: '#a855f7'
-    }
+    progress: false
 })

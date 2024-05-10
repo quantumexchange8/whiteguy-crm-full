@@ -25,7 +25,8 @@ const pageTitle = "Annoucements";
 
 		<div class="w-full pb-6 px-2">
 			<div class="rounded-xl bg-gray-600 p-2">
-				<CoreFullCard #title></CoreFullCard>
+				<p class="text-center text-4xl">Welcome</p>
+				<!-- <CoreFullCard #title></CoreFullCard> -->
 			</div>
 		</div>
 	</AuthenticatedLayout>

@@ -55,7 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        return Inertia::render('CRM/Announcements/Index');
     })->name('dashboard');
 
     Route::get('/news', function () {
@@ -121,9 +121,8 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Applications Routes
     */
-        Route::get('/applications', function () {
-            return Inertia::render('CRM/Applications/Index');
-        })->name('crm.applications');
+        Route::get('/applications/leads/', [ApplicationController::class, 'getAllLeads'])->name('applications.getAllLeads');
+        Route::resource('/applications', ApplicationController::class);
     
     /*
     |--------------------------------------------------------------------------
