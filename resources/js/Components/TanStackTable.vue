@@ -15,6 +15,17 @@ const page = usePage();
 const user = computed(() => page.props.auth.user)
 
 const props = defineProps({
+    columnData: {
+        type: Object,
+        default: () => ({}),
+    },
+    rowData: {
+        type: Object,
+        default: () => ({}),
+    },
+    totalRows: {
+        type: Number,
+    },
     errors:Object,
 })
 
@@ -80,7 +91,8 @@ const dataColumns = [
 
 let tableRowData = ref({});
 let total_rows = ref();
-
+// const INITIAL_PAGE_INDEX = 1;
+// const goToPageNumber = ref(INITIAL_PAGE_INDEX + 1);
 const sorting = ref([{
   id: 'id',
   desc: true, //sort by id in descending order by default
@@ -109,6 +121,7 @@ const pagination = ref({
 
 const getData = async (pagination) => {
     try {
+        // console.time();
         const response = await axios.get(route('applications.getAllLeads'), {
             method: 'GET',
             // body: JSON.stringify(pagination),
@@ -116,6 +129,7 @@ const getData = async (pagination) => {
                 pagination: pagination.value,
             },
         });
+        // console.timeEnd();
 
         tableRowData.value = await response.data.rows.data;
         total_rows.value = response.data.total_rows;
@@ -126,7 +140,7 @@ const getData = async (pagination) => {
     }
 };
 
-//Use controlled state values to fetch data
+// Use controlled state values to fetch data
 const { data, isPlaceholderData } = useQuery({
     queryKey: [pagination],
     queryFn: () => getData(pagination),
@@ -135,11 +149,13 @@ const { data, isPlaceholderData } = useQuery({
 
 const table = useVueTable({
     get data() {
+        // return props.rowData ? props.rowData.rows : []
         return data && data.value ? data.value : []
     },
-    columns: dataColumns,
+    columns: props.columnData,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
+    // getPaginationRowModel: getPaginationRowModel(),
     get rowCount() {
         return total_rows.value;
     },
@@ -172,8 +188,18 @@ const table = useVueTable({
 
 const updatePageSize = (val) => {
     table.setPageSize(pageSizeArray.value[val]['value']);
+    table.setPageIndex(1);
 }
 
+// function handleGoToPage(e) {
+//   const page = e.target.value ? Number(e.target.value) - 1 : 0
+//   goToPageNumber.value = page + 1
+//   table.setPageIndex(page)
+// }
+
+// function handlePageSizeChange(e) {
+//   table.setPageSize(Number(e.target.value))
+// }
 </script>
 
 <template>
@@ -235,11 +261,7 @@ const updatePageSize = (val) => {
                         <div class="grid grid-cols-1 lg:grid-cols-12">
                             <div class="text-sm col-span-3 text-gray-300 flex flex-row">
                                 <p class="self-center">
-                                    Showing {{ table.getState().pagination.pageIndex === 1 ? 1 : 1 + ((table.getState().pagination.pageIndex - 1) * table.getState().pagination.pageSize) }} to
-                                    {{ ((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize) > table.getRowCount() 
-                                            ? table.getRowCount() 
-                                            : ((table.getState().pagination.pageIndex) * table.getState().pagination.pageSize) }} of
-                                    {{ table.getRowCount() }} entries
+                                    Show
                                 </p>
                                 <BaseSelectInputField
                                     :inputArray="pageSizeArray"
@@ -250,39 +272,44 @@ const updatePageSize = (val) => {
                                     class="self-end"
                                 />
                             </div>
-                            <div class="pt-2 col-span-9 ml-auto flex flex-row gap-2">
+                            <div class="pt-2 col-span-6 mx-auto flex flex-row gap-2">
                                 <button
                                     class="border-2 text-sm border-gray-300 rounded-full px-1.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-dark-eval-1 hover:bg-blue-500"
+                                    :disabled="table.getState().pagination.pageIndex <= 1"
                                     @click="table.setPageIndex(1)"
                                 >
                                     &lt;&lt;
                                 </button>
                                 <button
                                     class="border-2 text-sm border-gray-300 rounded-full px-2.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-dark-eval-1 hover:bg-blue-500"
-                                    :disabled="!table.getCanPreviousPage() || table.getState().pagination.pageIndex === 1"
+                                    :disabled="table.getState().pagination.pageIndex <= 1"
                                     @click="table.previousPage()"
                                 >
                                     &lt;
                                 </button>
                                 <button
                                     class="border-2 text-sm border-gray-200 rounded-full px-2.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-dark-eval-1 hover:bg-blue-500"
-                                    :disabled="!table.getCanNextPage()"
-                                    @click="table.nextPage();"
+                                    :disabled="table.getState().pagination.pageIndex >= table.getPageCount()"
+                                    @click="table.nextPage()"
                                 >
                                     >
                                 </button>
                                 <button
                                     class="border-2 text-sm border-gray-300 rounded-full px-1.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-dark-eval-1 hover:bg-blue-500"
+                                    :disabled="table.getState().pagination.pageIndex >= table.getPageCount()"
                                     @click="table.setPageIndex(table.getPageCount())"
                                 >
                                     >>
                                 </button>
-                                <!-- <button
-                                    class="border-2 text-sm border-gray-300 rounded-full px-1.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-dark-eval-1 hover:bg-blue-500"
-                                    @click="updatePaginationOnChange()"
-                                >
-                                    ?
-                                </button> -->
+                            </div>
+                            <div class="text-sm col-span-3 ml-auto text-gray-300 flex flex-row">
+                                <p class="self-center">
+                                    Showing {{( table.getState().pagination.pageIndex === 1) ? 1 : (1 + ((table.getState().pagination.pageIndex - 1) * table.getState().pagination.pageSize)) }} to
+                                    {{ (((table.getState().pagination.pageIndex) * table.getState().pagination.pageSize) > table.getRowCount())
+                                            ? table.getRowCount() 
+                                            : ((table.getState().pagination.pageIndex) * table.getState().pagination.pageSize) }} of
+                                    {{ table.getRowCount() }} entries
+                                </p>
                             </div>
                         </div>
                     </div>

@@ -1,15 +1,20 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import "vue-toastification/dist/index.css";
+import { useToast } from "vue-toastification";
 import AuthenticatedLayout from '@/Layouts/Authenticated.vue'
+import { cl } from '@/Composables';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue'
 import TanStackTable from '@/Components/TanStackTable.vue'
 import CustomToastification from '@/Components/CustomToastification.vue';
-import { useToast } from "vue-toastification";
-import "vue-toastification/dist/index.css";
 import { useQuery, keepPreviousData } from '@tanstack/vue-query'
 
 const props = defineProps({
-    errors:Object,
+  data: {
+      type: Object,
+      default: () => ({}),
+  },
+  errors:Object,
 	errorMsg: {
 		type: Object,
         default: () => ({}),
@@ -33,25 +38,76 @@ const colArray = ref([
     { field: "liquid", title: "LIQUID", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "lead_id", title: "LINKED LEAD ID", headerClass: "text-gray-300 text-sm w-max"  },
 ]);
+const dataColumns = [
+  {
+    accessorKey: 'id',
+    header: 'ID',
+    enableSorting: false,
+  },
+  {
+    accessorKey: 'first_name',
+    header: 'FIRST NAME',
+  },
+  {
+    accessorKey: 'assigne_id',
+    header: 'ASSIGNEE',
+  },
+  {
+    accessorKey: 'contacted_at',
+    header: 'LAST CALLED',
+  },
+  {
+    accessorKey: 'give_up_at',
+    header: 'GIVE UP?',
+  },
+  {
+    accessorKey: 'date',
+    header: 'DATE OPPD IN',
+  },
+  {
+    accessorKey: 'phone_number',
+    header: 'PHONE NUMBER',
+  },
+  {
+    accessorKey: 'email',
+    header: 'Email',
+  },
+  {
+    accessorKey: 'country',
+    header: 'Country',
+  },
+  {
+    accessorKey: 'vc',
+    header: 'VC',
+  },
+  {
+    accessorKey: 'data_type',
+    header: 'DATA TYPE',
+  },
+  {
+    accessorKey: 'data_source',
+    header: 'DATA SOURCE',
+  },
+  {
+    accessorKey: 'data_code',
+    header: 'DATA CODE',
+  },
+]
+// const pagination = ref({
+//     pageIndex: 1,
+//     pageSize: 10,
+// });
+let total_rows = ref();
 
 // const getData = async (pagination) => {
 //     try {
-//         const response = await axios.get(route('applications.getAllLeads'), {
-//             method: 'GET',
-//             // body: JSON.stringify(pagination),
-//             params: {
-//                 pagination: pagination.value,
-//             },
-//         });
+//         const response = await axios.get(route('applications.getAllLeads'));
 
-//         tableRowData.value = await response.data.rows.data;
+//         let tableRowData = await response.data.rows;
 //         total_rows.value = response.data.total_rows;
 
-//         return tableRowData.value;
-//         // table.getData(data);
-
-//         // cl(response.data.total_rows);
-
+//         // cl(response.data)
+//         return tableRowData;
 //     } catch (error) {
 //         console.error("Error fetching data:", error);
 //     }
@@ -109,7 +165,15 @@ onMounted(() => {
 		</template>
 
 		<div class="w-full pb-6">
-			<TanStackTable></TanStackTable>
+			<TanStackTable
+				:columnData="dataColumns"
+				:rowData="props.data"
+				:totalRows="total_rows"
+			>
+			</TanStackTable>
+			<!-- <TanStackTable
+			>
+			</TanStackTable> -->
 		</div>
 	</AuthenticatedLayout>
 </template>

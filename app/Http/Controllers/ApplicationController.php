@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\LeadResource;
 use App\Models\Lead;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class ApplicationController extends Controller
 {
@@ -93,23 +96,115 @@ class ApplicationController extends Controller
 
     public function getAllLeads(Request $request)
     {
-        // dd($request);
-        $total_rows = Lead::count();
+        $pageSize = $request['pagination']['pageSize'];
+        $pageIndex = $request['pagination']['pageIndex'];
+        $cacheKey = 'leads_page_' . $pageIndex . '_size_' . $pageSize;
+    
+        $rows = Cache::remember($cacheKey, 600, function() use ($pageSize, $pageIndex) {
+            return Lead::with([
+                'leadCreator:id,username,site_id', 
+                'leadCreator.site:id,name', 
+                'assignee:id,username,site_id', 
+                'assignee.site:id,name', 
+                'leadnotes',
+                'leadnotes.leadNoteCreator:id,username,site_id',
+                'leadnotes.leadNoteCreator.site:id,name',
+                'contactOutcome:id,title',
+                'stage:id,title',
+                'appointmentLabel:id,title'
+            ])
+            ->select([
+                'id', 'date', 'first_name', 'assignee_id', 'country', 'vc', 'phone_number',
+                 'data_source', 'contacted_at', 'give_up_at', 'data_code', 'data_type'
+            ])
+            ->orderByDesc('id')
+            ->simplePaginate($pageSize, ['*'], 'page', $pageIndex);
+        });
+    
+        $total_rows = Cache::remember('leads_total_count', 600, function() {
+            return Lead::count();
+        });
 
-        $rows = Lead::with([
-                            'leadCreator:id,username,site_id', 
-                            'leadCreator.site:id,name', 
-                            'assignee:id,username,site_id', 
-                            'assignee.site:id,name', 
-                            'leadnotes',
-                            'leadnotes.leadNoteCreator:id,username,site_id',
-                            'leadnotes.leadNoteCreator.site:id,name',
-                            'contactOutcome:id,title',
-                            'stage:id,title',
-                            'appointmentLabel:id,title'
-                        ])
-                        ->orderByDesc('id')
-                        ->paginate($request['pagination']['pageSize'], ['*'], 'page', $request['pagination']['pageIndex']);
+        // $rows = [];
+        
+        // new LeadResource(Lead::with([
+        //                         'leadCreator:id,username,site_id', 
+        //                         'leadCreator.site:id,name', 
+        //                         'assignee:id,username,site_id', 
+        //                         'assignee.site:id,name', 
+        //                         'leadnotes',
+        //                         'leadnotes.leadNoteCreator:id,username,site_id',
+        //                         'leadnotes.leadNoteCreator.site:id,name',
+        //                         'contactOutcome:id,title',
+        //                         'stage:id,title',
+        //                         'appointmentLabel:id,title'
+        //                     ])
+        //                     ->limit(100)
+        //                     ->cursor()
+        //                     ->each(function ($lead) use (&$rows) {
+        //                         // Modify the lead attributes as needed
+        //                         $lead['username'] = 'yeaboi';
+                        
+        //                         // Add the modified lead to the rows array
+        //                         $rows[] = $lead->toArray();
+        //                     }));
+
+        // $rows = [];
+
+        // Lead::with([
+        //         'leadCreator:id,username,site_id', 
+        //         'leadCreator.site:id,name', 
+        //         'assignee:id,username,site_id', 
+        //         'assignee.site:id,name', 
+        //         'leadnotes',
+        //         'leadnotes.leadNoteCreator:id,username,site_id',
+        //         'leadnotes.leadNoteCreator.site:id,name',
+        //         'contactOutcome:id,title',
+        //         'stage:id,title',
+        //         'appointmentLabel:id,title'
+        //     ])
+        //     ->select(['id', 'date', 'first_name', 'assignee_id', 'country', 'vc', 'phone_number', 'data_source', 'contacted_at', 'give_up_at', 'data_code', 'data_type'])
+        //     // ->limit(10000)
+        //     ->orderByDesc('id')
+        //     ->cursor()
+        //     ->each(function ($lead) use (&$rows) {
+        //         // Add the modified lead to the rows array
+        //         $rows[] = $lead->toArray();
+        //     });
+
+        // $rows = Lead::with([
+        //             'leadCreator:id,username,site_id', 
+        //             'leadCreator.site:id,name', 
+        //             'assignee:id,username,site_id', 
+        //             'assignee.site:id,name', 
+        //             'leadnotes',
+        //             'leadnotes.leadNoteCreator:id,username,site_id',
+        //             'leadnotes.leadNoteCreator.site:id,name',
+        //             'contactOutcome:id,title',
+        //             'stage:id,title',
+        //             'appointmentLabel:id,title'
+        //         ])
+        //         ->lazyById(200, $column = 'id');
+
+        // $rows = [];
+        
+        // foreach (Lead::with([
+        //             'leadCreator:id,username,site_id', 
+        //             'leadCreator.site:id,name', 
+        //             'assignee:id,username,site_id', 
+        //             'assignee.site:id,name', 
+        //             'leadnotes',
+        //             'leadnotes.leadNoteCreator:id,username,site_id',
+        //             'leadnotes.leadNoteCreator.site:id,name',
+        //             'contactOutcome:id,title',
+        //             'stage:id,title',
+        //             'appointmentLabel:id,title'
+        //         ])
+        //         ->lazy() as $lead) {
+        //             $rows[] = $lead->toArray();
+        //         }
+
+        // dd($rows);
 
         $data = [
             'rows' => $rows,

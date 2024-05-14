@@ -28,6 +28,8 @@ use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Builder;
 
 class LeadController extends Controller
 {
@@ -917,56 +919,51 @@ class LeadController extends Controller
         }
         
         $tableColumns = Schema::getColumnListing('core_lead');
-        $sort_column = '';
+        $sort_column = $request['params']['sort_column'] === 'lead_assignee' ? 'assignee_id' : '';
 
-        if ($request['params']['sort_column'] === 'lead_assignee') {
-            $sort_column = 'assignee_id';
-        }
-        
-        // Default fetch all on load
+        // Define query
         $queries = Lead::query();
         $queries->with([
-                            'leadCreator:id,username,site_id', 
-                            'leadCreator.site:id,name', 
-                            'assignee:id,username,site_id', 
-                            'assignee.site:id,name', 
-                            'leadnotes',
-                            'leadnotes.leadNoteCreator:id,username,site_id',
-                            'leadnotes.leadNoteCreator.site:id,name',
-                            'contactOutcome:id,title',
-                            'stage:id,title',
-                            'appointmentLabel:id,title'
+            'leadCreator:id,username,site_id', 
+            'leadCreator.site:id,name', 
+            'assignee:id,username,site_id', 
+            'assignee.site:id,name', 
+            'leadnotes' => function ($query) {
+                $query->select('id', 'lead_id', 'note', 'created_by_id');
+            },
+            'leadnotes.leadNoteCreator:id,username,site_id',
+            'leadnotes.leadNoteCreator.site:id,name',
+            'contactOutcome:id,title',
+            'stage:id,title',
+            'appointmentLabel:id,title'
+        ])
+        ->select([
+            'id', 'date', 'first_name', 'last_name', 'assignee_id', 'country', 'vc', 'phone_number', 
+            'data_source', 'contacted_at', 'give_up_at', 'data_code', 'data_type'
         ]);
-        $queries->where(function ($query) use ($tableColumns, $request) {
-            // Global search
-            $searchTerm = $request['params']['search'];
-            if (!empty($searchTerm)) {
+
+        // Apply filters
+        $queries->where(function (Builder $query) use ($tableColumns, $request) {
+            $searchTerm = $request['params']['search'] ?? '';
+
+            if ($searchTerm) {
                 $query->where(function ($innerQuery) use ($tableColumns, $searchTerm) {
                     foreach ($tableColumns as $column) {
                         $innerQuery->orWhere($column, 'LIKE', '%' . $searchTerm . '%');
                     }
                 });
             }
-            
-            // Column-specific searches
-            if (isset($request['params']['column_filters'])) {
+
+            if (!empty($request['params']['column_filters'])) {
                 foreach ($request['params']['column_filters'] as $filter) {
-                    if (isset($filter['value'])) {
+                    if (!empty($filter['value'])) {
                         if ($filter['field'] === 'lead_assignee') {
                             $leadAssigneeId = User::where('username', 'LIKE', '%' . $filter['value'] . '%')
-                                                    ->select('id', 'username')
-                                                    ->get();
-
-                            $assigneeIdArr = [];
-                            foreach ($leadAssigneeId as $key => $value) {
-                                $assigneeIdArr[] = [
-                                    'id' => $value->id,
-                                    'value' => $value->username,
-                                ];
-                            }
+                                ->pluck('id');
+                            $query->whereIn('assignee_id', $leadAssigneeId);
+                        } else {
+                            $query->where($filter['field'], 'LIKE', '%' . $filter['value'] . '%');
                         }
-                        $this->applyFilterCondition($query, $filter, isset($assigneeIdArr) ? $assigneeIdArr : []);
-                        
                     }
 
                     if ($filter['condition'] === 'is_null') {
@@ -976,15 +973,22 @@ class LeadController extends Controller
                     }
                 }
             }
-            // dd($query->toSQL());
         });
-        $queries->orderBy((($sort_column !== '') ? $sort_column : $request['params']['sort_column']), $request['params']['sort_direction']);
-        $data = $queries->paginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
-        
+
+        // Apply sorting
+        $queries->orderBy($sort_column ?: $request['params']['sort_column'], $request['params']['sort_direction']);
+
+        // Paginate results
+        $data = $queries->simplePaginate($request['params']['pagesize'], ['*'], 'page', $request['params']['page']);
+
+        // Cache total rows count
+        $total_rows = Cache::remember('leads_total_count', 600, function () {
+            return Lead::count();
+        });
 
         $records = [
             'data' => $data,
-            'total_rows' => $data->total(),
+            'total_rows' => $total_rows,
         ];
 
         return response()->json($records);
