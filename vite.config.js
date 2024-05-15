@@ -6,7 +6,7 @@ import vueJSX from '@vitejs/plugin-vue-jsx'
 export default defineConfig({
     plugins: [
         laravel({
-            input: 'resources/js/app.js',
+            input: ['resources/js/app.js', 'resources/css/app.css'],
         }),
 
         vue({
@@ -20,4 +20,7 @@ export default defineConfig({
 
         vueJSX(),
     ],
+    build: {
+        minify: 'esbuild',
+    },
 })

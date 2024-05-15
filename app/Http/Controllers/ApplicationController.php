@@ -96,11 +96,14 @@ class ApplicationController extends Controller
 
     public function getAllLeads(Request $request)
     {
-        $pageSize = $request['pagination']['pageSize'];
-        $pageIndex = $request['pagination']['pageIndex'];
+        // Extract pagination parameters
+        $pageSize = $request->input('pagination.pageSize', 10); // Default page size: 10
+        $pageIndex = $request->input('pagination.pageIndex', 1); // Default page index: 1
+
+        // Generate cache key for paginated leads
         $cacheKey = 'leads_page_' . $pageIndex . '_size_' . $pageSize;
     
-        $rows = Cache::remember($cacheKey, 600, function() use ($pageSize, $pageIndex) {
+        $rows = Cache::remember($cacheKey, 300, function() use ($pageSize, $pageIndex) {
             return Lead::with([
                 'leadCreator:id,username,site_id', 
                 'leadCreator.site:id,name', 
@@ -117,11 +120,19 @@ class ApplicationController extends Controller
                 'id', 'date', 'first_name', 'assignee_id', 'country', 'vc', 'phone_number',
                  'data_source', 'contacted_at', 'give_up_at', 'data_code', 'data_type'
             ])
-            ->orderByDesc('id')
-            ->simplePaginate($pageSize, ['*'], 'page', $pageIndex);
+            ->orderBy('id','desc')
+            ->simplePaginate(
+                                $pageSize, 
+                                [
+                                    'id', 'date', 'first_name', 'assignee_id', 'country', 'vc', 'phone_number',
+                                    'data_source', 'contacted_at', 'give_up_at', 'data_code', 'data_type'
+                                ], 
+                                'page', 
+                                $pageIndex
+                            );
         });
     
-        $total_rows = Cache::remember('leads_total_count', 600, function() {
+        $total_rows = Cache::remember('leads_total_count', 300, function() {
             return Lead::count();
         });
 

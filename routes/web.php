@@ -121,7 +121,7 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Applications Routes
     */
-        Route::get('/applications/leads/', [ApplicationController::class, 'getAllLeads'])->name('applications.getAllLeads');
+        Route::get('/applications/leads/', [ApplicationController::class, 'getAllLeads'])->name('applications.getAllLeads')->middleware('compress_response');
         Route::resource('/applications', ApplicationController::class);
     
     /*
