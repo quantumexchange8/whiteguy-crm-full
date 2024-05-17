@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -101,6 +102,15 @@ class User extends Authenticatable
     public function accountManager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'account_manager_id');
+    }
+
+    /**
+     * LeadFront Model
+     * Get the linked lead front.
+     */
+    public function accountManagerProfile(): HasOne
+    {
+        return $this->hasOne(AccountManagerProfile::class, 'user_id');
     }
 
     /**

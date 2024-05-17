@@ -35,8 +35,8 @@ class LeadFront extends Model
     ];
     
     /**
-     * User model
-     * Get the user that owns the phone.
+     * Lead model
+     * Get the lead of the lead front.
      */
     public function lead(): BelongsTo
     {

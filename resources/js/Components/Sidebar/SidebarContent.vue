@@ -38,9 +38,9 @@ import { TemplateIcon } from '@heroicons/vue/outline'
             </template>
 
             <SidebarCollapsibleItem 
-                :href="route('crm.account-manager-profiles')" 
+                :href="route('account-manager-profiles.index')" 
                 title="Account Manager Profiles" 
-                :active="route().current('crm.account-manager-profiles')" 
+                :active="route().current('account-manager-profiles.index')" 
             />
             <SidebarCollapsibleItem 
                 :href="route('crm.announcements')" 

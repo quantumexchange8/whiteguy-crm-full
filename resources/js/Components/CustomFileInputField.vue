@@ -1,6 +1,7 @@
 <script setup>
 import Input from '@/Components/Input.vue'
 import Label from '@/Components/Label.vue'
+import Tooltip from '@/Components/Tooltip.vue'
 
 const props = defineProps({
 	inputId: {
@@ -15,6 +16,10 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+    withTooltip: {
+        type: Boolean,
+        default: false
+    },
 })
 
 const onChangeFile = (event) => {
@@ -25,13 +30,18 @@ const onChangeFile = (event) => {
 
 <template>
     <div class="input-wrapper">
-        <Label
-            :value="labelValue"
-            :for="inputId"
-            class="mt-4 mb-2"
-            v-if="withLabel"
-        >
-        </Label>
+        <span class="flex flex-row gap-2">
+            <Label
+                :value="labelValue"
+                :for="inputId"
+                class="mb-2"
+                v-if="withLabel"
+            >
+            </Label>
+            <Tooltip v-if="withTooltip">
+                <slot></slot>
+            </Tooltip>
+        </span>
         <!-- <span class="sr-only">Choose profile photo</span> -->
         <input 
             type="file" 

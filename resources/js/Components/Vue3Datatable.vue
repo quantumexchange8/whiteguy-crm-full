@@ -58,6 +58,7 @@ const props = defineProps({
 	},
 	categoryFilters: {
 		type: String,
+        default: '',
 	},
     modalComponent: {
         type: Object,
@@ -96,7 +97,9 @@ const params = reactive({
 onMounted(() => {
     params.search = '';
     getData(params);
-    getCategoryFilters();
+    if(props.categoryFilters !== ''){
+        getCategoryFilters();
+    }
 });
 
 const getData = async (params) => {
@@ -583,7 +586,7 @@ watch(() => categories.value, (newVal) => {
 
             <div class="gap-4 col-span-8">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
-                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2">
+                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2" :class="[{'col-start-4': props.categoryFilters === ''}]">
                         <Dropdown 
                             :contentClasses="'dark:bg-dark-eval-3 bg-gray-200'"
                             class="cursor-pointer"
@@ -733,7 +736,7 @@ watch(() => categories.value, (newVal) => {
                             Reset
                         </Button>
                     </div>
-                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500">
+                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500" v-if="props.categoryFilters !== ''">
                         <Button 
                             :type="'button'"
                             :variant="'secondary'"
@@ -871,7 +874,7 @@ watch(() => categories.value, (newVal) => {
             :isServerMode="true"
             :sortable="true" 
             :loading="loading"
-            :rowClass="'odd:bg-gray-200 even:bg-gray-300 dark:odd:bg-gray-600 dark:even:bg-gray-700 dark:text-gray-200'" 
+            :rowClass="'bg-gray-800/60 dark:text-gray-200'" 
             :search="params.search" 
             :columnFilter="true" 
             :sortColumn="params.sort_column"

@@ -105,9 +105,10 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Account Manager Profiles Routes
     */
-        Route::get('/account-manager-profiles', function () {
-            return Inertia::render('CRM/AccountManagerProfiles/Index');
-        })->name('crm.account-manager-profiles');
+        Route::get('/account-manager-profiles/export-all', [AccountManagerProfileController::class, 'getAllAccountManagerProfileForExport'])->name('account-manager-profiles.getAllAccountManagerProfileForExport');
+        Route::get('/account-manager-profiles/export/{selectedRowsData}', [AccountManagerProfileController::class, 'exportToExcel'])->name('account-manager-profiles.export');
+        Route::get('/account-manager-profiles/{id}/account-manager-profiles-log-entries', [AccountManagerProfileController::class, 'getAccontManagerProfileLogEntries'])->name('account-manager-profiles.getAccontManagerProfileLogEntries');
+        Route::resource('/account-manager-profiles', AccountManagerProfileController::class);
 
     /*
     |--------------------------------------------------------------------------
@@ -213,6 +214,9 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Payment Methods Routes
     */
+        Route::get('/payment-methods/export-all', [PaymentMethodController::class, 'getAllPaymentMethodForExport'])->name('payment-methods.getAllPaymentMethodForExport');
+        Route::get('/payment-methods/export/{selectedRowsData}', [PaymentMethodController::class, 'exportToExcel'])->name('payment-methods.export');
+        Route::get('/payment-methods/{id}/payment-methods-log-entries', [PaymentMethodController::class, 'getPaymentMethodLogEntries'])->name('payment-methods.getPaymentMethodLogEntries');
         Route::resource('/payment-methods', PaymentMethodController::class);
         
     /*
