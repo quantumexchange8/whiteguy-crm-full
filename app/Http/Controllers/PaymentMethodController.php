@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Exports\PaymentMethodExport;
+use App\Http\Requests\PaymentMethodRequest;
 use App\Models\ContentType;
 use App\Models\PaymentMethod;
+use App\Models\Site;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
@@ -42,15 +45,57 @@ class PaymentMethodController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('CRM/PaymentMethods/Create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PaymentMethodRequest $request)
     {
-        //
+        $data = $request->all();
+        $fileName = '';
+        
+        if ($request->hasFile('logo')) {
+            $fileName = $request->file('logo')->getClientOriginalName();
+        }
+
+        $newPaymentMethod = PaymentMethod::create([
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'bank_name_label' => 'Cryptocurrency',
+            'bank_name' => $data['bank_name'],
+            'account_name_label' => 'Network',
+            'account_name' => $data['account_name'],
+            'account_number_label' => 'Wallet Address',
+            'account_number' => $data['account_number'],
+            'logo' => 'payment_methods/' . Carbon::now()->format('Y/m/d') . '/' . $fileName,
+            'currency' => 'CRYPTO',
+            'edited_at' => $data['edited_at'],
+            'created_at' => $data['created_at'],
+        ]);
+        $newPaymentMethod->save();
+
+        /* Need modifications on saving approach */
+        // if (isset($data['sites']) && count($data['sites']) > 0) {
+        //     foreach ($data['sites'] as $key => $value) {
+        //         $newPaymentMethod->sites()->attach($value['site_id'], [
+        //             'edited_at' => $value['edited_at'],
+        //             'created_at' => $value['created_at'],
+        //         ]);
+        //     }
+        // }
+
+        $errorMsgTitle = "You have successfully created a new payment method.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('payment-methods.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -85,13 +130,26 @@ class PaymentMethodController extends Controller
         //
     }
 
+    
+    /**
+     * Delete site payment method.
+     */
+    public function deleteSitePaymentMethod(Request $request, string $id)
+    {
+        dd($request);
+        $existingSitePaymentMethod = DB::table('core_sitepaymentmethod')->find($id);
+        $saleOrderId = $existingSitePaymentMethod;
+
+        return redirect(route('sale-orders.edit', $saleOrderId));
+    }
+
     public function getPaymentMethods(Request $request)
     {   
         $tableColumns = Schema::getColumnListing('core_accountmanagerprofile');
         $sort_column = '';
 
         $queries = PaymentMethod::query();
-        // $queries->with(['user:id,username']);
+        $queries->withCount(['sites']);
         $queries->where(function ($query) use ($tableColumns, $request) {
             // Global search
             $searchTerm = $request['params']['search'];
@@ -207,5 +265,12 @@ class PaymentMethodController extends Controller
         }
 
         return response()->json($paymentMethodLogEntries);
+    }
+
+    public function getAllSites()
+    {
+        $sites = Site::getAllSites();
+
+        return response()->json($sites);
     }
 }

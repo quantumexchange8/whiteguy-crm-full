@@ -22,7 +22,7 @@ const colArray = ref([
 	{ field: 'actions', title: 'ACTIONS', headerClass: "dark:text-gray-300 text-sm w-max", filter: false, sort: false },
     { field: "id", title: "ID", headerClass: "text-gray-300 text-sm w-max" },
     { field: "title", title: "TITLE", headerClass: "text-gray-300 text-sm w-max"  },
-    { field: "total_site_payment_methods", title: "SITE(S)", headerClass: "text-gray-300 text-sm w-max"  },
+    { field: "sites_count", title: "SITE(S)", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "bank_name", title: "CRYPTOCURRENCY", headerClass: "text-gray-300 text-sm w-max", type: 'date' },
     { field: "account_name", title: "NETWORK", headerClass: "text-gray-300 text-sm w-max"  },
     { field: "account_number", title: "WALLET ADDRESS", headerClass: "text-gray-300 text-sm w-max", type: 'date' },

@@ -214,9 +214,11 @@ Route::middleware(['auth', 'verified'])->prefix('crm')->group(function () {
     |--------------------------------------------------------------------------
     | Payment Methods Routes
     */
+        Route::get('/payment-methods/sites', [PaymentMethodController::class, 'getAllSites'])->name('payment-methods.getAllSites');
         Route::get('/payment-methods/export-all', [PaymentMethodController::class, 'getAllPaymentMethodForExport'])->name('payment-methods.getAllPaymentMethodForExport');
         Route::get('/payment-methods/export/{selectedRowsData}', [PaymentMethodController::class, 'exportToExcel'])->name('payment-methods.export');
         Route::get('/payment-methods/{id}/payment-methods-log-entries', [PaymentMethodController::class, 'getPaymentMethodLogEntries'])->name('payment-methods.getPaymentMethodLogEntries');
+        Route::delete('/payment-methods/{id}/site-payment-method', [PaymentMethodController::class, 'deleteSitePaymentMethod'])->name('payment-methods.deleteSitePaymentMethod');
         Route::resource('/payment-methods', PaymentMethodController::class);
         
     /*

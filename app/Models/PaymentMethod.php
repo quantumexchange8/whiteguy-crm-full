@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class PaymentMethod extends Model
 {
@@ -30,6 +31,16 @@ class PaymentMethod extends Model
         'created_at', 
     ];
     
+    public static function getAllPaymentMethods()
+    {
+        return self::all();
+    }
+    
+    // public static function getTotalSiteCount()
+    // {
+    //     return self::sites();
+    // }
+    
     /**
      * Get the payment submissions that uses this payment method.
      */
@@ -37,9 +48,13 @@ class PaymentMethod extends Model
     {
         return $this->hasMany(PaymentSubmission::class, 'payment_method_id');
     }
-
-    public static function getAllPaymentMethods()
+    
+    /**
+     * Site Model
+     * Get the sites that belong to the payment method.
+     */
+    public function sites(): BelongsToMany
     {
-        return self::all();
+        return $this->belongsToMany(Site::class, 'core_sitepaymentmethod');
     }
 }

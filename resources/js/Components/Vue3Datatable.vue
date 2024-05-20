@@ -586,7 +586,11 @@ watch(() => categories.value, (newVal) => {
 
             <div class="gap-4 col-span-8">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
-                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2" :class="[{'col-start-4': props.categoryFilters === ''}]">
+                    <div 
+                        class="relative col-span-3 rounded-md shadow-lg border border-gray-500 hover:bg-dark-eval-2" 
+                        :class="[{'col-start-4': props.categoryFilters === ''}]"
+                        v-if="props.detailsLink !== 'payment-methods'"
+                    >
                         <Dropdown 
                             :contentClasses="'dark:bg-dark-eval-3 bg-gray-200'"
                             class="cursor-pointer"
@@ -726,7 +730,10 @@ watch(() => categories.value, (newVal) => {
                             </div>
                         </Modal>
                     </div>
-                    <div class="relative col-span-3 rounded-md shadow-lg border border-gray-500">
+                    <div 
+                        class="relative col-span-3 rounded-md shadow-lg border border-gray-500"
+                        :class="[{'col-start-7': props.detailsLink === 'payment-methods'}]"
+                    >
                         <Button 
                             :variant="'secondary'"
 							:size="'sm'"

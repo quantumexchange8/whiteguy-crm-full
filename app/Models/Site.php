@@ -18,6 +18,11 @@ class Site extends Model
         'name',
     ];
 
+    public static function getAllSites()
+    {
+        return self::all();
+    }
+
     /**
      * Get the users for the site.
      */
@@ -37,10 +42,19 @@ class Site extends Model
     
     /**
      * Announcement Model
-     * Get the sites that belong to the announcement.
+     * Get the announcements that belong to the site.
      */
     public function announcements(): BelongsToMany
     {
         return $this->belongsToMany(Announcement::class, 'core_siteannouncement');
+    }
+    
+    /**
+     * PaymentMethod Model
+     * Get the payment methods that belong to the site.
+     */
+    public function paymentMethods(): BelongsToMany
+    {
+        return $this->belongsToMany(PaymentMethod::class, 'core_sitepaymentmethod');
     }
 }
