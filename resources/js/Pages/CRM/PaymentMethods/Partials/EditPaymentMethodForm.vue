@@ -6,54 +6,75 @@ import Label from '@/Components/Label.vue'
 import Modal from '@/Components/Modal.vue'
 import Button from '@/Components/Button.vue'
 import { TimesCircleIcon } from '@/Components/Icons/solid';
+import CustomLabelGroup2 from '@/Components/CustomLabelGroup2.vue'
 import CustomTextInputField2 from '@/Components/CustomTextInputField2.vue'
 import CustomFileInputField2 from '@/Components/CustomFileInputField2.vue'
 import CustomSelectInputField2 from '@/Components/CustomSelectInputField2.vue'
 
 // Get the errors thats passed back from controller if there are any error after backend validations
-defineProps({
-    errors:Object
+const props = defineProps({
+    errors:Object,
+    data: {
+        type: Object,
+        default: () => ({}),
+    },
+    sites: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const selectedSite = ref(null);
 const siteArray  = reactive({});
 
 onMounted(async () => {
-  try {
-    const siteResponse = await axios.get(route('payment-methods.getAllSites'));
-    populateArrayFromResponse(siteResponse.data, siteArray, 'id', 'domain');
+    form.sites.forEach((item) => {
+        item['edited'] = false;
+    })
 
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
+    try {
+        const siteResponse = await axios.get(route('payment-methods.getAllSites'));
+        populateArrayFromResponse(siteResponse.data, siteArray, 'id', 'domain');
+
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
 });
 
 // Create a form with the following fields to make accessing the errors and posting more convenient
 const form = useForm({
-	title: '',
-	description: '',
-	bank_name: '',
-	account_name: '',
-	account_number: '',
-	logo: '',
-    edited_at: '',
-    created_at: '',
-	sites: [],
+    _method: 'put',
+    id: props.data.id,
+	title: props.data.title,
+	description: props.data.description,
+	bank_name: props.data.bank_name,
+	account_name: props.data.account_name,
+	account_number: props.data.account_number,
+	logo: props.data.logo,
+	new_logo: '',
+    edited_at: props.data.edited_at,
+    created_at: `${props.data.created_at}00`,
+	sites: props.sites ? props.sites : [],
 });
 
 // Post form fields to controller after executing the checking and parsing the input fields
 const formSubmit = () => {
 	form.edited_at = setDateTimeWithOffset(true);
-	form.created_at = setDateTimeWithOffset(true);
 
     if (form.sites.length > 0) {
         form.sites.forEach(item => {
-            item.edited_at = setDateTimeWithOffset(true);
-            item.created_at = setDateTimeWithOffset(true);
+            item.site_id = parseInt(item.site_id);
+            item.edited_at = (item.edited) 
+                                ? setDateTimeWithOffset(true) 
+                                : setFormattedDateTimeWithOffset(item.edited_at, true);
+
+            item.created_at = (item.created_at === '') 
+                                ? setDateTimeWithOffset(true) 
+                                : setFormattedDateTimeWithOffset(item.created_at, true);
         });
     }
 
-	form.post(route('payment-methods.store'), {
+	form.post(route('payment-methods.update', form.id), {
 		preserveScroll: true,
 		onSuccess: () => form.reset(),
 	})
@@ -69,6 +90,7 @@ const addSitePaymentMethod = () => {
         'site_id': '',
         'edited_at': '',
         'created_at': '',
+        'edited': true,
     });
 }
 
@@ -86,6 +108,10 @@ const openSitePaymentMethodModal = (i) => {
 
 const closeSitePaymentMethodModal = () => {
     selectedSite.value = null;
+}
+
+const updateSites = (site, item) => {
+    item.edited = true;
 }
 
 </script>
@@ -136,6 +162,7 @@ const closeSitePaymentMethodModal = () => {
                             :inputId="'title'"
                             :labelValue="'Title'"
                             class="col-span-full w-full"
+                            :dataValue="props.data.title"
                             :errorMessage="(form.errors) ? form.errors.title : '' "
                             v-model="form.title"
                         />
@@ -144,6 +171,7 @@ const closeSitePaymentMethodModal = () => {
                             :inputId="'description'"
                             :labelValue="'Description'"
                             class="col-span-full w-full"
+                            :dataValue="props.data.description"
                             :errorMessage="(form.errors) ? form.errors.description : '' "
                             v-model="form.description"
                         />
@@ -152,6 +180,7 @@ const closeSitePaymentMethodModal = () => {
                             :inputId="'bank_name'"
                             :labelValue="'Cryptocurrency'"
                             class="col-span-full w-full"
+                            :dataValue="props.data.bank_name"
                             :errorMessage="(form.errors) ? form.errors.bank_name : '' "
                             v-model="form.bank_name"
                         />
@@ -160,6 +189,7 @@ const closeSitePaymentMethodModal = () => {
                             :inputId="'account_name'"
                             :labelValue="'Network'"
                             class="col-span-full w-full"
+                            :dataValue="props.data.account_name"
                             :errorMessage="(form.errors) ? form.errors.account_name : '' "
                             v-model="form.account_name"
                         />
@@ -168,16 +198,25 @@ const closeSitePaymentMethodModal = () => {
                             :inputId="'account_number'"
                             :labelValue="'Wallet Address'"
                             class="col-span-full w-full"
+                            :dataValue="props.data.account_number"
                             :errorMessage="(form.errors) ? form.errors.account_number : '' "
                             v-model="form.account_number"
                         />
-                        <CustomFileInputField2
+                        <CustomLabelGroup2
                             :inputId="'logo'"
-                            :labelValue="'Logo'"
+                            :labelValue="'Current Logo: '"
+                            class="col-span-full w-full"
+                            :dataValue="false"
+                        >
+                            <strong><span class="text-purple-300">{{ form.logo }}</span></strong>
+                        </CustomLabelGroup2>
+                        <CustomFileInputField2
+                            :inputId="'new_logo'"
+                            :labelValue="'New Logo'"
                             :withLabel="true"
                             class="col-span-full w-full"
-                            :errorMessage="(form.errors) ? form.errors.logo : '' "
-                            v-model="form.logo" 
+                            :errorMessage="(form.errors) ? form.errors.new_logo : '' "
+                            v-model="form.new_logo" 
                         />
                     </div>
                 </div>
@@ -203,9 +242,11 @@ const closeSitePaymentMethodModal = () => {
                                 :inputId="'site_id_'+(i)"
                                 :labelValue="'Site #'+(i+1)"
                                 :customValue="true"
+                                :dataValue="item.site_id"
                                 class="col-span-full w-full"
                                 :errorMessage="(form.errors) ? form.errors['site_id.' + (i) + '.price'] : '' "
-                                v-model="form.site_id"
+                                @change="updateSites($event.target.value, item)"
+                                v-model="item.site_id"
                             />
                             <span class="inline">
                                 <Button 

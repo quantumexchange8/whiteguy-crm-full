@@ -77,14 +77,14 @@ class PaymentMethodController extends Controller
         $newPaymentMethod->save();
 
         /* Need modifications on saving approach */
-        // if (isset($data['sites']) && count($data['sites']) > 0) {
-        //     foreach ($data['sites'] as $key => $value) {
-        //         $newPaymentMethod->sites()->attach($value['site_id'], [
-        //             'edited_at' => $value['edited_at'],
-        //             'created_at' => $value['created_at'],
-        //         ]);
-        //     }
-        // }
+        if (isset($data['sites']) && count($data['sites']) > 0) {
+            foreach ($data['sites'] as $key => $value) {
+                $newPaymentMethod->sites()->attach($value['site_id'], [
+                    'edited_at' => $value['edited_at'],
+                    'created_at' => $value['created_at'],
+                ]);
+            }
+        }
 
         $errorMsgTitle = "You have successfully created a new payment method.";
         $errorMsgType = "success";
@@ -111,7 +111,17 @@ class PaymentMethodController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data = PaymentMethod::find($id);
+
+        $sites = DB::table('core_sitepaymentmethod')
+                        ->where('payment_method_id', $id)
+                        ->select(['id', 'site_id', 'edited_at', 'created_at'])
+                        ->get();
+
+        return Inertia::render('CRM/PaymentMethods/Edit', [
+            'data' => $data,
+            'sites' => $sites
+        ]);     
     }
 
     /**
@@ -119,7 +129,63 @@ class PaymentMethodController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $data = $request->all();
+        // dd($request);
+        $fileName = '';
+        
+        if (isset($data['logo'])) {
+            if ($request->hasFile('logo')) {
+                $fileName = 'payment_methods/' . Carbon::now()->format('Y/m/d') . '/' . $request->file('logo')->getClientOriginalName();
+            } else {
+                $fileName = $data['logo'];
+            }
+        }
+
+        $newPaymentMethod = PaymentMethod::find($id);
+        
+        $newPaymentMethod->update([
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'bank_name_label' => 'Cryptocurrency',
+            'bank_name' => $data['bank_name'],
+            'account_name_label' => 'Network',
+            'account_name' => $data['account_name'],
+            'account_number_label' => 'Wallet Address',
+            'account_number' => $data['account_number'],
+            'logo' => $fileName,
+            'currency' => 'CRYPTO',
+            'edited_at' => $data['edited_at'],
+            'created_at' => $data['created_at'],
+        ]);
+        $newPaymentMethod->save();
+
+        /* Need modifications on saving approach */
+        if (isset($data['sites']) && count($data['sites']) > 0) {
+            // $newPaymentMethod->sites()->detach();
+            foreach ($data['sites'] as $key => $value) {
+                if (!$newPaymentMethod->sites()->where('site_id', $value['site_id'])->exists()) {
+                    $newPaymentMethod->sites()->attach($value['site_id'], [
+                        'edited_at' => $value['edited_at'],
+                        'created_at' => $value['created_at'],
+                    ]);
+                } else {
+                    $newPaymentMethod->sites()->updateExistingPivot($value['site_id'], [
+                        'edited_at' => $value['edited_at'],
+                    ]);
+                }
+            }
+        }
+
+        $errorMsgTitle = "You have successfully updated the payment method.";
+        $errorMsgType = "success";
+
+        $errorMsg = [
+            'title' => $errorMsgTitle,
+            'type' => $errorMsgType,
+        ];
+
+        return Redirect::route('payment-methods.index')
+                        ->with('errorMsg', $errorMsg);
     }
 
     /**
@@ -136,16 +202,16 @@ class PaymentMethodController extends Controller
      */
     public function deleteSitePaymentMethod(Request $request, string $id)
     {
-        dd($request);
-        $existingSitePaymentMethod = DB::table('core_sitepaymentmethod')->find($id);
-        $saleOrderId = $existingSitePaymentMethod;
+        // dd($request, $id, $request->sites);
+        $existingSitePaymentMethod = PaymentMethod::find($request->id);
+        $existingSitePaymentMethod->sites()->detach($request->sites[0]['site_id']);
 
-        return redirect(route('sale-orders.edit', $saleOrderId));
+        return redirect(route('payment-methods.edit', $request->id));
     }
 
     public function getPaymentMethods(Request $request)
     {   
-        $tableColumns = Schema::getColumnListing('core_accountmanagerprofile');
+        $tableColumns = Schema::getColumnListing('core_paymentmethod');
         $sort_column = '';
 
         $queries = PaymentMethod::query();
